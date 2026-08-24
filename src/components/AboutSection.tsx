@@ -25,7 +25,7 @@ const easing = [0.16, 1, 0.3, 1] as const;
 
 export default function AboutSection() {
   return (
-    <section className="relative w-full bg-canvas">
+    <section id="about" className="relative w-full bg-canvas">
       <div className="mx-auto max-w-[1400px] px-6 py-16 md:px-[60px] md:py-[96px]">
         {/* Section number label */}
         <motion.p

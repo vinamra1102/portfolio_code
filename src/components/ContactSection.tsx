@@ -71,7 +71,7 @@ export default function ContactSection() {
   };
 
   return (
-    <section className="relative w-full bg-canvas">
+    <section id="contact" className="relative w-full bg-canvas">
       <div className="mx-auto max-w-[640px] px-6 py-[72px] md:px-[60px] md:py-[96px_80px]">
         {/* Section label */}
         <motion.p

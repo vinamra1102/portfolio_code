@@ -16,6 +16,15 @@
 html {
   background-color: var(--color-canvas);
   color: var(--color-ink);
+  scroll-behavior: smooth;
+  /* Keep anchor targets clear of the 56px fixed nav bar. */
+  scroll-padding-top: 56px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 body {
