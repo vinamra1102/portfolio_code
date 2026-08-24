@@ -6,7 +6,7 @@ export default function Footer() {
         <p className="text-[12px] text-[#333333]">
           Built with Next.js and Framer Motion
         </p>
-        <p className="text-[13px] text-[#555555]">2025</p>
+        <p className="text-[13px] text-[#555555]">2026</p>
       </div>
     </footer>
   );
