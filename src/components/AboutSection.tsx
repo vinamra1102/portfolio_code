@@ -26,7 +26,7 @@ const easing = [0.16, 1, 0.3, 1] as const;
 export default function AboutSection() {
   return (
     <section className="relative w-full bg-canvas">
-      <div className="mx-auto max-w-[1400px] px-[60px] py-[96px]">
+      <div className="mx-auto max-w-[1400px] px-6 py-16 md:px-[60px] md:py-[96px]">
         {/* Section number label */}
         <motion.p
           initial={{ opacity: 0 }}
@@ -59,11 +59,8 @@ export default function AboutSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.15, duration: 0.7, ease: easing }}
-              className="font-medium leading-[1.0] text-ink"
-              style={{
-                fontSize: "clamp(36px, 5vw, 52px)",
-                letterSpacing: "-2px",
-              }}
+              className="font-medium leading-[1.0] text-ink text-[clamp(28px,8vw,36px)] lg:text-[clamp(36px,5vw,52px)]"
+              style={{ letterSpacing: "-2px" }}
             >
               Building robots
               <br />
