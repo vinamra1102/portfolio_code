@@ -332,7 +332,7 @@ export default function ProjectsSection() {
         </motion.h2>
 
         {/* Desktop grid */}
-        <div className="hidden gap-3 md:grid md:grid-cols-2">
+        <div className="hidden w-full gap-3 md:grid md:grid-cols-2">
           {projects.map((project, i) => (
             <ProjectCard
               key={project.title}
