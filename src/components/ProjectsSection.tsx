@@ -67,10 +67,14 @@ function ProjectCard({
   project,
   index,
   onExpand,
+  onMouseEnter,
+  onMouseLeave,
 }: {
   project: Project;
   index: number;
   onExpand: () => void;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
 }) {
   return (
     <motion.div
@@ -80,6 +84,8 @@ function ProjectCard({
       viewport={{ once: true }}
       transition={{ delay: 0.1 * index, duration: 0.6, ease: easing }}
       onClick={onExpand}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       className="group relative cursor-pointer overflow-hidden rounded-[15px] bg-surface-1 transition-all duration-500 hover:h-[520px] h-[420px]"
       style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
     >
@@ -127,6 +133,45 @@ function ProjectCard({
         </div>
       </div>
     </motion.div>
+  );
+}
+
+function ProjectRow({
+  rowProjects,
+  startIndex,
+  onExpand,
+}: {
+  rowProjects: Project[];
+  startIndex: number;
+  onExpand: (index: number) => void;
+}) {
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
+
+  const getGridColumns = () => {
+    if (hoveredCard === null) return "1fr 1fr";
+    if (hoveredCard === 0) return "1.4fr 0.6fr";
+    return "0.6fr 1.4fr";
+  };
+
+  return (
+    <div
+      className="grid w-full gap-3"
+      style={{
+        gridTemplateColumns: getGridColumns(),
+        transition: "grid-template-columns 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
+      }}
+    >
+      {rowProjects.map((project, i) => (
+        <ProjectCard
+          key={project.title}
+          project={project}
+          index={startIndex + i}
+          onExpand={() => onExpand(startIndex + i)}
+          onMouseEnter={() => setHoveredCard(i)}
+          onMouseLeave={() => setHoveredCard(null)}
+        />
+      ))}
+    </div>
   );
 }
 
@@ -331,16 +376,18 @@ export default function ProjectsSection() {
           Things I have built.
         </motion.h2>
 
-        {/* Desktop grid */}
-        <div className="hidden w-full gap-3 md:grid md:grid-cols-2">
-          {projects.map((project, i) => (
-            <ProjectCard
-              key={project.title}
-              project={project}
-              index={i}
-              onExpand={() => setExpandedIndex(i)}
-            />
-          ))}
+        {/* Desktop grid - 2 rows with independent hover stretch */}
+        <div className="hidden w-full flex-col gap-3 md:flex">
+          <ProjectRow
+            rowProjects={projects.slice(0, 2)}
+            startIndex={0}
+            onExpand={setExpandedIndex}
+          />
+          <ProjectRow
+            rowProjects={projects.slice(2, 4)}
+            startIndex={2}
+            onExpand={setExpandedIndex}
+          />
         </div>
 
         {/* Mobile carousel */}
@@ -365,6 +412,8 @@ export default function ProjectsSection() {
                   project={project}
                   index={i}
                   onExpand={() => setExpandedIndex(i)}
+                  onMouseEnter={() => {}}
+                  onMouseLeave={() => {}}
                 />
               </div>
             ))}
