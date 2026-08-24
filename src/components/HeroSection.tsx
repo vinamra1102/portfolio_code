@@ -55,11 +55,8 @@ export default function HeroSection() {
               duration: 0.8,
               ease: [0.16, 1, 0.3, 1],
             }}
-            className="font-medium leading-none text-ink"
-            style={{
-              fontSize: "clamp(52px, 12vw, 110px)",
-              letterSpacing: "-5.5px",
-            }}
+            className="font-medium leading-none text-ink text-[clamp(52px,12vw,72px)] lg:text-[clamp(72px,10vw,110px)]"
+            style={{ letterSpacing: "-5.5px" }}
           >
             I&apos;m Anant
             <motion.span
