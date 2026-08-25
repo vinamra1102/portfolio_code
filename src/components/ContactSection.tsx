@@ -4,6 +4,14 @@ import { useState, FormEvent } from "react";
 import { motion } from "framer-motion";
 import emailjs from "@emailjs/browser";
 
+// ---------------------------------------------------------------------------
+// TODO: EmailJS placeholders — the contact form will not send until these three
+// values are replaced with the real ones from https://dashboard.emailjs.com
+//   SERVICE_ID  → Email Services  → your service
+//   TEMPLATE_ID → Email Templates → your template
+//   PUBLIC_KEY  → Account         → API Keys → Public Key
+// The template must accept: from_name, from_email, message, to_name.
+// ---------------------------------------------------------------------------
 const EMAILJS_SERVICE_ID = "YOUR_SERVICE_ID";
 const EMAILJS_TEMPLATE_ID = "YOUR_TEMPLATE_ID";
 const EMAILJS_PUBLIC_KEY = "YOUR_PUBLIC_KEY";
@@ -113,7 +121,10 @@ export default function ContactSection() {
         </motion.p>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="mx-auto max-w-[560px]">
+        <form
+          onSubmit={handleSubmit}
+          className="mx-auto flex max-w-[560px] flex-col gap-3"
+        >
           {/* Name field */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
@@ -184,7 +195,7 @@ export default function ContactSection() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="mb-4 inline-flex rounded-full border-[0.5px] border-[rgba(34,197,94,0.3)] bg-[rgba(34,197,94,0.1)] px-[14px] py-1.5 text-[12px] text-[#22c55e]"
+              className="inline-flex self-start rounded-full border-[0.5px] border-[rgba(34,197,94,0.3)] bg-[rgba(34,197,94,0.1)] px-[14px] py-1.5 text-[12px] text-[#22c55e]"
             >
               Message sent. Anant will get back to you soon.
             </motion.div>
@@ -194,7 +205,7 @@ export default function ContactSection() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="mb-4 inline-flex rounded-full border-[0.5px] border-[rgba(255,68,68,0.3)] bg-[rgba(255,68,68,0.1)] px-[14px] py-1.5 text-[12px] text-[#ff4444]"
+              className="inline-flex self-start rounded-full border-[0.5px] border-[rgba(255,68,68,0.3)] bg-[rgba(255,68,68,0.1)] px-[14px] py-1.5 text-[12px] text-[#ff4444]"
             >
               Something went wrong. Please try again or email directly.
             </motion.div>

@@ -24,9 +24,15 @@ export default function SocialLinks() {
             ease: [0.16, 1, 0.3, 1],
           }}
           className="text-[11px] tracking-[0.15em] text-ink-muted hover:text-ink transition-colors duration-300"
-          style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
         >
-          {link.label}
+          {/* The rotation lives on an inner span: Framer Motion owns the
+              anchor's transform and would overwrite a static rotate() there. */}
+          <span
+            className="inline-block"
+            style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+          >
+            {link.label}
+          </span>
         </motion.a>
       ))}
     </div>
