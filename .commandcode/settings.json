@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Shell(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --no-import-alias --use-npm)",
+      "Shell(npx create-next-app@latest temp-nextjs --typescript --tailwind --eslint --app --src-dir --no-import-alias --use-npm)",
+      "Shell(powershell -Command Get-ChildItem -Path temp-nextjs -Force)",
+      "Shell(Where-Object:*)",
+      "Shell(Move-Item:*)",
+      "Shell(Remove-Item:*)",
+      "powershell",
+      "Shell(npm:*)",
+      "Shell(dir:*)",
+      "Shell(powershell -Command Remove-Item -Recurse -Force node_modules, package-lock.json)",
+      "Shell(git:*)"
+    ],
+    "deny": [],
+    "defaultMode": "default"
+  }
+}

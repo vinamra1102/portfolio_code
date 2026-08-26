@@ -1,0 +1,40 @@
+# General Preferences
+- Prefers Next.js 15 (App Router) + Tailwind CSS v4 + Framer Motion + TypeScript as a default frontend stack. Confidence: 0.9
+- Uses Google Fonts (Inter) with system font fallbacks. Confidence: 0.8
+- Dark mode only — explicitly rejects light mode and light mode toggles. Confidence: 0.95
+- Accent/signal colors should be used sparingly (e.g. hover states, highlights, hyperlinks) — never as button fills or backgrounds. Confidence: 0.9
+- Prefers barely-visible decorative UI elements (e.g. hairline grid overlays at ~3% opacity) for subtle texture. Confidence: 0.8
+- CTA links should be plain text with icon prefixes, not pill buttons or heavy UI components. Confidence: 0.9
+- Uses CSS `clamp()` for fluid responsive typography with specific min/max bounds. Confidence: 0.85
+- Prefers editorial 12-column CSS Grid layouts for hero/landing sections. Confidence: 0.8
+- Applies tight negative letter-spacing on large display text (e.g. -5.5px). Confidence: 0.8
+- Uses Framer Motion with staggered entrance animations (fade-in, slide-up, scale-pop). Confidence: 0.85
+- Prefers custom cubic-bezier easing: `[0.16, 1, 0.3, 1]`. Confidence: 0.8
+- Prefers clean component separation — each logical UI section gets its own file (e.g. HeroSection.tsx, CTALinks.tsx, SocialLinks.tsx). Confidence: 0.9
+- Uses `"use client"` directive for interactive components in Next.js App Router. Confidence: 0.8
+- Uses conventional-commit-style prefixes: `init:`, `feat:`, `fix:`. Confidence: 0.9
+- Explicitly does NOT want co-author trailers (`Co-Authored-By`) on commits. Confidence: 0.95
+- Structures commits in logical stages: scaffold → feature → responsive/polish. Confidence: 0.8
+- Explicitly bans em dashes (—) from all code and content. Confidence: 0.95
+- Prefers non-destructive additions — new sections/components should not modify existing files. Confidence: 0.9
+- Uses numbered section labels (e.g. "02 — About") for page sections to indicate hierarchy. Confidence: 0.8
+- Prefers horizontal swipeable carousel with scroll-snap for mobile card layouts (85vw card width, ~1.15 cards visible to hint at scrollability), with IntersectionObserver-powered dot indicators. Confidence: 0.85
+- Wants commented-out `<video>` elements ready to uncomment alongside placeholder divs (e.g. showing initials with pulsing animation) so real media can be swapped in later. Confidence: 0.85
+- Prefers card hover states that expand height with smooth cubic-bezier transitions, rotating arrow icons, and accent-colored border reveals. Confidence: 0.8
+- Prefers horizontal grid-column stretch on hover: dynamically adjusting `grid-template-columns` ratios (e.g. `1.4fr 0.6fr`) so the hovered card grows wider while the sibling shrinks, with `0.5s cubic-bezier(0.16, 1, 0.3, 1)` transition. Confidence: 0.85
+- Prefers row-based grid architecture for independent hover states: each row of cards wrapped in its own grid container with its own `useState` for hover tracking, rather than a single grid with global state. Confidence: 0.85
+- Uses Framer Motion `layoutId` + `AnimatePresence` for smooth card-to-fullscreen-overlay expand/collapse transitions. Confidence: 0.85
+- Consistent pill-style UI elements (status pills, tech chips, action buttons) with backdrop-blur, semi-transparent backgrounds (e.g. `bg-white/10`), and 0.5px hairline borders. Confidence: 0.85
+- Section padding convention: 96px top/bottom and 60px left/right on desktop, reduced to 16px/24px on mobile via responsive classes. Confidence: 0.8
+- Communicates debugging tasks as numbered, step-by-step checklists with specific hypotheses and explicit file-scope constraints (e.g. "Do not modify X or Y"). Confidence: 0.9
+- Provides full implementation specs with exact CSS values, component architecture, state management approach, and even the commit message — essentially a prescriptive design document rather than a high-level request. Confidence: 0.9
+- References specific websites (e.g. "Porsche website reference") for design matching — expects pixel-perfect behavioral fidelity to the named reference. Confidence: 0.85
+- Prefers temporary visual debugging: add colored borders (e.g. `2px solid red`) to confirm elements exist in the DOM before investigating deeper logic issues. Confidence: 0.85
+- Debugging methodology: strip away complexity first (e.g. remove AnimatePresence/layoutId, use simple useState toggle) to isolate the root cause, then restore animations cleanly once the base renders correctly. Confidence: 0.85
+- Uses @emailjs/browser for client-side contact form submission (no backend). Confidence: 0.85
+- API keys and service credentials should be stored as clearly-named placeholder constants (e.g. `YOUR_SERVICE_ID`) at the top of the file for easy find-and-replace. Confidence: 0.9
+- Footer layout convention: left (name), center (tech stack credit), right (year), with responsive vertical stacking on mobile. Confidence: 0.8
+- Form validation pattern: inline error messages below each field in 12px red (#ff4444), cleared on field change. Confidence: 0.85
+- Prefers status pill notifications for form feedback: rounded-full pills with rgba-tinted backgrounds and matching 0.5px borders (e.g. green rgba for success, red rgba for error), animated with Framer Motion fade-in. Confidence: 0.85
+- Submit button state machine: idle (default colors) → loading (disabled, "Sending...") → success (green bg, "Message sent") → error (red bg, specific error text), with auto-reset after timeout. Confidence: 0.85
+- Social links pattern: horizontal row with hairline dot separators (·), uppercase, letter-spaced, muted color (#555555) that brightens to white on hover. Confidence: 0.8

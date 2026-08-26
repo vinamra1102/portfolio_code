@@ -32,7 +32,7 @@ export default function HeroSection() {
     >
       <HairlineGrid />
 
-      <div className="relative z-10 mx-auto grid min-h-screen max-w-[1400px] grid-cols-1 px-6 pb-12 pt-[104px] md:grid-cols-2 md:px-12 lg:grid-cols-12 lg:px-8">
+      <div className="relative z-10 mx-auto grid min-h-screen max-w-[1400px] grid-cols-1 px-6 pb-12 pt-[48px] md:grid-cols-2 md:px-12 lg:grid-cols-12 lg:px-8">
         {/* Left column: greeting + name + bio */}
         <div className="flex flex-col justify-center gap-6 md:col-span-1 lg:col-span-5 lg:col-start-1">
           {/* Greeting */}
