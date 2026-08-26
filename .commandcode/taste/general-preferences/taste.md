@@ -12,13 +12,15 @@
 - Prefers custom cubic-bezier easing: `[0.16, 1, 0.3, 1]`. Confidence: 0.8
 - Prefers clean component separation — each logical UI section gets its own file (e.g. HeroSection.tsx, CTALinks.tsx, SocialLinks.tsx). Confidence: 0.9
 - Uses `"use client"` directive for interactive components in Next.js App Router. Confidence: 0.8
-- Uses conventional-commit-style prefixes: `init:`, `feat:`, `fix:`. Confidence: 0.9
+- Uses conventional-commit-style prefixes: `init:`, `feat:`, `fix:`, `refactor:`. Confidence: 0.9
 - Explicitly does NOT want co-author trailers (`Co-Authored-By`) on commits. Confidence: 0.95
 - Structures commits in logical stages: scaffold → feature → responsive/polish. Confidence: 0.8
+- Expects a build verification (`npm run build`) after each logical change before committing, to catch regressions early. Confidence: 0.85
 - Explicitly bans em dashes (—) from all code and content. Confidence: 0.95
 - Prefers non-destructive additions — new sections/components should not modify existing files. Confidence: 0.9
 - Uses numbered section labels (e.g. "02 — About") for page sections to indicate hierarchy. Confidence: 0.8
 - Prefers horizontal swipeable carousel with scroll-snap for mobile card layouts (85vw card width, ~1.15 cards visible to hint at scrollability), with IntersectionObserver-powered dot indicators. Confidence: 0.85
+- Prefers fixed right-side scroll dot navigation for single-page portfolios: 6px dots, #333333 default / #ffffff active / #999999 hover, with absolutely-positioned uppercase labels (11px, 0.12em letter-spacing) fading in on hover, IntersectionObserver at 50% threshold, staggered Framer Motion mount animation, hidden below 768px. Confidence: 0.85
 - Wants commented-out `<video>` elements ready to uncomment alongside placeholder divs (e.g. showing initials with pulsing animation) so real media can be swapped in later. Confidence: 0.85
 - Prefers card hover states that expand height with smooth cubic-bezier transitions, rotating arrow icons, and accent-colored border reveals. Confidence: 0.8
 - Prefers horizontal grid-column stretch on hover: dynamically adjusting `grid-template-columns` ratios (e.g. `1.4fr 0.6fr`) so the hovered card grows wider while the sibling shrinks, with `0.5s cubic-bezier(0.16, 1, 0.3, 1)` transition. Confidence: 0.85

@@ -401,7 +401,7 @@ export default function ProjectsSection() {
           transition={{ duration: 0.6, ease: easing }}
           className="mb-4 text-[11px] uppercase tracking-[0.18em] text-ink-muted"
         >
-          03 — Projects
+          02 — Projects
         </motion.p>
 
         {/* Section heading */}
