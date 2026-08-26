@@ -17,10 +17,16 @@ export default function ScrollDotNav() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
+        let bestEntry: IntersectionObserverEntry | null = null;
         for (const entry of entries) {
           if (entry.isIntersecting) {
-            setActiveId(entry.target.id);
+            if (!bestEntry || entry.intersectionRatio > bestEntry.intersectionRatio) {
+              bestEntry = entry;
+            }
           }
+        }
+        if (bestEntry) {
+          setActiveId(bestEntry.target.id);
         }
       },
       { threshold: 0.5 }
@@ -41,13 +47,13 @@ export default function ScrollDotNav() {
   const getDotColor = (sectionId: string, index: number) => {
     if (hoveredIndex === index) return "#999999";
     if (activeId === sectionId) return "#ffffff";
-    return "#333333";
+    return "#444444";
   };
 
   return (
     <nav
       aria-label="Section navigation"
-      className="fixed right-8 top-1/2 z-50 hidden -translate-y-1/2 flex-col items-center gap-4 md:flex"
+      className="pointer-events-none fixed right-8 top-1/2 z-50 hidden -translate-y-1/2 flex-col items-center gap-4 md:flex"
     >
       {sections.map((section, index) => (
         <motion.button
@@ -62,11 +68,11 @@ export default function ScrollDotNav() {
           onClick={() => handleClick(section.id)}
           onMouseEnter={() => setHoveredIndex(index)}
           onMouseLeave={() => setHoveredIndex(null)}
-          className="group relative flex h-8 w-8 items-center justify-center"
+          className="pointer-events-auto relative flex h-8 w-8 items-center justify-center"
           aria-label={`Go to ${section.label}`}
         >
           <span
-            className="pointer-events-none absolute right-full whitespace-nowrap text-[11px] uppercase tracking-[0.12em] text-[#999999] opacity-0 transition-opacity duration-200"
+            className="pointer-events-none absolute right-full whitespace-nowrap text-[11px] uppercase tracking-[0.12em] text-[#999999] transition-opacity duration-200"
             style={{
               marginRight: 10,
               opacity: hoveredIndex === index ? 1 : 0,
