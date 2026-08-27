@@ -103,9 +103,9 @@ export default function HeroSection() {
             }}
             className="max-w-[280px] text-[14px] leading-[1.4] text-ink-muted"
           >
-            I build robots that learn. Specializing in manipulation, imitation
-            learning and embodied AI. Open to freelance and full-time
-            opportunities.
+            I build robots that learn. Specializing in manipulation, simulation
+            and robot learning across ROS2, MuJoCo and MoveIt2. Open to
+            freelance and full-time opportunities.
           </motion.p>
         </div>
 

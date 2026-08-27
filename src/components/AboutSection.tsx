@@ -105,10 +105,11 @@ export default function AboutSection() {
               transition={{ delay: 0.4, duration: 0.6, ease: easing }}
               className="max-w-[520px] text-[14px] leading-[1.6] text-ink-muted"
             >
-              Today I work at the intersection of manipulation, imitation
-              learning, and embodied AI, building systems that watch, learn, and
-              move. Most recently at OpenBot, where I cut system cost by 90%
-              building a leader arm from scratch.
+              Today I work at the intersection of manipulation, robot learning
+              and simulation, building systems that watch, learn and move. Most
+              recently at OpenBot, where I cut system cost by 90% building a
+              leader arm from scratch and trained imitation learning policies
+              using LeRobot and MoveIt2.
             </motion.p>
 
             <motion.p
@@ -118,8 +119,10 @@ export default function AboutSection() {
               transition={{ delay: 0.5, duration: 0.6, ease: easing }}
               className="max-w-[520px] text-[14px] leading-[1.6] text-ink-muted"
             >
-              I have worked across ROS2, LeRobot, Isaac Sim, MoveIt2 and
-              TensorFlow. If it moves and thinks, I probably want to build one.
+              I have worked across ROS2, MuJoCo, Isaac Sim, MoveIt2 and
+              Stable-Baselines3. From training PPO policies in simulation to
+              deploying manipulation stacks on real hardware. If it moves and
+              thinks, I probably want to build one.
             </motion.p>
 
             {/* Closing line */}
