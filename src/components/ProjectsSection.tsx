@@ -19,46 +19,57 @@ const projects: Project[] = [
   {
     title: "OpenBot Giraffe",
     status: "Open Source",
-    tagline: "5-DOF robotic arm built for hobbyists and researchers",
+    tagline: "Affordable 5-DOF robotic arm for hobbyists and researchers",
     description:
       "Designed an affordable 5-DOF robotic manipulator with a 3D-printed frame and ST3215 servos. Integrated with LeRobot, ROS2 and MoveIt for trajectory planning, teleoperation and imitation learning in both simulated and real-world applications.",
     tech: ["ROS2", "LeRobot", "MoveIt2", "Python", "Fusion 360", "Isaac Sim"],
-    github: "https://github.com/openbot-giraffe",
+    github: "https://github.com/anantppandey/openbot-giraffe",
     initials: "OG",
     videoSrc: "/videos/openbot-giraffe.mp4",
+  },
+  {
+    title: "5-DOF Manipulation Stack",
+    status: "Robotics",
+    tagline: "Custom IK solver with collision-aware grasp planning",
+    description:
+      "Engineered a custom 5-DOF IK solver and octomap-based obstacle avoidance in Gazebo, planning collision-aware grasps with MoveIt Task Constructor. Built a ROS2 action-server pipeline with multi-object perception and automatic grasp-failure retry for autonomous pick-and-place.",
+    tech: ["ROS2", "MoveIt2", "Gazebo", "Python", "MoveIt Task Constructor"],
+    github: "https://github.com/anantppandey/manipulation-stack",
+    initials: "5D",
+    videoSrc: "/videos/manipulation-stack.mp4",
+  },
+  {
+    title: "MuJoCo-Gazebo RL Transfer",
+    status: "Research",
+    tagline: "PPO reach policy trained in MuJoCo and transferred to Gazebo",
+    description:
+      "Trained a PPO reach policy from scratch in MuJoCo using Stable-Baselines3, raising success rate from 37% to 78% through seed-controlled ablation. Built a ROS2 and Gazebo pipeline transferring the policy across simulators with retry-based trajectory generation and closed-loop control.",
+    tech: ["MuJoCo", "Stable-Baselines3", "ROS2", "Gazebo", "Python", "PPO"],
+    github: "https://github.com/anantppandey/mujoco-gazebo-transfer",
+    initials: "MG",
+    videoSrc: "/videos/mujoco-gazebo.mp4",
+  },
+  {
+    title: "ML-based NMPC",
+    status: "Research",
+    tagline: "Neural network replacing PID control in a quadrotor MPC",
+    description:
+      "Modeled quadrotor nonlinear flight dynamics as a state-dependent linear system inside a Nonlinear MPC controller in MATLAB. Trained a TensorFlow neural network on NMPC trajectory data to predict quadrotor state evolution, improving prediction MAE by 47% over the analytical model.",
+    tech: ["TensorFlow", "MATLAB", "Python", "NumPy", "Keras"],
+    github: "https://github.com/anantppandey/ml-nmpc",
+    initials: "NM",
+    videoSrc: "/videos/nmpc.mp4",
   },
   {
     title: "RRT Maze Solver",
     status: "Algorithm",
     tagline: "Rapidly-exploring Random Tree path planning in dynamic mazes",
     description:
-      "Developed a Python-based maze solver using the RRT algorithm to navigate complex dynamic environments. Built a custom maze maker with specialized pathfinding logic capable of handling various maze configurations with high computational efficiency.",
+      "Python-based maze solver using the RRT algorithm to navigate complex dynamic environments. Built an interactive maze editor for creating custom obstacle layouts and start and goal points with high computational efficiency.",
     tech: ["Python", "RRT Algorithm", "NumPy", "Matplotlib"],
-    github: "https://github.com/anant-rrt-maze",
+    github: "https://github.com/anantppandey/rrt-maze-solver",
     initials: "RM",
     videoSrc: "/videos/rrt-maze.mp4",
-  },
-  {
-    title: "ML-based NMPC",
-    status: "Research",
-    tagline: "Machine learning inside a nonlinear model predictive controller",
-    description:
-      "Implemented TensorFlow for predictive analytics inside a Nonlinear Model Predictive Controller. Optimized flight performance through machine learning techniques validated in MATLAB simulations.",
-    tech: ["TensorFlow", "MATLAB", "Python", "NumPy"],
-    github: "https://github.com/anant-nmpc",
-    initials: "NM",
-    videoSrc: "/videos/nmpc.mp4",
-  },
-  {
-    title: "SLAM Autonomous Bot",
-    status: "Hardware",
-    tagline: "Autonomous navigation with SLAM and path planning on ROS",
-    description:
-      "Designed an autonomous robot with path planning and SLAM capabilities using RpLidar. Implemented Hector SLAM with ROS for effective real-world navigation, showcasing advanced sensor fusion and autonomous decision making.",
-    tech: ["ROS", "Hector SLAM", "RpLidar", "Nav2", "Python"],
-    github: "https://github.com/anant-slam-bot",
-    initials: "SB",
-    videoSrc: "/videos/slam-bot.mp4",
   },
 ];
 
@@ -703,6 +714,18 @@ export default function ProjectsSection() {
             startIndex={2}
             onExpand={setExpandedIndex}
           />
+
+          {/* Row 3: the odd card out, centred at half width */}
+          <div className="flex w-full justify-center">
+            <div className="w-1/2">
+              <ProjectCard
+                project={projects[4]}
+                index={4}
+                height={CARD_H.base}
+                onExpand={() => setExpandedIndex(4)}
+              />
+            </div>
+          </div>
         </div>
 
         {/* Mobile carousel */}
