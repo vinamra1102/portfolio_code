@@ -9,15 +9,21 @@ const skillCards = [
   },
   {
     category: "Platforms and Simulation",
-    skills: ["ROS2", "Gazebo", "Isaac Sim", "MoveIt2", "Fusion 360"],
+    skills: ["ROS2", "Gazebo", "Isaac Sim", "MuJoCo", "MoveIt2", "Fusion 360"],
   },
   {
     category: "Hardware and IoT",
-    skills: ["Raspberry Pi", "Arduino", "NodeMCU"],
+    skills: ["Raspberry Pi", "Arduino", "NodeMCU", "3D Printing"],
   },
   {
     category: "AI and Data",
-    skills: ["TensorFlow", "LeRobot", "NumPy", "Pandas"],
+    skills: [
+      "TensorFlow",
+      "LeRobot",
+      "Stable-Baselines3",
+      "NumPy",
+      "Pandas",
+    ],
   },
 ];
 
