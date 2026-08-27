@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { CursorProvider } from "@/components/ui/cursor";
+import { CursorLayer } from "@/components/CursorLayer";
 import "./globals.css";
 
 const inter = Inter({
@@ -22,7 +24,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} dark`}>
       <body className="bg-canvas text-ink min-h-screen antialiased">
-        {children}
+        <CursorProvider className="min-h-screen w-full">
+          <CursorLayer />
+          {children}
+        </CursorProvider>
       </body>
     </html>
   );

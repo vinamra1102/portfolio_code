@@ -31,6 +31,12 @@ html {
   }
 }
 
+/* Hide the OS cursor so only the custom one shows — no flash of the default
+   pointer before the component mounts. */
+* {
+  cursor: none !important;
+}
+
 body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
