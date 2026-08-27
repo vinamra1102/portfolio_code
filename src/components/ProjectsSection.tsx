@@ -347,6 +347,112 @@ function ExpandedOverlay({
   );
 }
 
+const HEX_CLIP =
+  "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
+
+function CompassOverlay({ onClose }: { onClose: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.4, ease: easing }}
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Specializations"
+      className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
+      style={{
+        background: "rgba(9, 9, 9, 0.92)",
+        backdropFilter: "blur(20px)",
+      }}
+    >
+      {/* Close */}
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Close specializations"
+        className="absolute right-8 top-8 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-[0.5px] border-hairline bg-surface-1 text-[18px] leading-none text-ink-muted transition-colors duration-200 hover:border-accent-blue hover:text-ink"
+      >
+        ×
+      </button>
+
+      {/* Compass — stops the backdrop click from closing */}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative flex items-center justify-center"
+      >
+        {/* Decorative crosshair, behind everything */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-1/2 hidden h-px w-[280px] -translate-x-1/2 -translate-y-1/2 md:block"
+          style={{ background: "rgba(255,255,255,0.03)" }}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-1/2 hidden h-[280px] w-px -translate-x-1/2 -translate-y-1/2 md:block"
+          style={{ background: "rgba(255,255,255,0.03)" }}
+        />
+
+        {/* Outer pulse ring */}
+        <motion.div
+          aria-hidden="true"
+          animate={{ opacity: [0.05, 0.2, 0.05] }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 0.5,
+          }}
+          className="pointer-events-none absolute h-[140px] w-[140px] rounded-full"
+          style={{ border: "0.5px solid rgba(0, 153, 255, 0.08)" }}
+        />
+
+        {/* Inner pulse ring */}
+        <motion.div
+          aria-hidden="true"
+          animate={{ opacity: [0.2, 0.6, 0.2] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className="pointer-events-none absolute h-[100px] w-[100px] rounded-full"
+          style={{ border: "0.5px solid rgba(0, 153, 255, 0.2)" }}
+        />
+
+        {/* Rotating hexagon */}
+        <motion.div
+          aria-hidden="true"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+          className="h-[60px] w-[60px] md:h-20 md:w-20"
+          style={{
+            clipPath: HEX_CLIP,
+            background:
+              "linear-gradient(135deg, #0a1628 0%, #001833 50%, #0099ff11 100%)",
+          }}
+        />
+
+        {/* Monogram — a sibling, so the hexagon spins behind it and the
+            lettering stays upright rather than tumbling with it. */}
+        <span
+          className="pointer-events-none absolute z-[2] text-[14px] font-medium tracking-[-0.5px] text-ink"
+          style={{ position: "absolute" }}
+        >
+          AP
+        </span>
+      </div>
+
+      {/* Footer caption */}
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.8, duration: 0.4, ease: easing }}
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap text-[11px] uppercase tracking-[0.2em] text-[#333333]"
+      >
+        Specializations — Anant Pandey
+      </motion.p>
+    </motion.div>
+  );
+}
+
 export default function ProjectsSection() {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [compassOpen, setCompassOpen] = useState(false);
@@ -523,6 +629,20 @@ export default function ProjectsSection() {
                 key="project-overlay"
                 project={projects[expandedIndex]}
                 onClose={() => setExpandedIndex(null)}
+              />
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
+
+      {/* Specializations compass — portaled alongside the project overlay. */}
+      {typeof document !== "undefined" &&
+        createPortal(
+          <AnimatePresence>
+            {compassOpen && (
+              <CompassOverlay
+                key="compass-overlay"
+                onClose={() => setCompassOpen(false)}
               />
             )}
           </AnimatePresence>,
