@@ -1,6 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useReducedMotion } from "motion/react";
 import { Cursor, CursorFollow } from "@/components/ui/cursor";
+
+/** Matches the `md` breakpoint the cursor is gated on. */
+const DESKTOP_QUERY = "(min-width: 768px)";
 
 /**
  * The dot and follow ring, kept in their own client component so the root
@@ -8,8 +13,28 @@ import { Cursor, CursorFollow } from "@/components/ui/cursor";
  * client" forbids). Must be rendered inside a CursorProvider.
  */
 export function CursorLayer() {
+  const reducedMotion = useReducedMotion();
+  // Starts false so the server and the first client render agree; the effect
+  // then enables it only on real desktop viewports. Gating on state rather
+  // than CSS alone means nothing mounts or listens on touch devices.
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const query = window.matchMedia(DESKTOP_QUERY);
+    const sync = () => setIsDesktop(query.matches);
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
+
+  const springConfig = reducedMotion
+    ? { stiffness: 1000, damping: 100, bounce: 0 }
+    : { stiffness: 180, damping: 22, bounce: 0 };
+
+  if (!isDesktop) return null;
+
   return (
-    <>
+    <div className="hidden md:block">
       <Cursor>
         <div
           style={{
@@ -23,11 +48,7 @@ export function CursorLayer() {
         />
       </Cursor>
 
-      <CursorFollow
-        align="center"
-        sideOffset={0}
-        transition={{ stiffness: 180, damping: 22, bounce: 0 }}
-      >
+      <CursorFollow align="center" sideOffset={0} transition={springConfig}>
         <div
           style={{
             width: 36,
@@ -39,6 +60,6 @@ export function CursorLayer() {
           }}
         />
       </CursorFollow>
-    </>
+    </div>
   );
 }

@@ -32,9 +32,13 @@ html {
 }
 
 /* Hide the OS cursor so only the custom one shows — no flash of the default
-   pointer before the component mounts. */
-* {
-  cursor: none !important;
+   pointer before the component mounts. Scoped to the same breakpoint the
+   custom cursor renders at, so narrow windows keep a real pointer instead of
+   having none at all. */
+@media (min-width: 768px) {
+  * {
+    cursor: none !important;
+  }
 }
 
 body {
