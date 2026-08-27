@@ -349,6 +349,7 @@ function ExpandedOverlay({
 
 export default function ProjectsSection() {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [compassOpen, setCompassOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeDot, setActiveDot] = useState(0);
 
@@ -418,6 +419,48 @@ export default function ProjectsSection() {
         >
           Things I have built.
         </motion.h2>
+
+        {/* Compass trigger */}
+        <motion.button
+          type="button"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.2, duration: 0.6, ease: easing }}
+          onClick={() => setCompassOpen(true)}
+          aria-haspopup="dialog"
+          aria-expanded={compassOpen}
+          className="mb-12 inline-flex cursor-pointer items-center gap-2 rounded-full border-[0.5px] border-hairline bg-transparent px-5 py-[10px] text-[12px] uppercase tracking-[0.12em] text-ink-muted transition-all duration-200 hover:border-accent-blue hover:text-ink"
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polygon points="12,2 14.5,9.5 12,12 9.5,9.5" fill="currentColor" />
+            <polygon
+              points="22,12 14.5,14.5 12,12 14.5,9.5"
+              fill="currentColor"
+              opacity="0.4"
+            />
+            <polygon
+              points="12,22 9.5,14.5 12,12 14.5,14.5"
+              fill="currentColor"
+              opacity="0.4"
+            />
+            <polygon
+              points="2,12 9.5,9.5 12,12 9.5,14.5"
+              fill="currentColor"
+              opacity="0.4"
+            />
+          </svg>
+          Explore Specializations
+        </motion.button>
 
         {/* Desktop grid - 2 rows with independent hover stretch */}
         <div className="hidden w-full flex-col gap-3 md:flex">
