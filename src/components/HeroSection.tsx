@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { HeroBackground } from "./HeroBackground";
 import CTALinks from "./CTALinks";
 import SocialLinks from "./SocialLinks";
 
@@ -30,6 +31,7 @@ export default function HeroSection() {
       id="hero"
       className="relative min-h-screen w-full overflow-hidden bg-canvas"
     >
+      <HeroBackground />
       <HairlineGrid />
 
       <div className="relative z-10 mx-auto grid min-h-screen max-w-[1400px] grid-cols-1 px-6 pb-12 pt-[48px] md:grid-cols-2 md:px-12 lg:grid-cols-12 lg:px-8">
