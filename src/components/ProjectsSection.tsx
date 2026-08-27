@@ -582,6 +582,23 @@ export default function ProjectsSection() {
     };
   }, [expandedIndex]);
 
+  // Same treatment for the compass overlay.
+  useEffect(() => {
+    if (!compassOpen) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setCompassOpen(false);
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [compassOpen]);
+
   useEffect(() => {
     const container = scrollRef.current;
     if (!container) return;
