@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { Fragment, useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -350,6 +350,37 @@ function ExpandedOverlay({
 const HEX_CLIP =
   "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
 
+/**
+ * `angle` points the arm line at its label: 0deg is due right, positive is
+ * clockwise, so it is atan2(y, x) of the label offset in screen coordinates.
+ */
+const SPECIALIZATIONS = [
+  {
+    label: "LeRobot",
+    sublabel: "Imitation Learning Pipeline",
+    x: 0,
+    y: -180,
+    angle: -90,
+    delay: 0,
+  },
+  {
+    label: "ROS2",
+    sublabel: "Robot Operating System",
+    x: -160,
+    y: 140,
+    angle: 138.81,
+    delay: 0.15,
+  },
+  {
+    label: "MoveIt2",
+    sublabel: "Motion Planning and Manipulation",
+    x: 160,
+    y: 140,
+    angle: 41.19,
+    delay: 0.3,
+  },
+] as const;
+
 function CompassOverlay({ onClose }: { onClose: () => void }) {
   return (
     <motion.div
@@ -380,64 +411,139 @@ function CompassOverlay({ onClose }: { onClose: () => void }) {
       {/* Compass — stops the backdrop click from closing */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative flex items-center justify-center"
+        className="relative flex flex-col items-center gap-8 md:gap-0"
       >
-        {/* Decorative crosshair, behind everything */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-1/2 hidden h-px w-[280px] -translate-x-1/2 -translate-y-1/2 md:block"
-          style={{ background: "rgba(255,255,255,0.03)" }}
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-1/2 hidden h-[280px] w-px -translate-x-1/2 -translate-y-1/2 md:block"
-          style={{ background: "rgba(255,255,255,0.03)" }}
-        />
+        <div className="relative flex items-center justify-center">
+          {/* Decorative crosshair, behind everything */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-1/2 hidden h-px w-[280px] -translate-x-1/2 -translate-y-1/2 md:block"
+            style={{ background: "rgba(255,255,255,0.03)" }}
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-1/2 hidden h-[280px] w-px -translate-x-1/2 -translate-y-1/2 md:block"
+            style={{ background: "rgba(255,255,255,0.03)" }}
+          />
 
-        {/* Outer pulse ring */}
-        <motion.div
-          aria-hidden="true"
-          animate={{ opacity: [0.05, 0.2, 0.05] }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 0.5,
-          }}
-          className="pointer-events-none absolute h-[140px] w-[140px] rounded-full"
-          style={{ border: "0.5px solid rgba(0, 153, 255, 0.08)" }}
-        />
+          {/* Outer pulse ring */}
+          <motion.div
+            aria-hidden="true"
+            animate={{ opacity: [0.05, 0.2, 0.05] }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 0.5,
+            }}
+            className="pointer-events-none absolute h-[140px] w-[140px] rounded-full"
+            style={{ border: "0.5px solid rgba(0, 153, 255, 0.08)" }}
+          />
 
-        {/* Inner pulse ring */}
-        <motion.div
-          aria-hidden="true"
-          animate={{ opacity: [0.2, 0.6, 0.2] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          className="pointer-events-none absolute h-[100px] w-[100px] rounded-full"
-          style={{ border: "0.5px solid rgba(0, 153, 255, 0.2)" }}
-        />
+          {/* Inner pulse ring */}
+          <motion.div
+            aria-hidden="true"
+            animate={{ opacity: [0.2, 0.6, 0.2] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            className="pointer-events-none absolute h-[100px] w-[100px] rounded-full"
+            style={{ border: "0.5px solid rgba(0, 153, 255, 0.2)" }}
+          />
 
-        {/* Rotating hexagon */}
-        <motion.div
-          aria-hidden="true"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-          className="h-[60px] w-[60px] md:h-20 md:w-20"
-          style={{
-            clipPath: HEX_CLIP,
-            background:
-              "linear-gradient(135deg, #0a1628 0%, #001833 50%, #0099ff11 100%)",
-          }}
-        />
+          {/* Rotating hexagon */}
+          <motion.div
+            aria-hidden="true"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+            className="h-[60px] w-[60px] md:h-20 md:w-20"
+            style={{
+              clipPath: HEX_CLIP,
+              background:
+                "linear-gradient(135deg, #0a1628 0%, #001833 50%, #0099ff11 100%)",
+            }}
+          />
 
-        {/* Monogram — a sibling, so the hexagon spins behind it and the
+          {/* Monogram — a sibling, so the hexagon spins behind it and the
             lettering stays upright rather than tumbling with it. */}
-        <span
-          className="pointer-events-none absolute z-[2] text-[14px] font-medium tracking-[-0.5px] text-ink"
-          style={{ position: "absolute" }}
-        >
-          AP
-        </span>
+          <span className="pointer-events-none absolute z-[2] text-[14px] font-medium tracking-[-0.5px] text-ink">
+            AP
+          </span>
+
+          {/* Radial arms + labels (desktop) */}
+          {SPECIALIZATIONS.map((s) => (
+            <Fragment key={s.label}>
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute left-1/2 top-1/2 hidden md:block"
+                style={{
+                  transform: `rotate(${s.angle}deg)`,
+                  transformOrigin: "0 0",
+                }}
+              >
+                <motion.div
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ delay: s.delay, duration: 0.6, ease: easing }}
+                  style={{
+                    width: 120,
+                    height: 1,
+                    marginLeft: 50,
+                    transformOrigin: "left center",
+                    background:
+                      "linear-gradient(to right, rgba(0,153,255,0.6), transparent)",
+                  }}
+                />
+              </div>
+
+              <div
+                className="pointer-events-none absolute left-1/2 top-1/2 hidden text-center md:block"
+                style={{
+                  transform: `translate(-50%, -50%) translate(${s.x}px, ${s.y}px)`,
+                }}
+              >
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{
+                    delay: s.delay + 0.3,
+                    duration: 0.4,
+                    ease: easing,
+                  }}
+                >
+                  <span className="block whitespace-nowrap text-[18px] font-medium tracking-[-0.5px] text-ink">
+                    {s.label}
+                  </span>
+                  <span className="mt-1 block whitespace-nowrap text-[11px] uppercase tracking-[0.1em] text-[#555555]">
+                    {s.sublabel}
+                  </span>
+                </motion.div>
+              </div>
+            </Fragment>
+          ))}
+        </div>
+
+        {/* Stacked labels (mobile) — arm lines are omitted here per spec */}
+        <div className="flex flex-col items-center gap-8 md:hidden">
+          {SPECIALIZATIONS.map((s) => (
+            <motion.div
+              key={s.label}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{
+                delay: s.delay + 0.3,
+                duration: 0.4,
+                ease: easing,
+              }}
+              className="text-center"
+            >
+              <span className="block text-[22px] font-medium tracking-[-0.5px] text-ink">
+                {s.label}
+              </span>
+              <span className="mt-1 block text-[11px] uppercase tracking-[0.1em] text-[#555555]">
+                {s.sublabel}
+              </span>
+            </motion.div>
+          ))}
+        </div>
       </div>
 
       {/* Footer caption */}
