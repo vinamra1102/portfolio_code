@@ -369,6 +369,7 @@ const SPECIALIZATIONS = [
   {
     label: "LeRobot",
     sublabel: "Imitation Learning Pipeline",
+    projects: ["OpenBot Giraffe", "5-DOF Manipulation Stack"],
     x: 0,
     y: -180,
     angle: -90,
@@ -377,6 +378,7 @@ const SPECIALIZATIONS = [
   {
     label: "ROS2",
     sublabel: "Robot Operating System",
+    projects: ["MuJoCo-Gazebo RL Transfer", "RRT Maze Solver"],
     x: -160,
     y: 140,
     angle: 138.81,
@@ -385,12 +387,46 @@ const SPECIALIZATIONS = [
   {
     label: "MoveIt2",
     sublabel: "Motion Planning and Manipulation",
+    projects: ["5-DOF Manipulation Stack", "OpenBot Giraffe"],
     x: 160,
     y: 140,
     angle: 41.19,
     delay: 0.3,
   },
 ] as const;
+
+const CHIP_STYLE = {
+  background: "rgba(0, 153, 255, 0.06)",
+  border: "0.5px solid rgba(0, 153, 255, 0.2)",
+  borderRadius: 100,
+  padding: "3px 10px",
+  fontSize: 10,
+  color: "rgba(0, 153, 255, 0.8)",
+  letterSpacing: "0.08em",
+} as const;
+
+function ProjectChips({
+  projects: names,
+  delay,
+}: {
+  projects: readonly string[];
+  delay: number;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: delay + 0.5, duration: 0.4, ease: easing }}
+      className="mt-2 flex flex-wrap justify-center gap-1"
+    >
+      {names.map((name) => (
+        <span key={name} className="inline-flex" style={CHIP_STYLE}>
+          {name}
+        </span>
+      ))}
+    </motion.div>
+  );
+}
 
 function CompassOverlay({ onClose }: { onClose: () => void }) {
   return (
@@ -506,7 +542,7 @@ function CompassOverlay({ onClose }: { onClose: () => void }) {
               </div>
 
               <div
-                className="pointer-events-none absolute left-1/2 top-1/2 hidden text-center md:block"
+                className="pointer-events-none absolute left-1/2 top-1/2 hidden w-[260px] text-center md:block"
                 style={{
                   transform: `translate(-50%, -50%) translate(${s.x}px, ${s.y}px)`,
                 }}
@@ -527,6 +563,7 @@ function CompassOverlay({ onClose }: { onClose: () => void }) {
                     {s.sublabel}
                   </span>
                 </motion.div>
+                <ProjectChips projects={s.projects} delay={s.delay} />
               </div>
             </Fragment>
           ))}
@@ -544,7 +581,7 @@ function CompassOverlay({ onClose }: { onClose: () => void }) {
                 duration: 0.4,
                 ease: easing,
               }}
-              className="text-center"
+              className="max-w-[280px] text-center"
             >
               <span className="block text-[22px] font-medium tracking-[-0.5px] text-ink">
                 {s.label}
@@ -552,6 +589,7 @@ function CompassOverlay({ onClose }: { onClose: () => void }) {
               <span className="mt-1 block text-[11px] uppercase tracking-[0.1em] text-[#555555]">
                 {s.sublabel}
               </span>
+              <ProjectChips projects={s.projects} delay={s.delay} />
             </motion.div>
           ))}
         </div>
