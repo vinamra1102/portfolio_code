@@ -3,13 +3,30 @@
 import { ShaderBackground } from "@/components/ShaderBackground";
 import { useEffect, useRef, useState } from "react";
 
-/** Cursor position the shader parks at when the pointer is away — top right. */
-const REST = { x: 0.8, y: 0.2 };
+/** Cursor position the shader drifts back to when the pointer is away — top right. */
+const REST = { x: 0.75, y: 0.25 };
+
+/**
+ * How far the rendered position moves toward the cursor each frame.
+ *   0.02 = very dreamy, ultra slow follow
+ *   0.04 = smooth and organic (recommended)
+ *   0.08 = responsive but still smooth
+ *   0.15 = snappy, close to direct follow
+ */
+const LERP = 0.04;
+
+/** Below this distance the follow has visually arrived, so the loop can idle. */
+const SETTLED = 0.0005;
+
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 export function HeroBackground() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [mouse, setMouse] = useState(REST);
-  const [isHovering, setIsHovering] = useState(false);
+  const targetRef = useRef({ ...REST });
+  const currentRef = useRef({ ...REST });
+  const rafRef = useRef<number | null>(null);
+  const [shaderPos, setShaderPos] = useState({ ...REST });
+  const [brightness, setBrightness] = useState(0.7);
 
   useEffect(() => {
     const el =
@@ -17,25 +34,49 @@ export function HeroBackground() {
       containerRef.current?.parentElement;
     if (!el) return;
 
+    const animate = () => {
+      const target = targetRef.current;
+      const current = currentRef.current;
+      current.x = lerp(current.x, target.x, LERP);
+      current.y = lerp(current.y, target.y, LERP);
+      setShaderPos({ ...current });
+
+      // Park the loop once the drift has arrived — with speed=0 the shader is
+      // otherwise static, so a permanent rAF would redraw every frame forever.
+      const arrived =
+        Math.abs(target.x - current.x) < SETTLED &&
+        Math.abs(target.y - current.y) < SETTLED;
+      rafRef.current = arrived ? null : requestAnimationFrame(animate);
+    };
+
+    const start = () => {
+      rafRef.current ??= requestAnimationFrame(animate);
+    };
+
     const handleMove = (e: MouseEvent) => {
       const rect = el.getBoundingClientRect();
-      setMouse({
+      targetRef.current = {
         x: (e.clientX - rect.left) / rect.width,
         y: (e.clientY - rect.top) / rect.height,
-      });
-      setIsHovering(true);
+      };
+      setBrightness(0.9);
+      start();
     };
 
     const handleLeave = () => {
-      setIsHovering(false);
-      setMouse(REST);
+      targetRef.current = { ...REST };
+      setBrightness(0.7);
+      start();
     };
 
     el.addEventListener("mousemove", handleMove);
     el.addEventListener("mouseleave", handleLeave);
+
     return () => {
       el.removeEventListener("mousemove", handleMove);
       el.removeEventListener("mouseleave", handleLeave);
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
     };
   }, []);
 
@@ -46,18 +87,18 @@ export function HeroBackground() {
         colorBack="#090909"
         colorMid="#0a1628"
         colorFront="#0099ff"
-        brightness={isHovering ? 1.3 : 0.85}
+        brightness={brightness}
         speed={0}
         // NeuroNoise has no mouse uniform. `frame` is the animation clock in ms,
-        // so driving it from the cursor makes the network morph on move instead
-        // of on a timer, and the offsets drift the pattern toward the pointer.
-        frame={(mouse.x + mouse.y) * 2000}
-        offsetX={(mouse.x - 0.5) * 0.6}
-        offsetY={(0.5 - mouse.y) * 0.6}
+        // so driving it from the smoothed position morphs the network as the
+        // cursor drifts, and the offsets slide the pattern toward the pointer.
+        frame={(shaderPos.x + shaderPos.y) * 2000}
+        offsetX={(shaderPos.x - 0.5) * 0.6}
+        offsetY={(0.5 - shaderPos.y) * 0.6}
         className="h-full w-full"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#090909] via-transparent to-transparent z-10" />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#090909] via-[#090909]/60 to-transparent z-10" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#090909] via-[#090909]/40 to-transparent z-10" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#090909] via-[#090909]/70 to-transparent z-10" />
     </div>
   );
 }
