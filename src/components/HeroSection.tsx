@@ -50,7 +50,7 @@ function GridOverlay() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 z-[1]"
+      className="pointer-events-none absolute inset-0 z-[1] hidden md:block"
       style={{
         backgroundImage: `
           linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
@@ -87,7 +87,7 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25, duration: 0.8, ease: EASE }}
-            className="mb-6 text-[clamp(96px,13vw,160px)] font-bold leading-[0.9] tracking-[-7px] text-ink"
+            className="mb-6 text-[clamp(56px,14vw,80px)] font-bold leading-[0.9] tracking-[-3px] text-ink md:text-[clamp(96px,13vw,160px)] md:tracking-[-7px]"
           >
             I&apos;m Anant
             <motion.span
@@ -113,7 +113,7 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7, duration: 0.6, ease: EASE }}
-            className="max-w-[280px] text-[13px] leading-[1.6] text-[#555555]"
+            className="max-w-full text-[13px] leading-[1.6] text-[#555555] md:max-w-[280px]"
           >
             I build robots that learn. Specializing in manipulation, simulation
             and robot learning across ROS2, MuJoCo and MoveIt2. Open to
