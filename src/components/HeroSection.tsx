@@ -13,8 +13,8 @@ const SOCIALS = [
 function ResumeIcon() {
   return (
     <svg
-      width="16"
-      height="16"
+      width="14"
+      height="14"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -32,8 +32,8 @@ function ResumeIcon() {
 function ChatIcon() {
   return (
     <svg
-      width="16"
-      height="16"
+      width="14"
+      height="14"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -48,7 +48,8 @@ function ChatIcon() {
 /**
  * Graph-paper hairlines. This is a positioned layer rather than a background
  * on the section, because a section background paints behind its children and
- * the opaque shader at z-0 would bury it.
+ * the opaque shader at z-0 would bury it. Offset to line up with the 100px
+ * content inset.
  */
 function GridOverlay() {
   return (
@@ -61,6 +62,7 @@ function GridOverlay() {
           linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px)
         `,
         backgroundSize: "130px 130px",
+        backgroundPosition: "100px 0",
       }}
     />
   );
@@ -70,18 +72,18 @@ export default function HeroSection() {
   return (
     <section
       id="hero"
-      className="relative min-h-screen w-full overflow-hidden bg-canvas"
+      className="relative min-h-screen w-full overflow-hidden bg-canvas py-0"
     >
       <HeroBackground />
       <GridOverlay />
 
-      <div className="relative z-[2] px-6 pb-24 pt-[28vh] md:px-[60px]">
+      <div className="relative z-[2] px-6 pb-[60px] pt-[calc(28vh+20px)] md:pl-[100px] md:pr-[160px]">
         {/* Greeting */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1, duration: 0.6, ease: EASE }}
-          className="mb-2 text-[16px] font-normal text-[#777777]"
+          className="mb-[6px] text-[13px] font-normal tracking-[0.04em] text-ink-muted"
         >
           Hello there,
         </motion.p>
@@ -91,7 +93,7 @@ export default function HeroSection() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.6, ease: EASE }}
-          className="mb-3 text-[15px] font-normal text-[#555555]"
+          className="mb-[10px] text-[13px] font-normal tracking-[-0.1px] text-ink-muted"
         >
           Robotics Engineer and Embodied AI Builder
         </motion.p>
@@ -101,14 +103,15 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.8, ease: EASE }}
-          className="whitespace-nowrap text-[clamp(56px,14vw,80px)] font-black leading-[0.88] tracking-[-3px] text-ink md:text-[clamp(88px,12vw,155px)] md:tracking-[-6px]"
+          className="mb-0 whitespace-nowrap text-[clamp(56px,14vw,80px)] font-black leading-[0.88] tracking-[-3px] text-ink md:text-[clamp(88px,11.5vw,144px)] md:tracking-[-6px]"
         >
           I&apos;m Anant
           <motion.span
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.5, duration: 0.4, ease: EASE }}
-            className="inline-block font-black text-accent-blue"
+            className="inline-block text-[0.55em] font-black text-accent-blue"
+            style={{ verticalAlign: "super" }}
           >
             *
           </motion.span>
@@ -123,18 +126,18 @@ export default function HeroSection() {
           style={{
             width: "100%",
             height: "0.5px",
-            background: "rgba(255,255,255,0.08)",
-            margin: "32px 0",
+            background: "#262626",
+            margin: "28px 0",
           }}
         />
 
         {/* Bottom half: bio left, CTAs right */}
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
+        <div className="grid grid-cols-1 items-start gap-12 md:grid-cols-2 md:pr-[120px]">
           <motion.p
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7, duration: 0.6, ease: EASE }}
-            className="max-w-full text-[13px] leading-[1.6] text-[#555555] md:max-w-[300px]"
+            className="max-w-full text-[13px] font-normal leading-[1.65] tracking-[-0.1px] text-ink-muted md:max-w-[300px]"
           >
             I build robots that learn. Specializing in manipulation, simulation
             and robot learning across ROS2, MuJoCo and MoveIt2. Open to
@@ -147,12 +150,14 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8, duration: 0.6, ease: EASE }}
-              className="mb-5 flex items-center gap-3 text-[14px] text-ink-muted transition-colors duration-200 hover:text-ink"
+              className="group mb-[18px] flex items-center gap-3 text-[13px] font-normal tracking-[-0.1px] text-ink-muted transition-colors duration-200 hover:text-ink"
             >
-              <ResumeIcon />
+              <span className="text-ink-faint transition-colors duration-200 group-hover:text-ink">
+                <ResumeIcon />
+              </span>
               <span>
                 If you want my resume
-                <sup className="ml-[2px] text-[10px] text-accent-blue">**</sup>
+                <sup className="ml-[2px] text-[9px] text-accent-blue">**</sup>
               </span>
             </motion.a>
 
@@ -161,9 +166,11 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.9, duration: 0.6, ease: EASE }}
-              className="flex items-center gap-3 text-[14px] text-ink-muted transition-colors duration-200 hover:text-ink"
+              className="group flex items-center gap-3 text-[13px] font-normal tracking-[-0.1px] text-ink-muted transition-colors duration-200 hover:text-ink"
             >
-              <ChatIcon />
+              <span className="text-ink-faint transition-colors duration-200 group-hover:text-ink">
+                <ChatIcon />
+              </span>
               <span>Or have a chat</span>
             </motion.a>
 
@@ -171,7 +178,7 @@ export default function HeroSection() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1.0, duration: 0.6, ease: EASE }}
-              className="mt-7 max-w-[240px] text-[11px] leading-[1.6] text-[#3a3a3a]"
+              className="mt-6 max-w-[240px] text-[11px] font-normal leading-[1.6] tracking-[0.01em] text-[#555555]"
             >
               <p>
                 * Robotics Engineer specializing in LeRobot, ROS2 and MoveIt2.
@@ -183,7 +190,7 @@ export default function HeroSection() {
       </div>
 
       {/* Far right: vertical social links */}
-      <div className="absolute right-8 top-1/2 z-[2] hidden -translate-y-1/2 flex-col items-center gap-12 md:flex">
+      <div className="absolute right-9 top-1/2 z-[5] hidden -translate-y-1/2 flex-col items-center gap-10 md:flex">
         {SOCIALS.map((social, i) => (
           <motion.a
             key={social.label}
@@ -193,7 +200,7 @@ export default function HeroSection() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 1.0 + i * 0.1, duration: 0.6, ease: EASE }}
-            className="text-[10px] uppercase tracking-[0.2em] text-[#444444] transition-colors duration-200 hover:text-ink"
+            className="text-[10px] font-normal uppercase tracking-[0.18em] text-[#555555] transition-colors duration-200 hover:text-ink"
           >
             {/* The rotation lives on an inner span: Framer Motion owns the
                 anchor's transform and would overwrite a static rotate(). */}
