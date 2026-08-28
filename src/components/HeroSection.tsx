@@ -5,10 +5,23 @@ import { HeroBackground } from "./HeroBackground";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-const SOCIALS = [
-  { label: "LinkedIn", href: "https://linkedin.com" },
-  { label: "GitHub", href: "https://github.com" },
-];
+function LinkedInIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+      <rect x="2" y="9" width="4" height="12" />
+      <circle cx="4" cy="4" r="2" />
+    </svg>
+  );
+}
+
+function GitHubIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+    </svg>
+  );
+}
 
 function ResumeIcon() {
   return (
@@ -133,16 +146,44 @@ export default function HeroSection() {
 
         {/* Bottom half: bio left, CTAs right */}
         <div className="grid grid-cols-1 items-start gap-12 md:grid-cols-2 md:pr-[120px]">
-          <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7, duration: 0.6, ease: EASE }}
-            className="max-w-full text-[13px] font-normal leading-[1.65] tracking-[-0.1px] text-ink-muted md:max-w-[300px]"
-          >
-            I build robots that learn. Specializing in manipulation, simulation
-            and robot learning across ROS2, MuJoCo and MoveIt2. Open to
-            freelance and full-time opportunities.
-          </motion.p>
+          <div>
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7, duration: 0.6, ease: EASE }}
+              className="max-w-full text-[13px] font-normal leading-[1.65] tracking-[-0.1px] text-ink-muted md:max-w-[300px]"
+            >
+              I build robots that learn. Specializing in manipulation,
+              simulation and robot learning across ROS2, MuJoCo and MoveIt2.
+              Open to freelance and full-time opportunities.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7, duration: 0.6, ease: EASE }}
+              className="mt-5 flex items-center gap-4"
+            >
+              <a
+                href="https://linkedin.com/in/anantpandey"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="LinkedIn"
+                className="inline-flex items-center text-[#555555] no-underline transition-colors duration-200 hover:text-ink"
+              >
+                <LinkedInIcon />
+              </a>
+              <a
+                href="https://github.com/anantppandey"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="GitHub"
+                className="inline-flex items-center text-[#555555] no-underline transition-colors duration-200 hover:text-ink"
+              >
+                <GitHubIcon />
+              </a>
+            </motion.div>
+          </div>
 
           <div>
             <motion.a
@@ -187,31 +228,6 @@ export default function HeroSection() {
             </motion.div>
           </div>
         </div>
-      </div>
-
-      {/* Far right: vertical social links */}
-      <div className="absolute right-9 top-1/2 z-[5] hidden -translate-y-1/2 flex-col items-center gap-10 md:flex">
-        {SOCIALS.map((social, i) => (
-          <motion.a
-            key={social.label}
-            href={social.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 1.0 + i * 0.1, duration: 0.6, ease: EASE }}
-            className="text-[10px] font-normal uppercase tracking-[0.18em] text-[#555555] transition-colors duration-200 hover:text-ink"
-          >
-            {/* The rotation lives on an inner span: Framer Motion owns the
-                anchor's transform and would overwrite a static rotate(). */}
-            <span
-              className="inline-block"
-              style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
-            >
-              {social.label}
-            </span>
-          </motion.a>
-        ))}
       </div>
     </section>
   );
