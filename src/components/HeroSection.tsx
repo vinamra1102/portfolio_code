@@ -87,8 +87,7 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25, duration: 0.8, ease: EASE }}
-            className="mb-6 font-bold leading-[0.9] text-ink text-[clamp(52px,12vw,72px)] lg:text-[clamp(72px,10vw,110px)]"
-            style={{ letterSpacing: "-5.5px" }}
+            className="mb-6 text-[clamp(96px,13vw,160px)] font-bold leading-[0.9] tracking-[-7px] text-ink"
           >
             I&apos;m Anant
             <motion.span
