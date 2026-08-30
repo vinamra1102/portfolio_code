@@ -1,4 +1,5 @@
 import HeroSection from "@/components/HeroSection";
+import SpecializationsSection from "@/components/SpecializationsSection";
 import AboutSection from "@/components/AboutSection";
 import ProjectsSection from "@/components/ProjectsSection";
 import ContactSection from "@/components/ContactSection";
@@ -11,6 +12,7 @@ export default function Home() {
       <ScrollDotNav />
       <main>
         <HeroSection />
+        <SpecializationsSection />
         <ProjectsSection />
         <AboutSection />
         <ContactSection />
