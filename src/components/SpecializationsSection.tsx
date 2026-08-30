@@ -1,7 +1,7 @@
 "use client";
 
-import { Fragment } from "react";
-import { motion } from "framer-motion";
+import { Fragment, useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -101,8 +101,27 @@ function ArmLabel({
 }
 
 export default function SpecializationsSection() {
+  const sectionRef = useRef<HTMLElement>(null);
+  // 0 when the section's top hits the bottom of the viewport, 1 when its
+  // bottom leaves the top: fade in on entry, hold, fade out on exit.
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"],
+  });
+  const opacity = useTransform(
+    scrollYProgress,
+    [0, 0.2, 0.75, 1],
+    [0, 1, 1, 0],
+  );
+  const scale = useTransform(
+    scrollYProgress,
+    [0, 0.2, 0.75, 1],
+    [0.96, 1, 1, 0.96],
+  );
+
   return (
     <section
+      ref={sectionRef}
       id="specializations"
       className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-canvas"
     >
@@ -117,11 +136,17 @@ export default function SpecializationsSection() {
       />
 
       {/* Section label */}
-      <p className="absolute left-6 top-12 z-[2] text-[11px] uppercase tracking-[0.18em] text-[#444444] md:left-[60px]">
+      <motion.p
+        style={{ opacity }}
+        className="absolute left-6 top-12 z-[2] text-[11px] uppercase tracking-[0.18em] text-[#444444] md:left-[60px]"
+      >
         02 — Specializations
-      </p>
+      </motion.p>
 
-      <div className="relative z-[2] flex flex-col items-center gap-10 md:gap-0">
+      <motion.div
+        style={{ opacity, scale }}
+        className="relative z-[2] flex flex-col items-center gap-10 md:gap-0"
+      >
         <div className="relative flex items-center justify-center">
           {/* Decorative crosshair */}
           <div
@@ -244,10 +269,11 @@ export default function SpecializationsSection() {
             </motion.div>
           ))}
         </div>
-      </div>
+      </motion.div>
 
       {/* Bottom hint */}
       <motion.p
+        style={{ opacity }}
         animate={{ y: [0, 6, 0] }}
         transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
         className="absolute bottom-8 left-1/2 z-[2] hidden -translate-x-1/2 whitespace-nowrap text-[11px] uppercase tracking-[0.14em] text-[#333333] md:block"
