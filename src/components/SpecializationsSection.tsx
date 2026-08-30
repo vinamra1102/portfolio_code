@@ -1,7 +1,7 @@
 "use client";
 
-import { Fragment, useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { Fragment } from "react";
+import { motion, useTransform, type MotionValue } from "framer-motion";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -100,14 +100,17 @@ function ArmLabel({
   );
 }
 
-export default function SpecializationsSection() {
-  const sectionRef = useRef<HTMLElement>(null);
-  // 0 when the section's top hits the bottom of the viewport, 1 when its
-  // bottom leaves the top: fade in on entry, hold, fade out on exit.
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start end", "end start"],
-  });
+/**
+ * The panel that sticks to the viewport while the outer 300vh wrapper in
+ * page.tsx scrolls past. That wrapper owns the scroll tracking and hands the
+ * progress down, so 0 is the moment the wrapper's top meets the viewport top
+ * and 1 is the moment its bottom does.
+ */
+export default function SpecializationsSection({
+  scrollYProgress,
+}: {
+  scrollYProgress: MotionValue<number>;
+}) {
   const opacity = useTransform(
     scrollYProgress,
     [0, 0.2, 0.75, 1],
@@ -116,14 +119,13 @@ export default function SpecializationsSection() {
   const scale = useTransform(
     scrollYProgress,
     [0, 0.2, 0.75, 1],
-    [0.96, 1, 1, 0.96],
+    [0.92, 1, 1, 0.94],
   );
 
   return (
     <section
-      ref={sectionRef}
       id="specializations"
-      className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-canvas"
+      className="sticky left-0 top-0 flex h-screen w-full items-center justify-center overflow-hidden bg-canvas"
     >
       {/* Vignette */}
       <div
