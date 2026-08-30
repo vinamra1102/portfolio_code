@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -358,259 +358,9 @@ function ExpandedOverlay({
   );
 }
 
-const HEX_CLIP =
-  "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
-
-/**
- * `angle` points the arm line at its label: 0deg is due right, positive is
- * clockwise, so it is atan2(y, x) of the label offset in screen coordinates.
- */
-const SPECIALIZATIONS = [
-  {
-    label: "LeRobot",
-    sublabel: "Imitation Learning Pipeline",
-    projects: ["OpenBot Giraffe", "5-DOF Manipulation Stack"],
-    x: 0,
-    y: -180,
-    angle: -90,
-    delay: 0,
-  },
-  {
-    label: "ROS2",
-    sublabel: "Robot Operating System",
-    projects: ["MuJoCo-Gazebo RL Transfer", "RRT Maze Solver"],
-    x: -160,
-    y: 140,
-    angle: 138.81,
-    delay: 0.15,
-  },
-  {
-    label: "MoveIt2",
-    sublabel: "Motion Planning and Manipulation",
-    projects: ["5-DOF Manipulation Stack", "OpenBot Giraffe"],
-    x: 160,
-    y: 140,
-    angle: 41.19,
-    delay: 0.3,
-  },
-] as const;
-
-const CHIP_STYLE = {
-  background: "rgba(0, 153, 255, 0.06)",
-  border: "0.5px solid rgba(0, 153, 255, 0.2)",
-  borderRadius: 100,
-  padding: "3px 10px",
-  fontSize: 10,
-  color: "rgba(0, 153, 255, 0.8)",
-  letterSpacing: "0.08em",
-} as const;
-
-function ProjectChips({
-  projects: names,
-  delay,
-}: {
-  projects: readonly string[];
-  delay: number;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: delay + 0.5, duration: 0.4, ease: easing }}
-      className="mt-2 flex flex-wrap justify-center gap-1"
-    >
-      {names.map((name) => (
-        <span key={name} className="inline-flex" style={CHIP_STYLE}>
-          {name}
-        </span>
-      ))}
-    </motion.div>
-  );
-}
-
-function CompassOverlay({ onClose }: { onClose: () => void }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.4, ease: easing }}
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Specializations"
-      className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
-      style={{
-        background: "rgba(9, 9, 9, 0.92)",
-        backdropFilter: "blur(20px)",
-      }}
-    >
-      {/* Close */}
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label="Close specializations"
-        className="absolute right-8 top-8 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-[0.5px] border-hairline bg-surface-1 text-[18px] leading-none text-ink-muted transition-colors duration-200 hover:border-accent-blue hover:text-ink"
-      >
-        ×
-      </button>
-
-      {/* Compass — stops the backdrop click from closing */}
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="relative flex flex-col items-center gap-8 md:gap-0"
-      >
-        <div className="relative flex items-center justify-center">
-          {/* Decorative crosshair, behind everything */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute left-1/2 top-1/2 hidden h-px w-[280px] -translate-x-1/2 -translate-y-1/2 md:block"
-            style={{ background: "rgba(255,255,255,0.03)" }}
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute left-1/2 top-1/2 hidden h-[280px] w-px -translate-x-1/2 -translate-y-1/2 md:block"
-            style={{ background: "rgba(255,255,255,0.03)" }}
-          />
-
-          {/* Outer pulse ring */}
-          <motion.div
-            aria-hidden="true"
-            animate={{ opacity: [0.05, 0.2, 0.05] }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 0.5,
-            }}
-            className="pointer-events-none absolute h-[140px] w-[140px] rounded-full"
-            style={{ border: "0.5px solid rgba(0, 153, 255, 0.08)" }}
-          />
-
-          {/* Inner pulse ring */}
-          <motion.div
-            aria-hidden="true"
-            animate={{ opacity: [0.2, 0.6, 0.2] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="pointer-events-none absolute h-[100px] w-[100px] rounded-full"
-            style={{ border: "0.5px solid rgba(0, 153, 255, 0.2)" }}
-          />
-
-          {/* Rotating hexagon */}
-          <motion.div
-            aria-hidden="true"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-            className="h-[60px] w-[60px] md:h-20 md:w-20"
-            style={{
-              clipPath: HEX_CLIP,
-              background:
-                "linear-gradient(135deg, #0a1628 0%, #001833 50%, #0099ff11 100%)",
-            }}
-          />
-
-          {/* Monogram — a sibling, so the hexagon spins behind it and the
-            lettering stays upright rather than tumbling with it. */}
-          <span className="pointer-events-none absolute z-[2] text-[14px] font-medium tracking-[-0.5px] text-ink">
-            AP
-          </span>
-
-          {/* Radial arms + labels (desktop) */}
-          {SPECIALIZATIONS.map((s) => (
-            <Fragment key={s.label}>
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute left-1/2 top-1/2 hidden md:block"
-                style={{
-                  transform: `rotate(${s.angle}deg)`,
-                  transformOrigin: "0 0",
-                }}
-              >
-                <motion.div
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ delay: s.delay, duration: 0.6, ease: easing }}
-                  style={{
-                    width: 120,
-                    height: 1,
-                    marginLeft: 50,
-                    transformOrigin: "left center",
-                    background:
-                      "linear-gradient(to right, rgba(0,153,255,0.6), transparent)",
-                  }}
-                />
-              </div>
-
-              <div
-                className="pointer-events-none absolute left-1/2 top-1/2 hidden w-[260px] text-center md:block"
-                style={{
-                  transform: `translate(-50%, -50%) translate(${s.x}px, ${s.y}px)`,
-                }}
-              >
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{
-                    delay: s.delay + 0.3,
-                    duration: 0.4,
-                    ease: easing,
-                  }}
-                >
-                  <span className="block whitespace-nowrap text-[18px] font-medium tracking-[-0.5px] text-ink">
-                    {s.label}
-                  </span>
-                  <span className="mt-1 block whitespace-nowrap text-[11px] uppercase tracking-[0.1em] text-[#555555]">
-                    {s.sublabel}
-                  </span>
-                </motion.div>
-                <ProjectChips projects={s.projects} delay={s.delay} />
-              </div>
-            </Fragment>
-          ))}
-        </div>
-
-        {/* Stacked labels (mobile) — arm lines are omitted here per spec */}
-        <div className="flex flex-col items-center gap-8 md:hidden">
-          {SPECIALIZATIONS.map((s) => (
-            <motion.div
-              key={s.label}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{
-                delay: s.delay + 0.3,
-                duration: 0.4,
-                ease: easing,
-              }}
-              className="max-w-[280px] text-center"
-            >
-              <span className="block text-[22px] font-medium tracking-[-0.5px] text-ink">
-                {s.label}
-              </span>
-              <span className="mt-1 block text-[11px] uppercase tracking-[0.1em] text-[#555555]">
-                {s.sublabel}
-              </span>
-              <ProjectChips projects={s.projects} delay={s.delay} />
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
-      {/* Footer caption */}
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8, duration: 0.4, ease: easing }}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap text-[11px] uppercase tracking-[0.2em] text-[#333333]"
-      >
-        Specializations — Anant Pandey
-      </motion.p>
-    </motion.div>
-  );
-}
 
 export default function ProjectsSection() {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
-  const [compassOpen, setCompassOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeDot, setActiveDot] = useState(0);
 
@@ -630,23 +380,6 @@ export default function ProjectsSection() {
       window.removeEventListener("keydown", onKeyDown);
     };
   }, [expandedIndex]);
-
-  // Same treatment for the compass overlay.
-  useEffect(() => {
-    if (!compassOpen) return;
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setCompassOpen(false);
-    };
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", onKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [compassOpen]);
 
   useEffect(() => {
     const container = scrollRef.current;
@@ -680,7 +413,7 @@ export default function ProjectsSection() {
           transition={{ duration: 0.6, ease: easing }}
           className="mb-4 text-[11px] uppercase tracking-[0.18em] text-ink-muted"
         >
-          02 — Projects
+          03 — Projects
         </motion.p>
 
         {/* Section heading */}
@@ -697,48 +430,6 @@ export default function ProjectsSection() {
         >
           Things I have built.
         </motion.h2>
-
-        {/* Compass trigger */}
-        <motion.button
-          type="button"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.2, duration: 0.6, ease: easing }}
-          onClick={() => setCompassOpen(true)}
-          aria-haspopup="dialog"
-          aria-expanded={compassOpen}
-          className="mb-12 inline-flex cursor-pointer items-center gap-2 rounded-full border-[0.5px] border-hairline bg-transparent px-5 py-[10px] text-[12px] uppercase tracking-[0.12em] text-ink-muted transition-all duration-200 hover:border-accent-blue hover:text-ink"
-        >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            aria-hidden="true"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <polygon points="12,2 14.5,9.5 12,12 9.5,9.5" fill="currentColor" />
-            <polygon
-              points="22,12 14.5,14.5 12,12 14.5,9.5"
-              fill="currentColor"
-              opacity="0.4"
-            />
-            <polygon
-              points="12,22 9.5,14.5 12,12 14.5,14.5"
-              fill="currentColor"
-              opacity="0.4"
-            />
-            <polygon
-              points="2,12 9.5,9.5 12,12 9.5,14.5"
-              fill="currentColor"
-              opacity="0.4"
-            />
-          </svg>
-          Explore Specializations
-        </motion.button>
 
         {/* Desktop grid - 2 rows with independent hover stretch */}
         <div className="hidden w-full flex-col gap-3 md:flex">
@@ -813,20 +504,6 @@ export default function ProjectsSection() {
                 key="project-overlay"
                 project={projects[expandedIndex]}
                 onClose={() => setExpandedIndex(null)}
-              />
-            )}
-          </AnimatePresence>,
-          document.body
-        )}
-
-      {/* Specializations compass — portaled alongside the project overlay. */}
-      {typeof document !== "undefined" &&
-        createPortal(
-          <AnimatePresence>
-            {compassOpen && (
-              <CompassOverlay
-                key="compass-overlay"
-                onClose={() => setCompassOpen(false)}
               />
             )}
           </AnimatePresence>,
