@@ -121,6 +121,18 @@ export default function SpecializationsSection({
     [0, 0.2, 0.75, 1],
     [0.92, 1, 1, 0.94],
   );
+  // The label and the hint ride their own curves so they arrive after the
+  // compass and clear out before it does.
+  const labelOpacity = useTransform(
+    scrollYProgress,
+    [0.05, 0.2, 0.75, 0.9],
+    [0, 1, 1, 0],
+  );
+  const hintOpacity = useTransform(
+    scrollYProgress,
+    [0.1, 0.25, 0.6, 0.75],
+    [0, 1, 1, 0],
+  );
 
   return (
     <section
@@ -139,8 +151,8 @@ export default function SpecializationsSection({
 
       {/* Section label */}
       <motion.p
-        style={{ opacity }}
-        className="absolute left-6 top-12 z-[2] text-[11px] uppercase tracking-[0.18em] text-[#444444] md:left-[60px]"
+        style={{ opacity: labelOpacity }}
+        className="absolute left-6 top-12 z-[5] text-[11px] uppercase tracking-[0.18em] text-[#444444] md:left-[60px]"
       >
         02 — Specializations
       </motion.p>
@@ -275,10 +287,10 @@ export default function SpecializationsSection({
 
       {/* Bottom hint */}
       <motion.p
-        style={{ opacity }}
+        style={{ opacity: hintOpacity }}
         animate={{ y: [0, 6, 0] }}
         transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-8 left-1/2 z-[2] hidden -translate-x-1/2 whitespace-nowrap text-[11px] uppercase tracking-[0.14em] text-[#333333] md:block"
+        className="absolute bottom-10 left-1/2 z-[5] hidden -translate-x-1/2 whitespace-nowrap text-[11px] uppercase tracking-[0.14em] text-[#333333] md:block"
       >
         Scroll to explore projects
       </motion.p>
