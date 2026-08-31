@@ -146,16 +146,24 @@ function ArmLabel({
       </span>
       <span
         aria-hidden="true"
-        className="mt-[6px] block whitespace-nowrap text-[10px] uppercase tracking-[0.1em] text-[#444444]"
-        style={{ opacity: hovered ? 1 : 0, transition: "opacity 0.2s" }}
+        style={{
+          display: "block",
+          fontSize: "10px",
+          color: "#333333",
+          letterSpacing: "0.14em",
+          textTransform: "uppercase",
+          marginTop: "10px",
+          opacity: hovered ? 1 : 0,
+          transition: "opacity 0.2s ease",
+        }}
       >
-        Click to explore
+        Explore
       </span>
     </>
   );
 }
 
-/** Wraps an arm so the line, label and chips are one generous click target. */
+/** Wraps an arm so the line, label and hint are one generous click target. */
 function ArmTrigger({
   spec,
   onOpen,
