@@ -84,9 +84,6 @@ const specializationMeta: Record<SpecKey, { label: string; sublabel: string }> =
     moveit2: { label: "MoveIt2", sublabel: "Motion Planning and Manipulation" },
   };
 
-const HEX_CLIP =
-  "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
-
 /**
  * `rotate` turns the arm line, which points straight down by default, toward
  * its label. CSS rotates clockwise, so a down vector becomes
@@ -106,21 +103,158 @@ const SPECIALIZATIONS = [
     key: "ros2" as SpecKey,
     label: "ROS2",
     sublabel: "Robot Operating System",
-    x: -200,
-    y: 180,
-    rotate: 48.01,
+    x: -180,
+    y: 160,
+    rotate: 48.37,
     delay: 0.2,
   },
   {
     key: "moveit2" as SpecKey,
     label: "MoveIt2",
     sublabel: "Motion Planning and Manipulation",
-    x: 200,
-    y: 180,
-    rotate: -48.01,
+    x: 180,
+    y: 160,
+    rotate: -48.37,
     delay: 0.4,
   },
 ] as const;
+
+const JARVIS_KEYFRAMES = `
+  @keyframes spin-slow {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+  @keyframes spin-reverse {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(-360deg); }
+  }
+  @keyframes core-pulse {
+    0%, 100% { box-shadow: 0 0 30px rgba(0,153,255,0.4), 0 0 60px rgba(0,153,255,0.15), inset 0 0 20px rgba(0,153,255,0.15); }
+    50% { box-shadow: 0 0 40px rgba(0,153,255,0.7), 0 0 80px rgba(0,153,255,0.25), inset 0 0 30px rgba(0,153,255,0.25); }
+  }
+  @keyframes ambient-pulse {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.15); }
+  }
+`;
+
+/**
+ * Layered glowing core: ambient bloom, two counter-rotating rings, a lit inner
+ * ring, a hot centre dot and the monogram. All motion is CSS keyframes, so
+ * Framer Motion is left to the arm entrances and the overlay only.
+ */
+function JarvisCore() {
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none relative h-[200px] w-[200px]"
+    >
+      <style>{JARVIS_KEYFRAMES}</style>
+
+      {/* Layer 1: ambient bloom */}
+      <div
+        style={{
+          position: "absolute",
+          width: "200px",
+          height: "200px",
+          borderRadius: "50%",
+          background:
+            "radial-gradient(circle, rgba(0,153,255,0.12) 0%, rgba(0,153,255,0.04) 40%, transparent 70%)",
+          filter: "blur(8px)",
+          animation: "ambient-pulse 3s ease-in-out infinite",
+        }}
+      />
+
+      {/* Layer 2: outer ring */}
+      <div
+        style={{
+          position: "absolute",
+          width: "160px",
+          height: "160px",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          borderRadius: "50%",
+          border: "0.5px solid rgba(0,153,255,0.15)",
+          background: "transparent",
+          boxShadow:
+            "0 0 20px rgba(0,153,255,0.08), inset 0 0 20px rgba(0,153,255,0.04)",
+          animation: "spin-slow 20s linear infinite",
+        }}
+      />
+
+      {/* Layer 3: dashed mid ring, counter-rotating */}
+      <div
+        style={{
+          position: "absolute",
+          width: "120px",
+          height: "120px",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          borderRadius: "50%",
+          border: "1px dashed rgba(0,153,255,0.2)",
+          boxShadow: "0 0 16px rgba(0,153,255,0.1)",
+          animation: "spin-reverse 12s linear infinite",
+        }}
+      />
+
+      {/* Layer 4: lit inner ring. The arms meet this edge, radius 42px. */}
+      <div
+        style={{
+          position: "absolute",
+          width: "84px",
+          height: "84px",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          borderRadius: "50%",
+          border: "1px solid rgba(0,153,255,0.5)",
+          background:
+            "radial-gradient(circle, rgba(0,20,60,0.9) 0%, rgba(0,10,30,0.95) 60%, rgba(0,5,20,1) 100%)",
+          boxShadow:
+            "0 0 30px rgba(0,153,255,0.4), 0 0 60px rgba(0,153,255,0.15), 0 0 90px rgba(0,153,255,0.06), inset 0 0 20px rgba(0,153,255,0.15)",
+          animation: "core-pulse 2.5s ease-in-out infinite",
+        }}
+      />
+
+      {/* Layer 5: core dot */}
+      <div
+        style={{
+          position: "absolute",
+          width: "8px",
+          height: "8px",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          borderRadius: "50%",
+          background: "#0099ff",
+          boxShadow:
+            "0 0 8px rgba(0,153,255,1), 0 0 16px rgba(0,153,255,0.8), 0 0 32px rgba(0,153,255,0.4)",
+          animation: "core-pulse 2.5s ease-in-out infinite",
+        }}
+      />
+
+      {/* Layer 6: monogram */}
+      <span
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          fontSize: "13px",
+          fontWeight: 500,
+          color: "rgba(255,255,255,0.9)",
+          letterSpacing: "-0.3px",
+          zIndex: 2,
+          textShadow: "0 0 10px rgba(0,153,255,0.8)",
+        }}
+      >
+        AP
+      </span>
+    </div>
+  );
+}
 
 function ArmLabel({
   spec,
@@ -579,47 +713,7 @@ export default function SpecializationsSection() {
               style={{ background: "rgba(255,255,255,0.025)" }}
             />
 
-            {/* Outer pulse ring */}
-            <motion.div
-              aria-hidden="true"
-              animate={{ opacity: [0.05, 0.15, 0.05] }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 0.5,
-              }}
-              className="pointer-events-none absolute h-[160px] w-[160px] rounded-full"
-              style={{ border: "0.5px solid rgba(0, 153, 255, 0.07)" }}
-            />
-
-            {/* Inner pulse ring */}
-            <motion.div
-              aria-hidden="true"
-              animate={{ opacity: [0.2, 0.5, 0.2] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              className="pointer-events-none absolute h-[110px] w-[110px] rounded-full"
-              style={{ border: "0.5px solid rgba(0, 153, 255, 0.2)" }}
-            />
-
-            {/* Rotating hexagon */}
-            <motion.div
-              aria-hidden="true"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 14, repeat: Infinity, ease: "linear" }}
-              className="h-[90px] w-[90px]"
-              style={{
-                clipPath: HEX_CLIP,
-                background:
-                  "linear-gradient(135deg, #0a1628 0%, #001833 50%, #0099ff11 100%)",
-              }}
-            />
-
-            {/* Monogram sits alongside the hexagon so it stays upright while the
-              hexagon spins behind it. */}
-            <span className="pointer-events-none absolute z-[2] text-[15px] font-medium tracking-[-0.5px] text-ink">
-              AP
-            </span>
+            <JarvisCore />
 
             {/* Radial arms and labels (desktop) */}
             {SPECIALIZATIONS.map((spec) => (
@@ -644,7 +738,7 @@ export default function SpecializationsSection() {
                     style={{
                       width: 1,
                       height: 140,
-                      marginTop: 55,
+                      marginTop: 42,
                       transformOrigin: "top center",
                       background:
                         "linear-gradient(to bottom, rgba(0,153,255,0.5), transparent)",
