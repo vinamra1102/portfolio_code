@@ -1,9 +1,89 @@
 "use client";
 
-import { Fragment } from "react";
-import { motion } from "framer-motion";
+import { Fragment, useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
+
+const specializationProjects = {
+  lerobot: [
+    {
+      title: "OpenBot Giraffe",
+      status: "Open Source",
+      tagline: "Affordable 5-DOF robotic arm for hobbyists and researchers",
+      description:
+        "Designed an affordable 5-DOF robotic manipulator with a 3D-printed frame and ST3215 servos. Integrated with LeRobot, ROS2 and MoveIt for trajectory planning, teleoperation and imitation learning in both simulated and real-world applications.",
+      tech: ["ROS2", "LeRobot", "MoveIt2", "Python", "Fusion 360", "Isaac Sim"],
+      github: "https://github.com/anantppandey/openbot-giraffe",
+      initials: "OG",
+    },
+    {
+      title: "5-DOF Manipulation Stack",
+      status: "Robotics",
+      tagline: "Custom IK solver with collision-aware grasp planning",
+      description:
+        "Engineered a custom 5-DOF IK solver and octomap-based obstacle avoidance in Gazebo, planning collision-aware grasps with MoveIt Task Constructor. Built a ROS2 action-server pipeline with multi-object perception and automatic grasp-failure retry for autonomous pick-and-place.",
+      tech: ["ROS2", "MoveIt2", "Gazebo", "Python", "MoveIt Task Constructor"],
+      github: "https://github.com/anantppandey/manipulation-stack",
+      initials: "5D",
+    },
+  ],
+  ros2: [
+    {
+      title: "MuJoCo-Gazebo RL Transfer",
+      status: "Research",
+      tagline: "PPO reach policy trained in MuJoCo and transferred to Gazebo",
+      description:
+        "Trained a PPO reach policy from scratch in MuJoCo using Stable-Baselines3, raising success rate from 37% to 78% through seed-controlled ablation. Built a ROS2 and Gazebo pipeline transferring the policy across simulators with retry-based trajectory generation and closed-loop control.",
+      tech: ["MuJoCo", "Stable-Baselines3", "ROS2", "Gazebo", "Python", "PPO"],
+      github: "https://github.com/anantppandey/mujoco-gazebo-transfer",
+      initials: "MG",
+    },
+    {
+      title: "RRT Maze Solver",
+      status: "Algorithm",
+      tagline: "Rapidly-exploring Random Tree path planning in dynamic mazes",
+      description:
+        "Python-based maze solver using the RRT algorithm to navigate complex dynamic environments. Built an interactive maze editor for creating custom obstacle layouts and start and goal points with high computational efficiency.",
+      tech: ["Python", "RRT Algorithm", "NumPy", "Matplotlib"],
+      github: "https://github.com/anantppandey/rrt-maze-solver",
+      initials: "RM",
+    },
+  ],
+  moveit2: [
+    {
+      title: "5-DOF Manipulation Stack",
+      status: "Robotics",
+      tagline: "Custom IK solver with collision-aware grasp planning",
+      description:
+        "Engineered a custom 5-DOF IK solver and octomap-based obstacle avoidance in Gazebo, planning collision-aware grasps with MoveIt Task Constructor. Built a ROS2 action-server pipeline with multi-object perception and automatic grasp-failure retry for autonomous pick-and-place.",
+      tech: ["ROS2", "MoveIt2", "Gazebo", "Python", "MoveIt Task Constructor"],
+      github: "https://github.com/anantppandey/manipulation-stack",
+      initials: "5D",
+    },
+    {
+      title: "OpenBot Giraffe",
+      status: "Open Source",
+      tagline: "Affordable 5-DOF robotic arm for hobbyists and researchers",
+      description:
+        "Designed an affordable 5-DOF robotic manipulator with a 3D-printed frame and ST3215 servos. Integrated with LeRobot, ROS2 and MoveIt for trajectory planning, teleoperation and imitation learning in both simulated and real-world applications.",
+      tech: ["ROS2", "LeRobot", "MoveIt2", "Python", "Fusion 360", "Isaac Sim"],
+      github: "https://github.com/anantppandey/openbot-giraffe",
+      initials: "OG",
+    },
+  ],
+};
+
+type SpecKey = keyof typeof specializationProjects;
+
+const specializationMeta: Record<
+  SpecKey,
+  { label: string; sublabel: string }
+> = {
+  lerobot: { label: "LeRobot", sublabel: "Imitation Learning Pipeline" },
+  ros2: { label: "ROS2", sublabel: "Robot Operating System" },
+  moveit2: { label: "MoveIt2", sublabel: "Motion Planning and Manipulation" },
+};
 
 const HEX_CLIP =
   "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
@@ -15,6 +95,7 @@ const HEX_CLIP =
  */
 const SPECIALIZATIONS = [
   {
+    key: "lerobot" as SpecKey,
     label: "LeRobot",
     sublabel: "Imitation Learning Pipeline",
     projects: ["OpenBot Giraffe", "5-DOF Manipulation Stack"],
@@ -24,6 +105,7 @@ const SPECIALIZATIONS = [
     delay: 0,
   },
   {
+    key: "ros2" as SpecKey,
     label: "ROS2",
     sublabel: "Robot Operating System",
     projects: ["MuJoCo-Gazebo RL Transfer", "RRT Maze Solver"],
@@ -33,6 +115,7 @@ const SPECIALIZATIONS = [
     delay: 0.2,
   },
   {
+    key: "moveit2" as SpecKey,
     label: "MoveIt2",
     sublabel: "Motion Planning and Manipulation",
     projects: ["5-DOF Manipulation Stack", "OpenBot Giraffe"],
@@ -105,6 +188,27 @@ function ArmLabel({
  * past. Content is always fully opaque: no scroll driven fade or scale.
  */
 export default function SpecializationsSection() {
+  const [activeSpec, setActiveSpec] = useState<SpecKey | null>(null);
+
+  useEffect(() => {
+    if (activeSpec) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [activeSpec]);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setActiveSpec(null);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
+
   return (
     <section
       id="specializations"
