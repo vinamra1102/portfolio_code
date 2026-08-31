@@ -127,8 +127,8 @@ export default function HoverImageReveal({
               alignItems: "center",
               width: "100%",
               cursor: "none",
-              paddingTop: "20px",
-              paddingBottom: "20px",
+              paddingTop: "18px",
+              paddingBottom: "18px",
               borderBottom: "0.5px solid #1a1a1a",
               borderTop: i === 0 ? "0.5px solid #1a1a1a" : undefined,
               justifyContent: justify,
@@ -152,14 +152,14 @@ export default function HoverImageReveal({
             <span
               style={{
                 fontSize: "11px",
-                color: isHovered ? "#555555" : "#1e1e1e",
+                color: isHovered ? "#444444" : "#1a1a1a",
                 fontWeight: 400,
                 letterSpacing: "0.14em",
                 fontFamily: "Inter",
                 transition: "color 0.2s ease",
                 flexShrink: 0,
                 marginLeft: "auto",
-                paddingLeft: "24px",
+                paddingLeft: "32px",
                 alignSelf: "center",
               }}
             >
@@ -174,7 +174,7 @@ export default function HoverImageReveal({
                 height: "0.5px",
                 width: isHovered ? "100%" : "0%",
                 background: "#0099ff",
-                transition: "width 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
+                transition: "width 0.45s cubic-bezier(0.16, 1, 0.3, 1)",
                 pointerEvents: "none",
               }}
             />

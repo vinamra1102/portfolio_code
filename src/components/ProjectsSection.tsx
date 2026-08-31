@@ -108,11 +108,11 @@ export default function ProjectsSection() {
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
-        padding: "72px 0 96px 0",
+        padding: "80px 0 96px 0",
         position: "relative",
       }}
     >
-      <div style={{ padding: "0 100px", marginBottom: "40px" }}>
+      <div style={{ padding: "0 80px", marginBottom: "32px" }}>
         <p
           style={{
             fontSize: "11px",
@@ -121,19 +121,19 @@ export default function ProjectsSection() {
             textTransform: "uppercase",
             fontWeight: 400,
             margin: 0,
-            marginBottom: "12px",
+            marginBottom: "10px",
           }}
         >
           03 — Projects
         </p>
         <h2
           style={{
-            fontSize: "clamp(42px, 6vw, 72px)",
+            fontSize: "clamp(52px, 7vw, 88px)",
             fontWeight: 500,
             color: "#ffffff",
-            letterSpacing: "-3px",
+            letterSpacing: "-4px",
             lineHeight: 1.0,
-            margin: "0 0 0 0",
+            margin: 0,
           }}
         >
           More of my projects
@@ -149,25 +149,25 @@ export default function ProjectsSection() {
         </h2>
       </div>
 
-      <div style={{ flex: 1, minHeight: "400px", padding: "0 60px" }}>
+      <div style={{ flex: 1, minHeight: "400px", padding: "0 80px" }}>
         <HoverImageReveal
           items={items}
           backgroundColor="#090909"
           textColor="#ffffff"
-          dimColor="#1e1e1e"
+          dimColor="#252525"
           align="left"
           rowGap={0}
-          imageWidth={320}
-          imageHeight={420}
-          rounded={12}
-          offsetX={180}
-          offsetY={-210}
+          imageWidth={280}
+          imageHeight={380}
+          rounded={10}
+          offsetX={160}
+          offsetY={-190}
           followStrength={20}
           font={{
-            fontSize: "clamp(32px, 4.5vw, 62px)",
-            fontWeight: 500,
-            letterSpacing: "-0.04em",
-            lineHeight: "1.05",
+            fontSize: "clamp(22px, 3vw, 40px)",
+            fontWeight: 400,
+            letterSpacing: "-0.03em",
+            lineHeight: "1.0",
             fontFamily: "Inter",
           }}
           transition={{
