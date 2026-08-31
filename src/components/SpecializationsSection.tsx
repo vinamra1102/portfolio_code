@@ -95,7 +95,7 @@ const SPECIALIZATIONS = [
     label: "LeRobot",
     sublabel: "Imitation Learning Pipeline",
     x: 0,
-    y: -220,
+    y: -230,
     rotate: 180,
     delay: 0,
   },
@@ -103,18 +103,18 @@ const SPECIALIZATIONS = [
     key: "ros2" as SpecKey,
     label: "ROS2",
     sublabel: "Robot Operating System",
-    x: -180,
-    y: 160,
-    rotate: 48.37,
+    x: -200,
+    y: 175,
+    rotate: 48.81,
     delay: 0.2,
   },
   {
     key: "moveit2" as SpecKey,
     label: "MoveIt2",
     sublabel: "Motion Planning and Manipulation",
-    x: 180,
-    y: 160,
-    rotate: -48.37,
+    x: 200,
+    y: 175,
+    rotate: -48.81,
     delay: 0.4,
   },
 ] as const;
@@ -147,7 +147,7 @@ function JarvisCore() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none relative h-[200px] w-[200px]"
+      className="pointer-events-none relative h-[260px] w-[260px]"
     >
       <style>{JARVIS_KEYFRAMES}</style>
 
@@ -155,8 +155,8 @@ function JarvisCore() {
       <div
         style={{
           position: "absolute",
-          width: "200px",
-          height: "200px",
+          width: "260px",
+          height: "260px",
           borderRadius: "50%",
           background:
             "radial-gradient(circle, rgba(0,153,255,0.12) 0%, rgba(0,153,255,0.04) 40%, transparent 70%)",
@@ -169,8 +169,8 @@ function JarvisCore() {
       <div
         style={{
           position: "absolute",
-          width: "160px",
-          height: "160px",
+          width: "210px",
+          height: "210px",
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
@@ -187,8 +187,8 @@ function JarvisCore() {
       <div
         style={{
           position: "absolute",
-          width: "120px",
-          height: "120px",
+          width: "158px",
+          height: "158px",
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
@@ -199,12 +199,12 @@ function JarvisCore() {
         }}
       />
 
-      {/* Layer 4: lit inner ring. The arms meet this edge, radius 42px. */}
+      {/* Layer 4: lit inner ring. The arms meet this edge, radius 55px. */}
       <div
         style={{
           position: "absolute",
-          width: "84px",
-          height: "84px",
+          width: "110px",
+          height: "110px",
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
@@ -213,7 +213,7 @@ function JarvisCore() {
           background:
             "radial-gradient(circle, rgba(0,20,60,0.9) 0%, rgba(0,10,30,0.95) 60%, rgba(0,5,20,1) 100%)",
           boxShadow:
-            "0 0 30px rgba(0,153,255,0.4), 0 0 60px rgba(0,153,255,0.15), 0 0 90px rgba(0,153,255,0.06), inset 0 0 20px rgba(0,153,255,0.15)",
+            "0 0 40px rgba(0,153,255,0.5), 0 0 80px rgba(0,153,255,0.2), 0 0 120px rgba(0,153,255,0.08), inset 0 0 30px rgba(0,153,255,0.2)",
           animation: "core-pulse 2.5s ease-in-out infinite",
         }}
       />
@@ -222,15 +222,15 @@ function JarvisCore() {
       <div
         style={{
           position: "absolute",
-          width: "8px",
-          height: "8px",
+          width: "10px",
+          height: "10px",
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
           borderRadius: "50%",
           background: "#0099ff",
           boxShadow:
-            "0 0 8px rgba(0,153,255,1), 0 0 16px rgba(0,153,255,0.8), 0 0 32px rgba(0,153,255,0.4)",
+            "0 0 10px rgba(0,153,255,1), 0 0 20px rgba(0,153,255,0.8), 0 0 40px rgba(0,153,255,0.4)",
           animation: "core-pulse 2.5s ease-in-out infinite",
         }}
       />
@@ -242,7 +242,7 @@ function JarvisCore() {
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          fontSize: "13px",
+          fontSize: "15px",
           fontWeight: 500,
           color: "rgba(255,255,255,0.9)",
           letterSpacing: "-0.3px",
@@ -738,7 +738,7 @@ export default function SpecializationsSection() {
                     style={{
                       width: 1,
                       height: 140,
-                      marginTop: 42,
+                      marginTop: 55,
                       transformOrigin: "top center",
                       background:
                         "linear-gradient(to bottom, rgba(0,153,255,0.5), transparent)",
@@ -811,15 +811,6 @@ export default function SpecializationsSection() {
           </div>
         </div>
       </div>
-
-      {/* Bottom hint */}
-      <motion.p
-        animate={{ y: [0, 6, 0] }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-10 left-1/2 z-[5] hidden -translate-x-1/2 whitespace-nowrap text-[11px] uppercase tracking-[0.14em] text-[#333333] md:block"
-      >
-        Scroll to explore projects
-      </motion.p>
 
       <AnimatePresence>
         {activeSpec && (
