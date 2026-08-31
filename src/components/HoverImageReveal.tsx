@@ -127,8 +127,8 @@ export default function HoverImageReveal({
               alignItems: "center",
               width: "100%",
               cursor: "none",
-              paddingTop: "16px",
-              paddingBottom: "16px",
+              paddingTop: "20px",
+              paddingBottom: "20px",
               borderBottom: "0.5px solid #1a1a1a",
               borderTop: i === 0 ? "0.5px solid #1a1a1a" : undefined,
               justifyContent: justify,
@@ -151,10 +151,10 @@ export default function HoverImageReveal({
 
             <span
               style={{
-                fontSize: "12px",
-                color: isHovered ? "#555555" : "#2a2a2a",
+                fontSize: "11px",
+                color: isHovered ? "#555555" : "#1e1e1e",
                 fontWeight: 400,
-                letterSpacing: "0.1em",
+                letterSpacing: "0.14em",
                 fontFamily: "Inter",
                 transition: "color 0.2s ease",
                 flexShrink: 0,

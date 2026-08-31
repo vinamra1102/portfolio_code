@@ -108,7 +108,7 @@ export default function ProjectsSection() {
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
-        padding: "80px 0 80px 0",
+        padding: "72px 0 96px 0",
         position: "relative",
       }}
     >
@@ -119,6 +119,7 @@ export default function ProjectsSection() {
             color: "#444444",
             letterSpacing: "0.18em",
             textTransform: "uppercase",
+            fontWeight: 400,
             margin: 0,
             marginBottom: "12px",
           }}
@@ -127,16 +128,24 @@ export default function ProjectsSection() {
         </p>
         <h2
           style={{
-            fontSize: "clamp(32px, 5vw, 56px)",
+            fontSize: "clamp(42px, 6vw, 72px)",
             fontWeight: 500,
             color: "#ffffff",
-            letterSpacing: "-2px",
+            letterSpacing: "-3px",
             lineHeight: 1.0,
-            margin: 0,
+            margin: "0 0 0 0",
           }}
         >
           More of my projects
-          <span style={{ color: "#0099ff" }}>.</span>
+          <span
+            style={{
+              color: "#0099ff",
+              fontSize: "inherit",
+              fontWeight: 500,
+            }}
+          >
+            .
+          </span>
         </h2>
       </div>
 
@@ -145,7 +154,7 @@ export default function ProjectsSection() {
           items={items}
           backgroundColor="#090909"
           textColor="#ffffff"
-          dimColor="#2a2a2a"
+          dimColor="#1e1e1e"
           align="left"
           rowGap={0}
           imageWidth={320}
@@ -155,10 +164,10 @@ export default function ProjectsSection() {
           offsetY={-210}
           followStrength={20}
           font={{
-            fontSize: "clamp(32px, 5.5vw, 68px)",
+            fontSize: "clamp(32px, 4.5vw, 62px)",
             fontWeight: 500,
             letterSpacing: "-0.04em",
-            lineHeight: "1.1",
+            lineHeight: "1.05",
             fontFamily: "Inter",
           }}
           transition={{
