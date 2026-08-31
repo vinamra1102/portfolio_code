@@ -33,7 +33,7 @@ export default function Home() {
     <>
       <ScrollDotNav />
       <main>
-        <div ref={heroRef} className="relative z-[1] h-[200vh]">
+        <div ref={heroRef} className="relative z-[1] h-[150vh] md:h-[200vh]">
           <motion.div
             style={{
               scale: heroScale,
