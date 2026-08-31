@@ -51,7 +51,10 @@ export default function Home() {
           ref={specializationsRef}
           className="relative z-[2] h-[200vh] md:h-[300vh]"
         >
-          <SpecializationsSection scrollYProgress={specializationsProgress} />
+          <SpecializationsSection
+            scrollYProgress={specializationsProgress}
+            containerRef={specializationsRef}
+          />
         </div>
 
         <ProjectsSection />

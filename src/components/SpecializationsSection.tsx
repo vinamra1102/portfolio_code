@@ -1,7 +1,12 @@
 "use client";
 
 import { Fragment } from "react";
-import { motion, useTransform, type MotionValue } from "framer-motion";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  type MotionValue,
+} from "framer-motion";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -108,35 +113,52 @@ function ArmLabel({
  */
 export default function SpecializationsSection({
   scrollYProgress,
+  containerRef,
 }: {
   scrollYProgress: MotionValue<number>;
+  containerRef: React.RefObject<HTMLDivElement | null>;
 }) {
+  // A second tracker on the same wrapper, measuring only the approach: 0 when
+  // the wrapper's top is at the viewport bottom, 1 when it reaches the top.
+  // That is the window in which the panel rises over the hero.
+  const { scrollYProgress: riseProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "start start"],
+  });
+  const translateY = useTransform(riseProgress, [0, 1], ["100vh", "0vh"]);
+  const borderRadius = useTransform(
+    riseProgress,
+    [0, 0.15],
+    ["20px 20px 0px 0px", "0px 0px 0px 0px"],
+  );
+
   const opacity = useTransform(
     scrollYProgress,
-    [0, 0.2, 0.75, 1],
+    [0.2, 0.4, 0.75, 0.95],
     [0, 1, 1, 0],
   );
   const scale = useTransform(
     scrollYProgress,
-    [0, 0.2, 0.75, 1],
+    [0.2, 0.4, 0.75, 0.95],
     [0.92, 1, 1, 0.94],
   );
   // The label and the hint ride their own curves so they arrive after the
   // compass and clear out before it does.
   const labelOpacity = useTransform(
     scrollYProgress,
-    [0.05, 0.2, 0.75, 0.9],
+    [0.25, 0.4, 0.75, 0.9],
     [0, 1, 1, 0],
   );
   const hintOpacity = useTransform(
     scrollYProgress,
-    [0.1, 0.25, 0.6, 0.75],
+    [0.3, 0.45, 0.6, 0.75],
     [0, 1, 1, 0],
   );
 
   return (
-    <section
+    <motion.section
       id="specializations"
+      style={{ y: translateY, borderRadius, willChange: "transform" }}
       className="sticky left-0 top-0 flex h-screen w-full items-center justify-center overflow-hidden bg-canvas"
     >
       {/* Vignette */}
@@ -303,6 +325,6 @@ export default function SpecializationsSection({
       >
         Scroll to explore projects
       </motion.p>
-    </section>
+    </motion.section>
   );
 }
