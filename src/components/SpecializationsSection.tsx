@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { HalftoneTexture } from "@/components/HalftoneTexture";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -541,8 +542,10 @@ export default function SpecializationsSection() {
   return (
     <section
       id="specializations"
-      className="halftone-bg halftone-top-right halftone-blue sticky left-0 top-0 flex h-screen w-full items-center justify-center overflow-hidden bg-canvas"
+      className="sticky left-0 top-0 flex h-screen w-full items-center justify-center overflow-hidden bg-canvas"
     >
+      <HalftoneTexture maskPosition="75% 20%" blue={true} />
+
       {/* Vignette */}
       <div
         aria-hidden="true"
