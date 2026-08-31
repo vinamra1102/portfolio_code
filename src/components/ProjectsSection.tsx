@@ -7,6 +7,7 @@ import {
   AnimatePresence,
   useScroll,
   useTransform,
+  type MotionValue,
 } from "framer-motion";
 
 interface Project {
@@ -94,145 +95,150 @@ function ProjectStackCard({
   total,
   onExpand,
   id,
+  sectionProgress,
 }: {
   project: Project;
   index: number;
   total: number;
   onExpand: () => void;
   id?: string;
+  sectionProgress: MotionValue<number>;
 }) {
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  // Each card occupies one 100vh row of the container, so in the container's
+  // 0..1 progress it pins at index/total and is fully covered by the next card
+  // at (index + 1)/total. Those two moments bound its entrance and its exit.
+  const pinAt = index / total;
+  const enterFrom = Math.max(0, (index - 1) / total);
+  const halfCovered = (index + 0.5) / total;
 
-  const { scrollYProgress: enterProgress } = useScroll({
-    target: wrapperRef,
-    offset: ["start end", "start start"],
+  const y = useTransform(sectionProgress, [enterFrom, pinAt], ["8vh", "0vh"], {
+    clamp: true,
   });
-  const { scrollYProgress: exitProgress } = useScroll({
-    target: wrapperRef,
-    offset: ["start start", "end start"],
+  const enterOpacity = useTransform(
+    sectionProgress,
+    [enterFrom, pinAt],
+    [0.6, 1],
+    { clamp: true },
+  );
+  const scale = useTransform(sectionProgress, [pinAt, halfCovered], [1, 0.95], {
+    clamp: true,
   });
-
-  const y = useTransform(enterProgress, [0, 1], ["8vh", "0vh"]);
-  const enterOpacity = useTransform(enterProgress, [0, 1], [0.6, 1]);
-  const scale = useTransform(exitProgress, [0, 0.5], [1, 0.95]);
-  const exitOpacity = useTransform(exitProgress, [0, 0.5], [1, 0.7]);
+  const exitOpacity = useTransform(
+    sectionProgress,
+    [pinAt, halfCovered],
+    [1, 0.7],
+    { clamp: true },
+  );
 
   const counter = `${String(index + 1).padStart(2, "0")} / ${String(
     total,
   ).padStart(2, "0")}`;
 
   return (
-    <div
+    /* Sibling of the other cards inside the tall container, not boxed in its
+       own 100vh wrapper: a sticky element whose containing block is exactly
+       its own height has no travel and never actually sticks. */
+    <motion.article
       id={id}
-      ref={wrapperRef}
-      className="relative h-screen"
-      style={{ zIndex: 10 + index }}
+      style={{
+        y,
+        scale,
+        opacity: index === 0 ? exitOpacity : enterOpacity,
+        zIndex: 10 + index,
+        willChange: "transform",
+      }}
+      className="sticky top-0 flex h-screen w-full flex-col overflow-hidden bg-canvas md:flex-row"
     >
-      <motion.article
-        style={{
-          y,
-          scale,
-          opacity: index === 0 ? exitOpacity : enterOpacity,
-          willChange: "transform",
-        }}
-        className="sticky top-0 flex h-screen w-full flex-col overflow-hidden bg-canvas md:flex-row"
-      >
-        {/* Left: media */}
-        <div className="relative h-full w-full md:w-[55%]">
-          {/* <video src={project.videoSrc} autoPlay muted loop playsInline className="absolute inset-0 h-full w-full object-cover" /> */}
-          <motion.div
-            animate={{ opacity: [0.3, 0.6, 0.3] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute inset-0 flex items-center justify-center bg-surface-1"
-          >
-            <span className="text-[48px] font-medium text-[#222222]">
-              {project.initials}
-            </span>
-          </motion.div>
-          {/* Readability wash: strong from the bottom on mobile where the copy
-              sits over the media, from the left on desktop where it does not. */}
-          <div
-            aria-hidden="true"
-            className="absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(to top, rgba(9,9,9,0.95) 0%, rgba(9,9,9,0.4) 45%, transparent 70%)",
-            }}
-          />
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 hidden md:block"
-            style={{
-              background:
-                "linear-gradient(to right, rgba(9,9,9,0.8) 0%, transparent 60%)",
-            }}
-          />
-        </div>
-
-        {/* Right: copy */}
-        <div className="absolute bottom-0 left-0 right-0 flex flex-col justify-center px-6 pb-10 md:static md:w-[45%] md:px-[60px] md:py-20">
-          <p className="mb-6 text-[11px] uppercase tracking-[0.2em] text-[#444444] md:mb-12">
-            {index === 0 ? "03 — Projects" : counter}
-          </p>
-
-          <span
-            className="mb-5 inline-flex w-fit rounded-full px-3 py-1 text-[11px] text-[#cccccc]"
-            style={{
-              background: "rgba(255,255,255,0.06)",
-              border: "0.5px solid rgba(255,255,255,0.12)",
-            }}
-          >
-            {project.status}
+      {/* Left: media */}
+      <div className="relative h-full w-full md:w-[55%]">
+        {/* <video src={project.videoSrc} autoPlay muted loop playsInline className="absolute inset-0 h-full w-full object-cover" /> */}
+        <motion.div
+          animate={{ opacity: [0.3, 0.6, 0.3] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute inset-0 flex items-center justify-center bg-surface-1"
+        >
+          <span className="text-[48px] font-medium text-[#222222]">
+            {project.initials}
           </span>
+        </motion.div>
+        {/* Readability wash: strong from the bottom on mobile where the copy
+              sits over the media, from the left on desktop where it does not. */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(to top, rgba(9,9,9,0.95) 0%, rgba(9,9,9,0.4) 45%, transparent 70%)",
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 hidden md:block"
+          style={{
+            background:
+              "linear-gradient(to right, rgba(9,9,9,0.8) 0%, transparent 60%)",
+          }}
+        />
+      </div>
 
-          <h3 className="mb-4 font-medium leading-[1.0] tracking-[-2px] text-ink text-[clamp(24px,6vw,36px)] md:text-[clamp(32px,4vw,52px)]">
-            {project.title}
-          </h3>
+      {/* Right: copy */}
+      <div className="absolute bottom-0 left-0 right-0 flex flex-col justify-center px-6 pb-10 md:static md:w-[45%] md:px-[60px] md:py-20">
+        <p className="mb-6 text-[11px] uppercase tracking-[0.2em] text-[#444444] md:mb-12">
+          {index === 0 ? "03 — Projects" : counter}
+        </p>
 
-          <p className="mb-8 max-w-[320px] text-[14px] leading-[1.5] text-ink-faint">
-            {project.tagline}
-          </p>
+        <span
+          className="mb-5 inline-flex w-fit rounded-full px-3 py-1 text-[11px] text-[#cccccc]"
+          style={{
+            background: "rgba(255,255,255,0.06)",
+            border: "0.5px solid rgba(255,255,255,0.12)",
+          }}
+        >
+          {project.status}
+        </span>
 
-          <div className="mb-8 flex flex-wrap gap-[6px]">
-            {project.tech.map((t) => (
-              <span
-                key={t}
-                className="inline-block rounded-full border-[0.5px] border-hairline bg-surface-2 px-[13px] py-[5px] text-[12px] text-[#cccccc]"
-              >
-                {t}
-              </span>
-            ))}
-          </div>
+        <h3 className="mb-4 font-medium leading-[1.0] tracking-[-2px] text-ink text-[clamp(24px,6vw,36px)] md:text-[clamp(32px,4vw,52px)]">
+          {project.title}
+        </h3>
 
-          <div className="flex flex-wrap gap-3">
-            <a
-              href={project.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border-[0.5px] border-hairline bg-surface-1 px-5 py-[10px] text-[12px] text-[#cccccc] no-underline transition-colors duration-200 hover:border-accent-blue hover:text-ink"
+        <p className="mb-8 max-w-[320px] text-[14px] leading-[1.5] text-ink-faint">
+          {project.tagline}
+        </p>
+
+        <div className="mb-8 flex flex-wrap gap-[6px]">
+          {project.tech.map((t) => (
+            <span
+              key={t}
+              className="inline-block rounded-full border-[0.5px] border-hairline bg-surface-2 px-[13px] py-[5px] text-[12px] text-[#cccccc]"
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-              </svg>
-              GitHub
-            </a>
-
-            <button
-              type="button"
-              onClick={onExpand}
-              className="inline-flex cursor-pointer items-center gap-2 rounded-full border-[0.5px] border-hairline bg-surface-1 px-5 py-[10px] text-[12px] text-[#cccccc] transition-colors duration-200 hover:border-accent-blue hover:text-ink"
-            >
-              View details
-            </button>
-          </div>
+              {t}
+            </span>
+          ))}
         </div>
-      </motion.article>
-    </div>
+
+        <div className="flex flex-wrap gap-3">
+          <a
+            href={project.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full border-[0.5px] border-hairline bg-surface-1 px-5 py-[10px] text-[12px] text-[#cccccc] no-underline transition-colors duration-200 hover:border-accent-blue hover:text-ink"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+            </svg>
+            GitHub
+          </a>
+
+          <button
+            type="button"
+            onClick={onExpand}
+            className="inline-flex cursor-pointer items-center gap-2 rounded-full border-[0.5px] border-hairline bg-surface-1 px-5 py-[10px] text-[12px] text-[#cccccc] transition-colors duration-200 hover:border-accent-blue hover:text-ink"
+          >
+            View details
+          </button>
+        </div>
+      </div>
+    </motion.article>
   );
 }
 
@@ -375,14 +381,17 @@ function ExpandedOverlay({
 
 export default function ProjectsSection() {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
-  const introRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
 
-  // The intro heading clears out as the first card rises over it.
-  const { scrollYProgress: introProgress } = useScroll({
-    target: introRef,
-    offset: ["start start", "end start"],
+  // One tracker for the whole stack: 0 when the container's top reaches the
+  // viewport top, 1 when its bottom does. Every card derives its own window
+  // from this, which keeps the cards siblings and the sticky travel intact.
+  const { scrollYProgress: sectionProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end end"],
   });
-  const introOpacity = useTransform(introProgress, [0, 0.1, 0.5], [1, 1, 0]);
+  // The intro heading clears out as the first card rises over it.
+  const introOpacity = useTransform(sectionProgress, [0, 0.02, 0.1], [1, 1, 0]);
 
   // Close the overlay on Escape and lock background scroll while it is open.
   useEffect(() => {
@@ -407,11 +416,12 @@ export default function ProjectsSection() {
        can never reach, so the dot would never light up. Anchor scrolling is
        unaffected because that wrapper starts at this container's top. */
     <section
+      ref={sectionRef}
       className="relative z-[3] w-full bg-canvas"
       style={{ height: `${(projects.length + 1) * 100}vh` }}
     >
-      {/* Intro heading, pinned for the first stretch then overtaken */}
-      <div ref={introRef} className="absolute inset-x-0 top-0 h-screen">
+      {/* Intro heading, shown briefly then overtaken by the first card */}
+      <div className="absolute inset-x-0 top-0 h-screen">
         <motion.div
           style={{ opacity: introOpacity }}
           className="sticky top-0 z-[9] flex h-screen items-center px-6 md:px-[60px]"
@@ -435,6 +445,7 @@ export default function ProjectsSection() {
           index={i}
           total={projects.length}
           id={i === 0 ? "projects" : undefined}
+          sectionProgress={sectionProgress}
           onExpand={() => setExpandedIndex(i)}
         />
       ))}
