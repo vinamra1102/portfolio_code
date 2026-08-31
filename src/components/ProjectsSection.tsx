@@ -2,7 +2,12 @@
 
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useTransform,
+} from "framer-motion";
 
 interface Project {
   title: string;
@@ -72,151 +77,161 @@ const projects: Project[] = [
     videoSrc: "/videos/rrt-maze.mp4",
   },
 ];
-
 const easing = [0.16, 1, 0.3, 1] as const;
-const EASE_CSS = "cubic-bezier(0.16, 1, 0.3, 1)";
 
 /**
- * A card is a plain presentational element — no layoutId. Shared-layout
- * projection between the desktop grid, the mobile carousel and the overlay
- * collapsed the grid cards to a 0x0 box; the overlay is a separate portal
- * instead.
+ * One full screen project panel. Each card owns a 100vh wrapper and pins to
+ * the top of it, so the next card slides up and covers this one.
+ *
+ * Two scroll trackers drive it. The entrance runs while the wrapper travels
+ * from the bottom of the viewport to the top. The exit runs while the wrapper
+ * leaves, which is exactly the window in which the following card covers this
+ * one, so no cross-card refs are needed.
  */
-function ProjectCard({
+function ProjectStackCard({
   project,
   index,
-  height,
+  total,
   onExpand,
-  onMouseEnter,
-  onMouseLeave,
+  id,
 }: {
   project: Project;
   index: number;
-  height: number;
+  total: number;
   onExpand: () => void;
-  onMouseEnter?: () => void;
-  onMouseLeave?: () => void;
+  id?: string;
 }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.15 }}
-      transition={{ delay: 0.1 * index, duration: 0.6, ease: easing }}
-      onClick={onExpand}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      role="button"
-      tabIndex={0}
-      aria-label={`Open ${project.title}`}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onExpand();
-        }
-      }}
-      className="group relative block w-full cursor-pointer overflow-hidden rounded-[15px] bg-surface-1 outline-none focus-visible:ring-1 focus-visible:ring-accent-blue"
-      style={{
-        height: `${height}px`,
-        transition: `height 0.5s ${EASE_CSS}`,
-      }}
-    >
-      {/* Video placeholder */}
-      {/* <video src={project.videoSrc} autoPlay muted loop playsInline className="absolute inset-0 h-full w-full object-cover" /> */}
-      <div className="absolute inset-0 flex items-center justify-center bg-surface-2">
-        <span className="text-[32px] font-medium text-[#333333]">
-          {project.initials}
-        </span>
-      </div>
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/85 to-transparent" />
+  const { scrollYProgress: enterProgress } = useScroll({
+    target: wrapperRef,
+    offset: ["start end", "start start"],
+  });
+  const { scrollYProgress: exitProgress } = useScroll({
+    target: wrapperRef,
+    offset: ["start start", "end start"],
+  });
 
-      {/* Content layer */}
-      <div className="absolute bottom-0 left-0 right-0 p-5 px-6 pr-24">
-        <span className="inline-block rounded-full border-[0.5px] border-white/15 bg-white/10 px-3 py-1 text-[11px] text-[#cccccc] backdrop-blur-[8px]">
-          {project.status}
-        </span>
-        <h3 className="mt-2 text-[18px] font-medium leading-tight tracking-[-0.5px] text-ink">
-          {project.title}
-        </h3>
-        <p className="mt-1 text-[13px] text-ink-muted">{project.tagline}</p>
-      </div>
+  const y = useTransform(enterProgress, [0, 1], ["8vh", "0vh"]);
+  const enterOpacity = useTransform(enterProgress, [0, 1], [0.6, 1]);
+  const scale = useTransform(exitProgress, [0, 0.5], [1, 0.95]);
+  const exitOpacity = useTransform(exitProgress, [0, 0.5], [1, 0.7]);
 
-      {/* Arrow button */}
-      <div className="absolute bottom-5 right-6 flex items-center gap-2">
-        <span className="text-[12px] text-ink opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-          Explore
-        </span>
-        <div
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-[0.5px] border-white/15 bg-white/10 backdrop-blur-[8px] group-hover:rotate-45 group-hover:border-accent-blue"
-          style={{ transition: `all 0.3s ${EASE_CSS}` }}
-        >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="white"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-const CARD_H = { base: 420, grown: 520, shrunk: 380 } as const;
-
-function ProjectRow({
-  rowProjects,
-  startIndex,
-  onExpand,
-}: {
-  rowProjects: Project[];
-  startIndex: number;
-  onExpand: (index: number) => void;
-}) {
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
-
-  const gridTemplateColumns =
-    hoveredCard === null
-      ? "1fr 1fr"
-      : hoveredCard === 0
-        ? "1.4fr 0.6fr"
-        : "0.6fr 1.4fr";
-
-  const heightFor = (i: number) =>
-    hoveredCard === null
-      ? CARD_H.base
-      : hoveredCard === i
-        ? CARD_H.grown
-        : CARD_H.shrunk;
+  const counter = `${String(index + 1).padStart(2, "0")} / ${String(
+    total,
+  ).padStart(2, "0")}`;
 
   return (
     <div
-      className="grid w-full items-start gap-3"
-      style={{
-        gridTemplateColumns,
-        transition: `grid-template-columns 0.5s ${EASE_CSS}`,
-      }}
+      id={id}
+      ref={wrapperRef}
+      className="relative h-screen"
+      style={{ zIndex: 10 + index }}
     >
-      {rowProjects.map((project, i) => (
-        <ProjectCard
-          key={project.title}
-          project={project}
-          index={startIndex + i}
-          height={heightFor(i)}
-          onExpand={() => onExpand(startIndex + i)}
-          onMouseEnter={() => setHoveredCard(i)}
-          onMouseLeave={() => setHoveredCard(null)}
-        />
-      ))}
+      <motion.article
+        style={{
+          y,
+          scale,
+          opacity: index === 0 ? exitOpacity : enterOpacity,
+          willChange: "transform",
+        }}
+        className="sticky top-0 flex h-screen w-full flex-col overflow-hidden bg-canvas md:flex-row"
+      >
+        {/* Left: media */}
+        <div className="relative h-full w-full md:w-[55%]">
+          {/* <video src={project.videoSrc} autoPlay muted loop playsInline className="absolute inset-0 h-full w-full object-cover" /> */}
+          <motion.div
+            animate={{ opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute inset-0 flex items-center justify-center bg-surface-1"
+          >
+            <span className="text-[48px] font-medium text-[#222222]">
+              {project.initials}
+            </span>
+          </motion.div>
+          {/* Readability wash: strong from the bottom on mobile where the copy
+              sits over the media, from the left on desktop where it does not. */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(to top, rgba(9,9,9,0.95) 0%, rgba(9,9,9,0.4) 45%, transparent 70%)",
+            }}
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 hidden md:block"
+            style={{
+              background:
+                "linear-gradient(to right, rgba(9,9,9,0.8) 0%, transparent 60%)",
+            }}
+          />
+        </div>
+
+        {/* Right: copy */}
+        <div className="absolute bottom-0 left-0 right-0 flex flex-col justify-center px-6 pb-10 md:static md:w-[45%] md:px-[60px] md:py-20">
+          <p className="mb-6 text-[11px] uppercase tracking-[0.2em] text-[#444444] md:mb-12">
+            {index === 0 ? "03 — Projects" : counter}
+          </p>
+
+          <span
+            className="mb-5 inline-flex w-fit rounded-full px-3 py-1 text-[11px] text-[#cccccc]"
+            style={{
+              background: "rgba(255,255,255,0.06)",
+              border: "0.5px solid rgba(255,255,255,0.12)",
+            }}
+          >
+            {project.status}
+          </span>
+
+          <h3 className="mb-4 font-medium leading-[1.0] tracking-[-2px] text-ink text-[clamp(24px,6vw,36px)] md:text-[clamp(32px,4vw,52px)]">
+            {project.title}
+          </h3>
+
+          <p className="mb-8 max-w-[320px] text-[14px] leading-[1.5] text-ink-faint">
+            {project.tagline}
+          </p>
+
+          <div className="mb-8 flex flex-wrap gap-[6px]">
+            {project.tech.map((t) => (
+              <span
+                key={t}
+                className="inline-block rounded-full border-[0.5px] border-hairline bg-surface-2 px-[13px] py-[5px] text-[12px] text-[#cccccc]"
+              >
+                {t}
+              </span>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <a
+              href={project.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border-[0.5px] border-hairline bg-surface-1 px-5 py-[10px] text-[12px] text-[#cccccc] no-underline transition-colors duration-200 hover:border-accent-blue hover:text-ink"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+              </svg>
+              GitHub
+            </a>
+
+            <button
+              type="button"
+              onClick={onExpand}
+              className="inline-flex cursor-pointer items-center gap-2 rounded-full border-[0.5px] border-hairline bg-surface-1 px-5 py-[10px] text-[12px] text-[#cccccc] transition-colors duration-200 hover:border-accent-blue hover:text-ink"
+            >
+              View details
+            </button>
+          </div>
+        </div>
+      </motion.article>
     </div>
   );
 }
@@ -358,11 +373,16 @@ function ExpandedOverlay({
   );
 }
 
-
 export default function ProjectsSection() {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeDot, setActiveDot] = useState(0);
+  const introRef = useRef<HTMLDivElement>(null);
+
+  // The intro heading clears out as the first card rises over it.
+  const { scrollYProgress: introProgress } = useScroll({
+    target: introRef,
+    offset: ["start start", "end start"],
+  });
+  const introOpacity = useTransform(introProgress, [0, 0.1, 0.5], [1, 1, 0]);
 
   // Close the overlay on Escape and lock background scroll while it is open.
   useEffect(() => {
@@ -381,121 +401,46 @@ export default function ProjectsSection() {
     };
   }, [expandedIndex]);
 
-  useEffect(() => {
-    const container = scrollRef.current;
-    if (!container) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveDot(Number(entry.target.getAttribute("data-index")));
-          }
-        });
-      },
-      { root: container, threshold: 0.6 }
-    );
-
-    const cards = container.querySelectorAll("[data-index]");
-    cards.forEach((card) => observer.observe(card));
-
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <section id="projects" className="relative w-full bg-canvas">
-      <div className="mx-auto max-w-[1400px] px-6 py-16 md:px-[60px] md:py-[96px]">
-        {/* Section label */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, ease: easing }}
-          className="mb-4 text-[11px] uppercase tracking-[0.18em] text-ink-muted"
+    /* The id lives on the first card's 100vh wrapper, not on this 600vh
+       container: ScrollDotNav observes at threshold 0.5, which a 600vh element
+       can never reach, so the dot would never light up. Anchor scrolling is
+       unaffected because that wrapper starts at this container's top. */
+    <section
+      className="relative z-[3] w-full bg-canvas"
+      style={{ height: `${(projects.length + 1) * 100}vh` }}
+    >
+      {/* Intro heading, pinned for the first stretch then overtaken */}
+      <div ref={introRef} className="absolute inset-x-0 top-0 h-screen">
+        <motion.div
+          style={{ opacity: introOpacity }}
+          className="sticky top-0 z-[9] flex h-screen items-center px-6 md:px-[60px]"
         >
-          03 — Projects
-        </motion.p>
-
-        {/* Section heading */}
-        <motion.h2
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.1, duration: 0.7, ease: easing }}
-          className="mb-12 font-medium leading-tight text-ink"
-          style={{
-            fontSize: "clamp(36px, 5vw, 62px)",
-            letterSpacing: "-3px",
-          }}
-        >
-          Things I have built.
-        </motion.h2>
-
-        {/* Desktop grid - 2 rows with independent hover stretch */}
-        <div className="hidden w-full flex-col gap-3 md:flex">
-          <ProjectRow
-            rowProjects={projects.slice(0, 2)}
-            startIndex={0}
-            onExpand={setExpandedIndex}
-          />
-          <ProjectRow
-            rowProjects={projects.slice(2, 4)}
-            startIndex={2}
-            onExpand={setExpandedIndex}
-          />
-
-          {/* Row 3: the odd card out, centred at half width */}
-          <div className="flex w-full justify-center">
-            <div className="w-1/2">
-              <ProjectCard
-                project={projects[4]}
-                index={4}
-                height={CARD_H.base}
-                onExpand={() => setExpandedIndex(4)}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile carousel */}
-        <div className="md:hidden">
-          <div
-            ref={scrollRef}
-            className="no-scrollbar -mx-6 flex snap-x snap-mandatory gap-3 overflow-x-auto px-6"
-            style={{ WebkitOverflowScrolling: "touch" }}
+          <h2
+            className="font-medium leading-tight text-ink"
+            style={{
+              fontSize: "clamp(36px, 5vw, 62px)",
+              letterSpacing: "-3px",
+            }}
           >
-            {projects.map((project, i) => (
-              <div
-                key={project.title}
-                data-index={i}
-                className="w-[85vw] shrink-0 snap-start"
-              >
-                <ProjectCard
-                  project={project}
-                  index={i}
-                  height={CARD_H.base}
-                  onExpand={() => setExpandedIndex(i)}
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Scroll dots */}
-          <div className="mt-4 flex justify-center gap-2">
-            {projects.map((project, i) => (
-              <div
-                key={project.title}
-                className={`h-1.5 w-1.5 rounded-full transition-colors duration-300 ${
-                  activeDot === i ? "bg-ink" : "bg-[#333333]"
-                }`}
-              />
-            ))}
-          </div>
-        </div>
+            Things I have built.
+          </h2>
+        </motion.div>
       </div>
 
-      {/* Expanded overlay — rendered at the document root, outside this
-          section's stacking context. AnimatePresence wraps only the overlay. */}
+      {projects.map((project, i) => (
+        <ProjectStackCard
+          key={project.title}
+          project={project}
+          index={i}
+          total={projects.length}
+          id={i === 0 ? "projects" : undefined}
+          onExpand={() => setExpandedIndex(i)}
+        />
+      ))}
+
+      {/* Expanded overlay - rendered at the document root, outside this
+          section's stacking context. */}
       {typeof document !== "undefined" &&
         createPortal(
           <AnimatePresence>
@@ -507,7 +452,7 @@ export default function ProjectsSection() {
               />
             )}
           </AnimatePresence>,
-          document.body
+          document.body,
         )}
     </section>
   );
