@@ -12,10 +12,9 @@ import ScrollDotNav from "@/components/ScrollDotNav";
 
 export default function Home() {
   const heroRef = useRef<HTMLDivElement>(null);
-  const specializationsRef = useRef<HTMLDivElement>(null);
 
   // Hero shrinks into a rounded card over the back half of its own scroll
-  // range, so the specializations panel appears to rise over a receding page.
+  // range, so the specializations panel arrives over a receding page.
   const { scrollYProgress: heroProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end end"],
@@ -24,16 +23,11 @@ export default function Home() {
   const heroOpacity = useTransform(heroProgress, [0.5, 1], [1, 0.6]);
   const heroRadius = useTransform(heroProgress, [0.5, 1], ["0px", "20px"]);
 
-  const { scrollYProgress: specializationsProgress } = useScroll({
-    target: specializationsRef,
-    offset: ["start start", "end end"],
-  });
-
   return (
     <>
       <ScrollDotNav />
       <main>
-        <div ref={heroRef} className="relative z-[1] h-[150vh] md:h-[200vh]">
+        <div ref={heroRef} className="relative z-[1] h-[150vh]">
           <motion.div
             style={{
               scale: heroScale,
@@ -47,14 +41,10 @@ export default function Home() {
           </motion.div>
         </div>
 
-        <div
-          ref={specializationsRef}
-          className="relative z-[2] h-[200vh] md:h-[300vh]"
-        >
-          <SpecializationsSection
-            scrollYProgress={specializationsProgress}
-            containerRef={specializationsRef}
-          />
+        {/* Directly after the hero wrapper, no margin: the panel takes over the
+            viewport the moment the hero runs out of scroll travel. */}
+        <div className="relative z-[2] h-screen">
+          <SpecializationsSection />
         </div>
 
         <ProjectsSection />
