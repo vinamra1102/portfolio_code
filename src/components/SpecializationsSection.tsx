@@ -76,14 +76,12 @@ const specializationProjects = {
 
 type SpecKey = keyof typeof specializationProjects;
 
-const specializationMeta: Record<
-  SpecKey,
-  { label: string; sublabel: string }
-> = {
-  lerobot: { label: "LeRobot", sublabel: "Imitation Learning Pipeline" },
-  ros2: { label: "ROS2", sublabel: "Robot Operating System" },
-  moveit2: { label: "MoveIt2", sublabel: "Motion Planning and Manipulation" },
-};
+const specializationMeta: Record<SpecKey, { label: string; sublabel: string }> =
+  {
+    lerobot: { label: "LeRobot", sublabel: "Imitation Learning Pipeline" },
+    ros2: { label: "ROS2", sublabel: "Robot Operating System" },
+    moveit2: { label: "MoveIt2", sublabel: "Motion Planning and Manipulation" },
+  };
 
 const HEX_CLIP =
   "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
@@ -163,23 +161,382 @@ function ProjectChips({
 function ArmLabel({
   spec,
   size,
+  hovered,
 }: {
   spec: (typeof SPECIALIZATIONS)[number];
   size: "sm" | "lg";
+  hovered: boolean;
 }) {
   return (
     <>
-      <span
-        className={`mt-3 block whitespace-nowrap font-medium tracking-[-0.8px] text-ink ${
-          size === "lg" ? "text-[20px]" : "text-[18px]"
-        }`}
-      >
-        {spec.label}
-      </span>
+      <motion.div whileHover={{ scale: 1.03 }} transition={{ duration: 0.2 }}>
+        <span
+          className={`mt-3 block whitespace-nowrap font-medium tracking-[-0.8px] text-ink ${
+            size === "lg" ? "text-[20px]" : "text-[18px]"
+          }`}
+        >
+          {spec.label}
+        </span>
+      </motion.div>
       <span className="mt-1 block whitespace-nowrap text-[11px] uppercase tracking-[0.12em] text-[#555555]">
         {spec.sublabel}
       </span>
+      <span
+        aria-hidden="true"
+        className="mt-[6px] block whitespace-nowrap text-[10px] uppercase tracking-[0.1em] text-[#444444]"
+        style={{ opacity: hovered ? 1 : 0, transition: "opacity 0.2s" }}
+      >
+        Click to explore
+      </span>
     </>
+  );
+}
+
+/** Wraps an arm so the line, label and chips are one generous click target. */
+function ArmTrigger({
+  spec,
+  onOpen,
+  children,
+}: {
+  spec: (typeof SPECIALIZATIONS)[number];
+  onOpen: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label={`Explore ${spec.label} projects`}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpen();
+        }
+      }}
+      style={{ padding: "16px", cursor: "none", userSelect: "none" }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function GitHubMark() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+    </svg>
+  );
+}
+
+function SpecializationProjectCard({
+  project,
+  index,
+}: {
+  project: (typeof specializationProjects)[SpecKey][number];
+  index: number;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const [linkHovered, setLinkHovered] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.08, duration: 0.5, ease: EASE }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: "#141414",
+        border: `0.5px solid ${hovered ? "#262626" : "#1e1e1e"}`,
+        borderRadius: "14px",
+        padding: "32px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "16px",
+        transition: "border-color 0.2s",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+        }}
+      >
+        <span
+          style={{
+            background: "rgba(255,255,255,0.05)",
+            border: "0.5px solid rgba(255,255,255,0.1)",
+            borderRadius: "100px",
+            padding: "4px 12px",
+            fontSize: "11px",
+            color: "#cccccc",
+          }}
+        >
+          {project.status}
+        </span>
+        <span
+          style={{
+            width: "44px",
+            height: "44px",
+            flexShrink: 0,
+            borderRadius: "10px",
+            background: "#1c1c1c",
+            border: "0.5px solid #262626",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "14px",
+            fontWeight: 500,
+            color: "#444444",
+            letterSpacing: "-0.5px",
+          }}
+        >
+          {project.initials}
+        </span>
+      </div>
+
+      <h3
+        style={{
+          fontSize: "clamp(20px, 2.5vw, 28px)",
+          fontWeight: 500,
+          color: "#ffffff",
+          letterSpacing: "-1px",
+          lineHeight: 1.0,
+          margin: 0,
+        }}
+      >
+        {project.title}
+      </h3>
+
+      <p
+        style={{
+          fontSize: "13px",
+          color: "#555555",
+          lineHeight: 1.5,
+          margin: 0,
+        }}
+      >
+        {project.tagline}
+      </p>
+
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "6px",
+          marginTop: "auto",
+          paddingTop: "8px",
+        }}
+      >
+        {project.tech.map((t) => (
+          <span
+            key={t}
+            style={{
+              background: "#1c1c1c",
+              border: "0.5px solid #262626",
+              borderRadius: "100px",
+              padding: "4px 12px",
+              fontSize: "11px",
+              color: "#666666",
+            }}
+          >
+            {t}
+          </span>
+        ))}
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          paddingTop: "16px",
+          borderTop: "0.5px solid #1a1a1a",
+          marginTop: "8px",
+        }}
+      >
+        <a
+          href={project.github}
+          target="_blank"
+          rel="noopener noreferrer"
+          onMouseEnter={() => setLinkHovered(true)}
+          onMouseLeave={() => setLinkHovered(false)}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            fontSize: "12px",
+            color: linkHovered ? "#ffffff" : "#555555",
+            textDecoration: "none",
+            cursor: "none",
+            transition: "color 0.2s",
+          }}
+        >
+          <GitHubMark />
+          View on GitHub
+        </a>
+        <span aria-hidden="true" style={{ fontSize: "14px", color: "#333333" }}>
+          &rarr;
+        </span>
+      </div>
+    </motion.div>
+  );
+}
+
+/**
+ * Full screen list of everything filed under one specialization. Inline styles
+ * cannot carry media queries, so the breakpoint is read once into state and the
+ * few values that differ are switched off it.
+ */
+function SpecializationOverlay({
+  specKey,
+  onClose,
+}: {
+  specKey: SpecKey;
+  onClose: () => void;
+}) {
+  const [isMobile, setIsMobile] = useState(false);
+  const [closeHovered, setCloseHovered] = useState(false);
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 767px)");
+    const sync = () => setIsMobile(query.matches);
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
+
+  const meta = specializationMeta[specKey];
+  const projects = specializationProjects[specKey];
+  const gutter = isMobile ? 24 : 80;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      transition={{ duration: 0.4, ease: EASE }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={meta.label}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 300,
+        background: "#090909",
+        display: "flex",
+        flexDirection: "column",
+        overflowY: "auto",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: isMobile ? "32px 24px 0 24px" : "40px 80px 0 80px",
+          marginBottom: "48px",
+        }}
+      >
+        <div>
+          <p
+            style={{
+              fontSize: "11px",
+              color: "#444444",
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              margin: 0,
+              marginBottom: "8px",
+            }}
+          >
+            02 &mdash; Specializations
+          </p>
+          <h2
+            style={{
+              fontSize: isMobile
+                ? "clamp(36px, 8vw, 52px)"
+                : "clamp(48px, 7vw, 88px)",
+              fontWeight: 500,
+              color: "#ffffff",
+              letterSpacing: "-4px",
+              lineHeight: 1.0,
+              margin: 0,
+            }}
+          >
+            {meta.label}
+          </h2>
+          <p
+            style={{
+              fontSize: "13px",
+              color: "#555555",
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              margin: 0,
+              marginTop: "10px",
+            }}
+          >
+            {meta.sublabel}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={onClose}
+          onMouseEnter={() => setCloseHovered(true)}
+          onMouseLeave={() => setCloseHovered(false)}
+          aria-label="Close specialization"
+          style={{
+            width: "44px",
+            height: "44px",
+            flexShrink: 0,
+            borderRadius: "50%",
+            background: "#141414",
+            border: `0.5px solid ${closeHovered ? "#0099ff" : "#262626"}`,
+            color: closeHovered ? "#ffffff" : "#999999",
+            fontSize: "20px",
+            cursor: "none",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "border-color 0.2s, color 0.2s",
+          }}
+        >
+          x
+        </button>
+      </div>
+
+      <div
+        aria-hidden="true"
+        style={{
+          width: `calc(100% - ${gutter * 2}px)`,
+          margin: `0 ${gutter}px`,
+          height: "0.5px",
+          background: "#1a1a1a",
+          marginBottom: "56px",
+        }}
+      />
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: isMobile
+            ? "1fr"
+            : "repeat(auto-fit, minmax(340px, 1fr))",
+          gap: "16px",
+          padding: isMobile ? "0 24px 48px 24px" : "0 80px 80px 80px",
+        }}
+      >
+        {projects.map((project, i) => (
+          <SpecializationProjectCard
+            key={project.title}
+            project={project}
+            index={i}
+          />
+        ))}
+      </div>
+    </motion.div>
   );
 }
 
@@ -189,6 +546,7 @@ function ArmLabel({
  */
 export default function SpecializationsSection() {
   const [activeSpec, setActiveSpec] = useState<SpecKey | null>(null);
+  const [hoveredSpec, setHoveredSpec] = useState<SpecKey | null>(null);
 
   useEffect(() => {
     if (activeSpec) {
@@ -321,24 +679,37 @@ export default function SpecializationsSection() {
                 </div>
 
                 <div
-                  className="pointer-events-none absolute left-1/2 top-1/2 hidden w-[260px] text-center md:block"
+                  className="absolute left-1/2 top-1/2 hidden w-[260px] text-center md:block"
                   style={{
                     transform: `translate(-50%, -50%) translate(${spec.x}px, ${spec.y}px)`,
+                    opacity: hoveredSpec === spec.key ? 0.7 : 1,
+                    transition: "opacity 0.2s",
                   }}
+                  onMouseEnter={() => setHoveredSpec(spec.key)}
+                  onMouseLeave={() => setHoveredSpec(null)}
                 >
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    viewport={{ once: false }}
-                    transition={{
-                      delay: spec.delay,
-                      duration: 0.8,
-                      ease: EASE,
-                    }}
+                  <ArmTrigger
+                    spec={spec}
+                    onOpen={() => setActiveSpec(spec.key)}
                   >
-                    <ArmLabel spec={spec} size="lg" />
-                  </motion.div>
-                  <ProjectChips projects={spec.projects} delay={spec.delay} />
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      whileInView={{ opacity: 1 }}
+                      viewport={{ once: false }}
+                      transition={{
+                        delay: spec.delay,
+                        duration: 0.8,
+                        ease: EASE,
+                      }}
+                    >
+                      <ArmLabel
+                        spec={spec}
+                        size="lg"
+                        hovered={hoveredSpec === spec.key}
+                      />
+                    </motion.div>
+                    <ProjectChips projects={spec.projects} delay={spec.delay} />
+                  </ArmTrigger>
                 </div>
               </Fragment>
             ))}
@@ -354,9 +725,21 @@ export default function SpecializationsSection() {
                 viewport={{ once: false }}
                 transition={{ delay: spec.delay, duration: 0.8, ease: EASE }}
                 className="max-w-[280px] text-center"
+                onMouseEnter={() => setHoveredSpec(spec.key)}
+                onMouseLeave={() => setHoveredSpec(null)}
+                style={{
+                  opacity: hoveredSpec === spec.key ? 0.7 : 1,
+                  transition: "opacity 0.2s",
+                }}
               >
-                <ArmLabel spec={spec} size="sm" />
-                <ProjectChips projects={spec.projects} delay={spec.delay} />
+                <ArmTrigger spec={spec} onOpen={() => setActiveSpec(spec.key)}>
+                  <ArmLabel
+                    spec={spec}
+                    size="sm"
+                    hovered={hoveredSpec === spec.key}
+                  />
+                  <ProjectChips projects={spec.projects} delay={spec.delay} />
+                </ArmTrigger>
               </motion.div>
             ))}
           </div>
@@ -371,6 +754,16 @@ export default function SpecializationsSection() {
       >
         Scroll to explore projects
       </motion.p>
+
+      <AnimatePresence>
+        {activeSpec && (
+          <SpecializationOverlay
+            key={activeSpec}
+            specKey={activeSpec}
+            onClose={() => setActiveSpec(null)}
+          />
+        )}
+      </AnimatePresence>
     </section>
   );
 }
