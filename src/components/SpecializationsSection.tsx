@@ -96,7 +96,6 @@ const SPECIALIZATIONS = [
     key: "lerobot" as SpecKey,
     label: "LeRobot",
     sublabel: "Imitation Learning Pipeline",
-    projects: ["OpenBot Giraffe", "5-DOF Manipulation Stack"],
     x: 0,
     y: -220,
     rotate: 180,
@@ -106,7 +105,6 @@ const SPECIALIZATIONS = [
     key: "ros2" as SpecKey,
     label: "ROS2",
     sublabel: "Robot Operating System",
-    projects: ["MuJoCo-Gazebo RL Transfer", "RRT Maze Solver"],
     x: -200,
     y: 180,
     rotate: 48.01,
@@ -116,47 +114,12 @@ const SPECIALIZATIONS = [
     key: "moveit2" as SpecKey,
     label: "MoveIt2",
     sublabel: "Motion Planning and Manipulation",
-    projects: ["5-DOF Manipulation Stack", "OpenBot Giraffe"],
     x: 200,
     y: 180,
     rotate: -48.01,
     delay: 0.4,
   },
 ] as const;
-
-const CHIP_STYLE = {
-  background: "rgba(0, 153, 255, 0.06)",
-  border: "0.5px solid rgba(0, 153, 255, 0.2)",
-  borderRadius: 100,
-  padding: "3px 10px",
-  fontSize: 10,
-  color: "rgba(0, 153, 255, 0.8)",
-  letterSpacing: "0.08em",
-} as const;
-
-function ProjectChips({
-  projects: names,
-  delay,
-}: {
-  projects: readonly string[];
-  delay: number;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: false }}
-      transition={{ delay: delay + 0.4, duration: 0.4, ease: EASE }}
-      className="mt-2 flex flex-wrap justify-center gap-1"
-    >
-      {names.map((name) => (
-        <span key={name} className="inline-flex" style={CHIP_STYLE}>
-          {name}
-        </span>
-      ))}
-    </motion.div>
-  );
-}
 
 function ArmLabel({
   spec,
@@ -708,7 +671,6 @@ export default function SpecializationsSection() {
                         hovered={hoveredSpec === spec.key}
                       />
                     </motion.div>
-                    <ProjectChips projects={spec.projects} delay={spec.delay} />
                   </ArmTrigger>
                 </div>
               </Fragment>
@@ -738,7 +700,6 @@ export default function SpecializationsSection() {
                     size="sm"
                     hovered={hoveredSpec === spec.key}
                   />
-                  <ProjectChips projects={spec.projects} delay={spec.delay} />
                 </ArmTrigger>
               </motion.div>
             ))}
