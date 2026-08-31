@@ -1,12 +1,7 @@
 "use client";
 
 import { Fragment } from "react";
-import {
-  motion,
-  useScroll,
-  useTransform,
-  type MotionValue,
-} from "framer-motion";
+import { motion } from "framer-motion";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -106,59 +101,13 @@ function ArmLabel({
 }
 
 /**
- * The panel that sticks to the viewport while the outer 300vh wrapper in
- * page.tsx scrolls past. That wrapper owns the scroll tracking and hands the
- * progress down, so 0 is the moment the wrapper's top meets the viewport top
- * and 1 is the moment its bottom does.
+ * The panel that sticks to the viewport while its wrapper in page.tsx scrolls
+ * past. Content is always fully opaque: no scroll driven fade or scale.
  */
-export default function SpecializationsSection({
-  scrollYProgress,
-  containerRef,
-}: {
-  scrollYProgress: MotionValue<number>;
-  containerRef: React.RefObject<HTMLDivElement | null>;
-}) {
-  // A second tracker on the same wrapper, measuring only the approach: 0 when
-  // the wrapper's top is at the viewport bottom, 1 when it reaches the top.
-  // That is the window in which the panel rises over the hero.
-  const { scrollYProgress: riseProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "start start"],
-  });
-  const translateY = useTransform(riseProgress, [0, 1], ["100vh", "0vh"]);
-  const borderRadius = useTransform(
-    riseProgress,
-    [0, 0.15],
-    ["20px 20px 0px 0px", "0px 0px 0px 0px"],
-  );
-
-  const opacity = useTransform(
-    scrollYProgress,
-    [0.2, 0.4, 0.75, 0.95],
-    [0, 1, 1, 0],
-  );
-  const scale = useTransform(
-    scrollYProgress,
-    [0.2, 0.4, 0.75, 0.95],
-    [0.92, 1, 1, 0.94],
-  );
-  // The label and the hint ride their own curves so they arrive after the
-  // compass and clear out before it does.
-  const labelOpacity = useTransform(
-    scrollYProgress,
-    [0.25, 0.4, 0.75, 0.9],
-    [0, 1, 1, 0],
-  );
-  const hintOpacity = useTransform(
-    scrollYProgress,
-    [0.3, 0.45, 0.6, 0.75],
-    [0, 1, 1, 0],
-  );
-
+export default function SpecializationsSection() {
   return (
-    <motion.section
+    <section
       id="specializations"
-      style={{ y: translateY, borderRadius, willChange: "transform" }}
       className="sticky left-0 top-0 flex h-screen w-full items-center justify-center overflow-hidden bg-canvas"
     >
       {/* Vignette */}
@@ -172,21 +121,15 @@ export default function SpecializationsSection({
       />
 
       {/* Section label */}
-      <motion.p
-        style={{ opacity: labelOpacity }}
-        className="absolute left-6 top-12 z-[5] text-[11px] uppercase tracking-[0.18em] text-[#444444] md:left-[60px]"
-      >
+      <p className="absolute left-6 top-12 z-[5] text-[11px] uppercase tracking-[0.18em] text-[#444444] md:left-[60px]">
         02 — Specializations
-      </motion.p>
+      </p>
 
       {/* Centred against the full sticky panel. The translate lives on a
           static parent because Framer Motion owns the transform of the element
           it scales and would overwrite it. */}
       <div className="absolute left-1/2 top-1/2 z-[2] -translate-x-1/2 -translate-y-1/2">
-        <motion.div
-          style={{ opacity, scale }}
-          className="flex flex-col items-center gap-10 md:gap-0"
-        >
+        <div className="flex flex-col items-center gap-10 md:gap-0">
           <div className="relative flex items-center justify-center">
             {/* Decorative crosshair */}
             <div
@@ -313,18 +256,17 @@ export default function SpecializationsSection({
               </motion.div>
             ))}
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* Bottom hint */}
       <motion.p
-        style={{ opacity: hintOpacity }}
         animate={{ y: [0, 6, 0] }}
         transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
         className="absolute bottom-10 left-1/2 z-[5] hidden -translate-x-1/2 whitespace-nowrap text-[11px] uppercase tracking-[0.14em] text-[#333333] md:block"
       >
         Scroll to explore projects
       </motion.p>
-    </motion.section>
+    </section>
   );
 }
