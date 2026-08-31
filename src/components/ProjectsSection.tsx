@@ -95,13 +95,14 @@ export default function ProjectsSection() {
           text: p.title,
           image: { src: p.videoSrc, alt: p.tagline },
         },
-      ])
+      ]),
     ),
   };
 
   return (
     <section
       id="projects"
+      className="halftone-bg halftone-bottom-left"
       style={{
         background: "#090909",
         minHeight: "100vh",
@@ -112,7 +113,14 @@ export default function ProjectsSection() {
         position: "relative",
       }}
     >
-      <div style={{ padding: "0 80px", marginBottom: "32px" }}>
+      <div
+        style={{
+          padding: "0 80px",
+          marginBottom: "32px",
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
         <p
           style={{
             fontSize: "11px",
@@ -149,7 +157,15 @@ export default function ProjectsSection() {
         </h2>
       </div>
 
-      <div style={{ flex: 1, minHeight: "400px", padding: "0 80px" }}>
+      <div
+        style={{
+          flex: 1,
+          minHeight: "400px",
+          padding: "0 80px",
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
         <HoverImageReveal
           items={items}
           backgroundColor="#090909"

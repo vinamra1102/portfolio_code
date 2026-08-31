@@ -29,7 +29,9 @@ export default function ContactSection() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
 
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
@@ -60,7 +62,7 @@ export default function ContactSection() {
           message: message,
           to_name: "Anant Pandey",
         },
-        EMAILJS_PUBLIC_KEY
+        EMAILJS_PUBLIC_KEY,
       );
       setStatus("success");
       setTimeout(() => {
@@ -79,8 +81,11 @@ export default function ContactSection() {
   };
 
   return (
-    <section id="contact" className="relative w-full bg-canvas">
-      <div className="mx-auto max-w-[640px] px-6 py-[72px] md:px-[60px] md:py-[96px_80px]">
+    <section
+      id="contact"
+      className="halftone-bg halftone-center relative w-full bg-canvas"
+    >
+      <div className="relative z-[1] mx-auto max-w-[640px] px-6 py-[72px] md:px-[60px] md:py-[96px_80px]">
         {/* Section label */}
         <motion.p
           initial={{ opacity: 0 }}
@@ -186,7 +191,9 @@ export default function ContactSection() {
               className="h-[140px] w-full resize-none rounded-[10px] border-[0.5px] border-hairline bg-surface-1 px-[18px] py-[14px] text-[14px] text-ink outline-none placeholder:text-[#555555] transition-colors duration-200 focus:border-accent-blue"
             />
             {errors.message && (
-              <p className="mt-1 text-[12px] text-[#ff4444]">{errors.message}</p>
+              <p className="mt-1 text-[12px] text-[#ff4444]">
+                {errors.message}
+              </p>
             )}
           </motion.div>
 

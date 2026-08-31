@@ -570,7 +570,7 @@ export default function SpecializationsSection() {
   return (
     <section
       id="specializations"
-      className="sticky left-0 top-0 flex h-screen w-full items-center justify-center overflow-hidden bg-canvas"
+      className="halftone-bg halftone-top-right halftone-blue sticky left-0 top-0 flex h-screen w-full items-center justify-center overflow-hidden bg-canvas"
     >
       {/* Vignette */}
       <div

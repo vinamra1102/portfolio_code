@@ -17,13 +17,7 @@ const skillCards = [
   },
   {
     category: "AI and Data",
-    skills: [
-      "TensorFlow",
-      "LeRobot",
-      "Stable-Baselines3",
-      "NumPy",
-      "Pandas",
-    ],
+    skills: ["TensorFlow", "LeRobot", "Stable-Baselines3", "NumPy", "Pandas"],
   },
 ];
 
@@ -31,8 +25,11 @@ const easing = [0.16, 1, 0.3, 1] as const;
 
 export default function AboutSection() {
   return (
-    <section id="about" className="relative w-full bg-canvas">
-      <div className="mx-auto max-w-[1400px] px-6 py-16 md:px-[60px] md:py-[96px]">
+    <section
+      id="about"
+      className="halftone-bg halftone-top-left relative w-full bg-canvas"
+    >
+      <div className="relative z-[1] mx-auto max-w-[1400px] px-6 py-16 md:px-[60px] md:py-[96px]">
         {/* Section number label */}
         <motion.p
           initial={{ opacity: 0 }}
