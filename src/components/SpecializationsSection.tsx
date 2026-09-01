@@ -96,26 +96,29 @@ const SPECIALIZATIONS = [
     label: "LeRobot",
     sublabel: "Imitation Learning Pipeline",
     x: 0,
-    y: -230,
+    y: -325,
     rotate: 180,
+    armLength: 235,
     delay: 0,
   },
   {
     key: "ros2" as SpecKey,
     label: "ROS2",
     sublabel: "Robot Operating System",
-    x: -200,
-    y: 175,
-    rotate: 48.81,
+    x: -350,
+    y: 310,
+    rotate: 52.35,
+    armLength: 387,
     delay: 0.2,
   },
   {
     key: "moveit2" as SpecKey,
     label: "MoveIt2",
     sublabel: "Motion Planning and Manipulation",
-    x: 200,
-    y: 175,
-    rotate: -48.81,
+    x: 350,
+    y: 310,
+    rotate: -52.35,
+    armLength: 387,
     delay: 0.4,
   },
 ] as const;
@@ -145,18 +148,17 @@ const JARVIS_KEYFRAMES = `
  * Framer Motion is left to the arm entrances and the overlay only.
  */
 /**
- * Where each arm line terminates, measured from the compass centre: the line
- * starts 55px out and runs 140px, so the tip is 195px along the arm's
- * direction. Joining these tips closes the triangle just clear of the labels.
- * Joining the label centres instead would run a horizontal line straight
- * through the ROS2 and MoveIt2 text, since both sit at y=175.
+ * Triangle corners, measured from the compass centre. Each sits where its arm
+ * line terminates, just inside the matching label.
+ *
+ * These are deliberately well clear of the core: at the previous size the
+ * bottom edge ran at y=128 while the core's box reaches y=130, so that edge
+ * was buried in the glow and read as missing. It now clears it by 140px.
  */
-const ARM_TIP_RADIUS = 55 + 140;
-
 const TIPS: Record<SpecKey, { x: number; y: number }> = {
-  lerobot: { x: 0, y: -ARM_TIP_RADIUS },
-  ros2: { x: -146.7, y: 128.4 },
-  moveit2: { x: 146.7, y: 128.4 },
+  lerobot: { x: 0, y: -290 },
+  ros2: { x: -350, y: 270 },
+  moveit2: { x: 350, y: 270 },
 };
 
 /** The three title-to-title edges, each lit by the two vertices it joins. */
@@ -189,13 +191,13 @@ function TitleEdges({ hoveredSpec }: { hoveredSpec: SpecKey | null }) {
   return (
     <svg
       aria-hidden="true"
-      viewBox="-260 -240 520 480"
+      viewBox="-500 -350 1000 700"
       className="pointer-events-none absolute left-1/2 top-1/2"
       style={{
-        width: 520,
-        height: 480,
-        marginLeft: -260,
-        marginTop: -240,
+        width: 1000,
+        height: 700,
+        marginLeft: -500,
+        marginTop: -350,
         overflow: "visible",
       }}
     >
@@ -790,6 +792,19 @@ function SpecializationOverlay({
 export default function SpecializationsSection() {
   const [activeSpec, setActiveSpec] = useState<SpecKey | null>(null);
   const [hoveredSpec, setHoveredSpec] = useState<SpecKey | null>(null);
+  // The compass is laid out in fixed pixels, so it is scaled to fit rather
+  // than reflowed. Starts at 1 so server and first client render agree.
+  const [compassScale, setCompassScale] = useState(1);
+
+  useEffect(() => {
+    const pick = () => {
+      const w = window.innerWidth;
+      setCompassScale(w >= 1200 ? 1 : w >= 900 ? 0.85 : 0.7);
+    };
+    pick();
+    window.addEventListener("resize", pick);
+    return () => window.removeEventListener("resize", pick);
+  }, []);
 
   useEffect(() => {
     if (activeSpec) {
@@ -851,7 +866,10 @@ export default function SpecializationsSection() {
       {/* Centred against the full sticky panel. The translate lives on a
           static parent because Framer Motion owns the transform of the element
           it scales and would overwrite it. */}
-      <div className="absolute left-1/2 top-1/2 z-[2] -translate-x-1/2 -translate-y-1/2">
+      <div
+        className="absolute left-1/2 top-1/2 z-[2] -translate-x-1/2 -translate-y-1/2"
+        style={{ scale: compassScale, transformOrigin: "center center" }}
+      >
         <div className="flex flex-col items-center gap-10 md:gap-0">
           <div className="relative flex items-center justify-center">
             {/* Decorative crosshair */}
@@ -892,7 +910,7 @@ export default function SpecializationsSection() {
                     }}
                     style={{
                       width: 1,
-                      height: 140,
+                      height: spec.armLength,
                       marginTop: 55,
                       transformOrigin: "top center",
                       background:
