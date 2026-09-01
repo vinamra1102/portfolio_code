@@ -1,681 +1,68 @@
 "use client";
 
-import { Fragment, useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
+import { motion } from "framer-motion";
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
-import { playSFX } from "@/lib/sfx";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-const specializationProjects = {
-  lerobot: [
-    {
-      title: "OpenBot Giraffe",
-      status: "Open Source",
-      tagline: "Affordable 5-DOF robotic arm for hobbyists and researchers",
-      description:
-        "Designed an affordable 5-DOF robotic manipulator with a 3D-printed frame and ST3215 servos. Integrated with LeRobot, ROS2 and MoveIt for trajectory planning, teleoperation and imitation learning in both simulated and real-world applications.",
-      tech: ["ROS2", "LeRobot", "MoveIt2", "Python", "Fusion 360", "Isaac Sim"],
-      github: "https://github.com/anantppandey/openbot-giraffe",
-      initials: "OG",
-    },
-    {
-      title: "5-DOF Manipulation Stack",
-      status: "Robotics",
-      tagline: "Custom IK solver with collision-aware grasp planning",
-      description:
-        "Engineered a custom 5-DOF IK solver and octomap-based obstacle avoidance in Gazebo, planning collision-aware grasps with MoveIt Task Constructor. Built a ROS2 action-server pipeline with multi-object perception and automatic grasp-failure retry for autonomous pick-and-place.",
-      tech: ["ROS2", "MoveIt2", "Gazebo", "Python", "MoveIt Task Constructor"],
-      github: "https://github.com/anantppandey/manipulation-stack",
-      initials: "5D",
-    },
-  ],
-  ros2: [
-    {
-      title: "MuJoCo-Gazebo RL Transfer",
-      status: "Research",
-      tagline: "PPO reach policy trained in MuJoCo and transferred to Gazebo",
-      description:
-        "Trained a PPO reach policy from scratch in MuJoCo using Stable-Baselines3, raising success rate from 37% to 78% through seed-controlled ablation. Built a ROS2 and Gazebo pipeline transferring the policy across simulators with retry-based trajectory generation and closed-loop control.",
-      tech: ["MuJoCo", "Stable-Baselines3", "ROS2", "Gazebo", "Python", "PPO"],
-      github: "https://github.com/anantppandey/mujoco-gazebo-transfer",
-      initials: "MG",
-    },
-    {
-      title: "RRT Maze Solver",
-      status: "Algorithm",
-      tagline: "Rapidly-exploring Random Tree path planning in dynamic mazes",
-      description:
-        "Python-based maze solver using the RRT algorithm to navigate complex dynamic environments. Built an interactive maze editor for creating custom obstacle layouts and start and goal points with high computational efficiency.",
-      tech: ["Python", "RRT Algorithm", "NumPy", "Matplotlib"],
-      github: "https://github.com/anantppandey/rrt-maze-solver",
-      initials: "RM",
-    },
-  ],
-  moveit2: [
-    {
-      title: "5-DOF Manipulation Stack",
-      status: "Robotics",
-      tagline: "Custom IK solver with collision-aware grasp planning",
-      description:
-        "Engineered a custom 5-DOF IK solver and octomap-based obstacle avoidance in Gazebo, planning collision-aware grasps with MoveIt Task Constructor. Built a ROS2 action-server pipeline with multi-object perception and automatic grasp-failure retry for autonomous pick-and-place.",
-      tech: ["ROS2", "MoveIt2", "Gazebo", "Python", "MoveIt Task Constructor"],
-      github: "https://github.com/anantppandey/manipulation-stack",
-      initials: "5D",
-    },
-    {
-      title: "OpenBot Giraffe",
-      status: "Open Source",
-      tagline: "Affordable 5-DOF robotic arm for hobbyists and researchers",
-      description:
-        "Designed an affordable 5-DOF robotic manipulator with a 3D-printed frame and ST3215 servos. Integrated with LeRobot, ROS2 and MoveIt for trajectory planning, teleoperation and imitation learning in both simulated and real-world applications.",
-      tech: ["ROS2", "LeRobot", "MoveIt2", "Python", "Fusion 360", "Isaac Sim"],
-      github: "https://github.com/anantppandey/openbot-giraffe",
-      initials: "OG",
-    },
-  ],
-};
+/** Vertex coordinates inside the 600 x 520 viewBox. */
+const POINTS = {
+  top: { x: 300, y: 60 },
+  "bottom-left": { x: 80, y: 460 },
+  "bottom-right": { x: 520, y: 460 },
+} as const;
 
-type SpecKey = keyof typeof specializationProjects;
+type VertexPosition = keyof typeof POINTS;
 
-const specializationMeta: Record<SpecKey, { label: string; sublabel: string }> =
+const vertices: {
+  id: string;
+  label: string;
+  sublabel: string;
+  position: VertexPosition;
+  projects: { title: string; initials: string }[];
+}[] = [
   {
-    lerobot: { label: "LeRobot", sublabel: "Imitation Learning Pipeline" },
-    ros2: { label: "ROS2", sublabel: "Robot Operating System" },
-    moveit2: { label: "MoveIt2", sublabel: "Motion Planning and Manipulation" },
-  };
-
-/**
- * `rotate` turns the arm line, which points straight down by default, toward
- * its label. CSS rotates clockwise, so a down vector becomes
- * (-sin, cos) and the angle is atan2(-x, y) of the label offset.
- */
-const SPECIALIZATIONS = [
-  {
-    key: "lerobot" as SpecKey,
+    id: "lerobot",
     label: "LeRobot",
-    sublabel: "Imitation Learning Pipeline",
-    x: 0,
-    y: -230,
-    rotate: 180,
-    delay: 0,
+    sublabel: "Imitation Learning",
+    position: "top",
+    projects: [
+      { title: "OpenBot Giraffe", initials: "OG" },
+      { title: "5-DOF Manipulation Stack", initials: "5D" },
+    ],
   },
   {
-    key: "ros2" as SpecKey,
+    id: "ros2",
     label: "ROS2",
     sublabel: "Robot Operating System",
-    x: -200,
-    y: 175,
-    rotate: 48.81,
-    delay: 0.2,
+    position: "bottom-left",
+    projects: [
+      { title: "MuJoCo-Gazebo RL Transfer", initials: "MG" },
+      { title: "RRT Maze Solver", initials: "RM" },
+    ],
   },
   {
-    key: "moveit2" as SpecKey,
+    id: "moveit2",
     label: "MoveIt2",
-    sublabel: "Motion Planning and Manipulation",
-    x: 200,
-    y: 175,
-    rotate: -48.81,
-    delay: 0.4,
+    sublabel: "Motion Planning",
+    position: "bottom-right",
+    projects: [
+      { title: "5-DOF Manipulation Stack", initials: "5D" },
+      { title: "OpenBot Giraffe", initials: "OG" },
+    ],
   },
-] as const;
+];
 
-const JARVIS_KEYFRAMES = `
-  @keyframes spin-slow {
-    from { transform: translate(-50%, -50%) rotate(0deg); }
-    to { transform: translate(-50%, -50%) rotate(360deg); }
-  }
-  @keyframes spin-reverse {
-    from { transform: translate(-50%, -50%) rotate(0deg); }
-    to { transform: translate(-50%, -50%) rotate(-360deg); }
-  }
-  @keyframes core-pulse {
-    0%, 100% { box-shadow: 0 0 30px rgba(0,153,255,0.4), 0 0 60px rgba(0,153,255,0.15), inset 0 0 20px rgba(0,153,255,0.15); }
-    50% { box-shadow: 0 0 40px rgba(0,153,255,0.7), 0 0 80px rgba(0,153,255,0.25), inset 0 0 30px rgba(0,153,255,0.25); }
-  }
-  @keyframes ambient-pulse {
-    0%, 100% { opacity: 0.6; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.15); }
-  }
-`;
+/** Each edge lights when either of the vertices it joins is hovered. */
+const EDGES: { from: VertexPosition; to: VertexPosition; lit: string[] }[] = [
+  { from: "top", to: "bottom-left", lit: ["lerobot", "ros2"] },
+  { from: "top", to: "bottom-right", lit: ["lerobot", "moveit2"] },
+  { from: "bottom-left", to: "bottom-right", lit: ["ros2", "moveit2"] },
+];
 
-/**
- * Layered glowing core: ambient bloom, two counter-rotating rings, a lit inner
- * ring, a hot centre dot and the monogram. All motion is CSS keyframes, so
- * Framer Motion is left to the arm entrances and the overlay only.
- */
-function JarvisCore() {
-  return (
-    <div
-      aria-hidden="true"
-      className="pointer-events-none relative h-[260px] w-[260px]"
-    >
-      <style>{JARVIS_KEYFRAMES}</style>
-
-      {/* Layer 1: ambient bloom */}
-      <div
-        style={{
-          position: "absolute",
-          width: "260px",
-          height: "260px",
-          borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(0,153,255,0.12) 0%, rgba(0,153,255,0.04) 40%, transparent 70%)",
-          filter: "blur(8px)",
-          animation: "ambient-pulse 3s ease-in-out infinite",
-        }}
-      />
-
-      {/* Layer 2: outer ring */}
-      <div
-        style={{
-          position: "absolute",
-          width: "210px",
-          height: "210px",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          borderRadius: "50%",
-          border: "0.5px solid rgba(0,153,255,0.15)",
-          background: "transparent",
-          boxShadow:
-            "0 0 20px rgba(0,153,255,0.08), inset 0 0 20px rgba(0,153,255,0.04)",
-          animation: "spin-slow 20s linear infinite",
-        }}
-      />
-
-      {/* Layer 3: dashed mid ring, counter-rotating */}
-      <div
-        style={{
-          position: "absolute",
-          width: "158px",
-          height: "158px",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          borderRadius: "50%",
-          border: "1px dashed rgba(0,153,255,0.2)",
-          boxShadow: "0 0 16px rgba(0,153,255,0.1)",
-          animation: "spin-reverse 12s linear infinite",
-        }}
-      />
-
-      {/* Layer 4: lit inner ring. The arms meet this edge, radius 55px. */}
-      <div
-        style={{
-          position: "absolute",
-          width: "110px",
-          height: "110px",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          borderRadius: "50%",
-          border: "1px solid rgba(0,153,255,0.5)",
-          background:
-            "radial-gradient(circle, rgba(0,20,60,0.9) 0%, rgba(0,10,30,0.95) 60%, rgba(0,5,20,1) 100%)",
-          boxShadow:
-            "0 0 40px rgba(0,153,255,0.5), 0 0 80px rgba(0,153,255,0.2), 0 0 120px rgba(0,153,255,0.08), inset 0 0 30px rgba(0,153,255,0.2)",
-          animation: "core-pulse 2.5s ease-in-out infinite",
-        }}
-      />
-
-      {/* Layer 5: core dot */}
-      <div
-        style={{
-          position: "absolute",
-          width: "10px",
-          height: "10px",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          borderRadius: "50%",
-          background: "#0099ff",
-          boxShadow:
-            "0 0 10px rgba(0,153,255,1), 0 0 20px rgba(0,153,255,0.8), 0 0 40px rgba(0,153,255,0.4)",
-          animation: "core-pulse 2.5s ease-in-out infinite",
-        }}
-      />
-
-      {/* Layer 6: monogram */}
-      <span
-        style={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          fontSize: "15px",
-          fontWeight: 500,
-          color: "rgba(255,255,255,0.9)",
-          letterSpacing: "-0.3px",
-          zIndex: 2,
-          textShadow: "0 0 10px rgba(0,153,255,0.8)",
-        }}
-      >
-        AP
-      </span>
-    </div>
-  );
-}
-
-function ArmLabel({
-  spec,
-  size,
-  hovered,
-}: {
-  spec: (typeof SPECIALIZATIONS)[number];
-  size: "sm" | "lg";
-  hovered: boolean;
-}) {
-  return (
-    <>
-      <motion.div whileHover={{ scale: 1.03 }} transition={{ duration: 0.2 }}>
-        <span
-          className={`mt-3 block whitespace-nowrap font-medium tracking-[-0.8px] text-ink ${
-            size === "lg" ? "text-[20px]" : "text-[18px]"
-          }`}
-        >
-          {spec.label}
-        </span>
-      </motion.div>
-      <span className="mt-1 block whitespace-nowrap text-[11px] uppercase tracking-[0.12em] text-[#555555]">
-        {spec.sublabel}
-      </span>
-      <span
-        aria-hidden="true"
-        style={{
-          display: "block",
-          fontSize: "10px",
-          color: "#333333",
-          letterSpacing: "0.14em",
-          textTransform: "uppercase",
-          marginTop: "10px",
-          opacity: hovered ? 1 : 0,
-          transition: "opacity 0.2s ease",
-        }}
-      >
-        Explore
-      </span>
-    </>
-  );
-}
-
-/** Wraps an arm so the line, label and hint are one generous click target. */
-function ArmTrigger({
-  spec,
-  onOpen,
-  children,
-}: {
-  spec: (typeof SPECIALIZATIONS)[number];
-  onOpen: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      aria-label={`Explore ${spec.label} projects`}
-      onClick={onOpen}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onOpen();
-        }
-      }}
-      style={{ padding: "16px", cursor: "none", userSelect: "none" }}
-    >
-      {children}
-    </div>
-  );
-}
-
-function GitHubMark() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
-    </svg>
-  );
-}
-
-function SpecializationProjectCard({
-  project,
-  index,
-}: {
-  project: (typeof specializationProjects)[SpecKey][number];
-  index: number;
-}) {
-  const [hovered, setHovered] = useState(false);
-  const [linkHovered, setLinkHovered] = useState(false);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.08, duration: 0.5, ease: EASE }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        background: "#141414",
-        border: `0.5px solid ${hovered ? "#262626" : "#1e1e1e"}`,
-        borderRadius: "14px",
-        padding: "32px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "16px",
-        transition: "border-color 0.2s",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-        }}
-      >
-        <span
-          style={{
-            background: "rgba(255,255,255,0.05)",
-            border: "0.5px solid rgba(255,255,255,0.1)",
-            borderRadius: "100px",
-            padding: "4px 12px",
-            fontSize: "11px",
-            color: "#cccccc",
-          }}
-        >
-          {project.status}
-        </span>
-        <span
-          style={{
-            width: "44px",
-            height: "44px",
-            flexShrink: 0,
-            borderRadius: "10px",
-            background: "#1c1c1c",
-            border: "0.5px solid #262626",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "14px",
-            fontWeight: 500,
-            color: "#444444",
-            letterSpacing: "-0.5px",
-          }}
-        >
-          {project.initials}
-        </span>
-      </div>
-
-      <h3
-        style={{
-          fontSize: "clamp(20px, 2.5vw, 28px)",
-          fontWeight: 500,
-          color: "#ffffff",
-          letterSpacing: "-1px",
-          lineHeight: 1.0,
-          margin: 0,
-        }}
-      >
-        {project.title}
-      </h3>
-
-      <p
-        style={{
-          fontSize: "13px",
-          color: "#555555",
-          lineHeight: 1.5,
-          margin: 0,
-        }}
-      >
-        {project.tagline}
-      </p>
-
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "6px",
-          marginTop: "auto",
-          paddingTop: "8px",
-        }}
-      >
-        {project.tech.map((t) => (
-          <span
-            key={t}
-            style={{
-              background: "#1c1c1c",
-              border: "0.5px solid #262626",
-              borderRadius: "100px",
-              padding: "4px 12px",
-              fontSize: "11px",
-              color: "#666666",
-            }}
-          >
-            {t}
-          </span>
-        ))}
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          paddingTop: "16px",
-          borderTop: "0.5px solid #1a1a1a",
-          marginTop: "8px",
-        }}
-      >
-        <a
-          href={project.github}
-          target="_blank"
-          rel="noopener noreferrer"
-          onMouseEnter={() => setLinkHovered(true)}
-          onMouseLeave={() => setLinkHovered(false)}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
-            fontSize: "12px",
-            color: linkHovered ? "#ffffff" : "#555555",
-            textDecoration: "none",
-            cursor: "none",
-            transition: "color 0.2s",
-          }}
-        >
-          <GitHubMark />
-          View on GitHub
-        </a>
-        <span aria-hidden="true" style={{ fontSize: "14px", color: "#333333" }}>
-          &rarr;
-        </span>
-      </div>
-    </motion.div>
-  );
-}
-
-/**
- * Full screen list of everything filed under one specialization. Inline styles
- * cannot carry media queries, so the breakpoint is read once into state and the
- * few values that differ are switched off it.
- */
-function SpecializationOverlay({
-  specKey,
-  onClose,
-}: {
-  specKey: SpecKey;
-  onClose: () => void;
-}) {
-  const [isMobile, setIsMobile] = useState(false);
-  const [closeHovered, setCloseHovered] = useState(false);
-
-  useEffect(() => {
-    const query = window.matchMedia("(max-width: 767px)");
-    const sync = () => setIsMobile(query.matches);
-    sync();
-    query.addEventListener("change", sync);
-    return () => query.removeEventListener("change", sync);
-  }, []);
-
-  const meta = specializationMeta[specKey];
-  const projects = specializationProjects[specKey];
-  const gutter = isMobile ? 24 : 80;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
-      transition={{ duration: 0.4, ease: EASE }}
-      role="dialog"
-      aria-modal="true"
-      aria-label={meta.label}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 300,
-        background: "#090909",
-        display: "flex",
-        flexDirection: "column",
-        overflowY: "auto",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: isMobile ? "32px 24px 0 24px" : "40px 80px 0 80px",
-          marginBottom: "48px",
-        }}
-      >
-        <div>
-          <p
-            style={{
-              fontSize: "11px",
-              color: "#444444",
-              letterSpacing: "0.18em",
-              textTransform: "uppercase",
-              margin: 0,
-              marginBottom: "8px",
-            }}
-          >
-            02 &mdash; Specializations
-          </p>
-          <h2
-            style={{
-              fontSize: isMobile
-                ? "clamp(36px, 8vw, 52px)"
-                : "clamp(48px, 7vw, 88px)",
-              fontWeight: 500,
-              color: "#ffffff",
-              letterSpacing: "-4px",
-              lineHeight: 1.0,
-              margin: 0,
-            }}
-          >
-            {meta.label}
-          </h2>
-          <p
-            style={{
-              fontSize: "13px",
-              color: "#555555",
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              margin: 0,
-              marginTop: "10px",
-            }}
-          >
-            {meta.sublabel}
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={onClose}
-          onMouseEnter={() => setCloseHovered(true)}
-          onMouseLeave={() => setCloseHovered(false)}
-          aria-label="Close specialization"
-          style={{
-            width: "44px",
-            height: "44px",
-            flexShrink: 0,
-            borderRadius: "50%",
-            background: "#141414",
-            border: `0.5px solid ${closeHovered ? "#0099ff" : "#262626"}`,
-            color: closeHovered ? "#ffffff" : "#999999",
-            fontSize: "20px",
-            cursor: "none",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            transition: "border-color 0.2s, color 0.2s",
-          }}
-        >
-          x
-        </button>
-      </div>
-
-      <div
-        aria-hidden="true"
-        style={{
-          width: `calc(100% - ${gutter * 2}px)`,
-          margin: `0 ${gutter}px`,
-          height: "0.5px",
-          background: "#1a1a1a",
-          marginBottom: "56px",
-        }}
-      />
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: isMobile
-            ? "1fr"
-            : "repeat(auto-fit, minmax(340px, 1fr))",
-          gap: "16px",
-          padding: isMobile ? "0 24px 48px 24px" : "0 80px 80px 80px",
-        }}
-      >
-        {projects.map((project, i) => (
-          <SpecializationProjectCard
-            key={project.title}
-            project={project}
-            index={i}
-          />
-        ))}
-      </div>
-    </motion.div>
-  );
-}
-
-/**
- * The panel that sticks to the viewport while its wrapper in page.tsx scrolls
- * past. Content is always fully opaque: no scroll driven fade or scale.
- */
 export default function SpecializationsSection() {
-  const [activeSpec, setActiveSpec] = useState<SpecKey | null>(null);
-  const [hoveredSpec, setHoveredSpec] = useState<SpecKey | null>(null);
-
-  useEffect(() => {
-    if (activeSpec) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [activeSpec]);
-
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        playSFX("close")
-        setActiveSpec(null)
-      }
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, []);
+  const [hoveredVertex, setHoveredVertex] = useState<string | null>(null);
 
   return (
     <section
@@ -712,143 +99,169 @@ export default function SpecializationsSection() {
         02 — Specializations
       </p>
 
-      {/* Centred against the full sticky panel. The translate lives on a
-          static parent because Framer Motion owns the transform of the element
-          it scales and would overwrite it. */}
-      <div className="absolute left-1/2 top-1/2 z-[2] -translate-x-1/2 -translate-y-1/2">
-        <div className="flex flex-col items-center gap-10 md:gap-0">
-          <div className="relative flex items-center justify-center">
-            {/* Decorative crosshair */}
+      <div className="relative z-[2] h-[520px] w-[600px]">
+        {/* Ambient bloom behind the triangle */}
+        <motion.div
+          aria-hidden="true"
+          animate={{ opacity: hoveredVertex ? 1 : [0.4, 0.8, 0.4] }}
+          transition={
+            hoveredVertex
+              ? { duration: 0.4, ease: EASE }
+              : { duration: 4, repeat: Infinity, ease: "easeInOut" }
+          }
+          className="pointer-events-none absolute left-1/2 top-1/2 z-0"
+          style={{
+            width: 400,
+            height: 400,
+            marginLeft: -200,
+            marginTop: -200,
+            borderRadius: "50%",
+            background:
+              "radial-gradient(circle, rgba(0,153,255,0.06) 0%, transparent 70%)",
+            filter: "blur(40px)",
+          }}
+        />
+
+        <svg
+          viewBox="0 0 600 520"
+          className="absolute inset-0 z-[1] h-full w-full"
+          aria-hidden="true"
+        >
+          <defs>
+            <filter
+              id="glow-edge"
+              x="-20%"
+              y="-20%"
+              width="140%"
+              height="140%"
+            >
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <filter
+              id="glow-edge-bright"
+              x="-30%"
+              y="-30%"
+              width="160%"
+              height="160%"
+            >
+              <feGaussianBlur stdDeviation="5" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+
+          {EDGES.map((edge) => {
+            const a = POINTS[edge.from];
+            const b = POINTS[edge.to];
+            const lit = hoveredVertex !== null && edge.lit.includes(hoveredVertex);
+            return (
+              <line
+                key={`${edge.from}-${edge.to}`}
+                x1={a.x}
+                y1={a.y}
+                x2={b.x}
+                y2={b.y}
+                fill="none"
+                stroke={
+                  lit ? "rgba(0,153,255,0.9)" : "rgba(0,153,255,0.25)"
+                }
+                strokeWidth={lit ? 1.5 : 1}
+                filter={`url(#${lit ? "glow-edge-bright" : "glow-edge"})`}
+                style={{ transition: "stroke 0.3s, stroke-width 0.3s" }}
+              />
+            );
+          })}
+        </svg>
+
+        {/* Vertex nodes, each centred on its triangle corner */}
+        {vertices.map((vertex) => {
+          const point = POINTS[vertex.position];
+          const isHovered = hoveredVertex === vertex.id;
+          const dimmed = hoveredVertex !== null && !isHovered;
+          const isTop = vertex.position === "top";
+
+          return (
             <div
-              aria-hidden="true"
-              className="pointer-events-none absolute left-1/2 top-1/2 z-0 hidden h-[0.5px] w-[400px] -translate-x-1/2 -translate-y-1/2 md:block"
-              style={{ background: "rgba(255,255,255,0.025)" }}
-            />
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute left-1/2 top-1/2 z-0 hidden h-[400px] w-[0.5px] -translate-x-1/2 -translate-y-1/2 md:block"
-              style={{ background: "rgba(255,255,255,0.025)" }}
-            />
-
-            <JarvisCore />
-
-            {/* Radial arms and labels (desktop) */}
-            {SPECIALIZATIONS.map((spec) => (
-              <Fragment key={spec.label}>
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute left-1/2 top-1/2 hidden md:block"
-                  style={{
-                    transform: `rotate(${spec.rotate}deg)`,
-                    transformOrigin: "top center",
-                  }}
-                >
-                  <motion.div
-                    initial={{ scaleY: 0, opacity: 0 }}
-                    whileInView={{ scaleY: 1, opacity: 1 }}
-                    viewport={{ once: false }}
-                    transition={{
-                      delay: spec.delay,
-                      duration: 0.8,
-                      ease: EASE,
-                    }}
-                    style={{
-                      width: 1,
-                      height: 140,
-                      marginTop: 55,
-                      transformOrigin: "top center",
-                      background:
-                        "linear-gradient(to bottom, rgba(0,153,255,0.5), transparent)",
-                    }}
-                  />
-                </div>
-
-                <div
-                  className="absolute left-1/2 top-1/2 hidden w-[260px] text-center md:block"
-                  style={{
-                    transform: `translate(-50%, -50%) translate(${spec.x}px, ${spec.y}px)`,
-                    opacity: hoveredSpec === spec.key ? 0.7 : 1,
-                    transition: "opacity 0.2s",
-                  }}
-                  onMouseEnter={() => setHoveredSpec(spec.key)}
-                  onMouseLeave={() => setHoveredSpec(null)}
-                >
-                  <ArmTrigger
-                    spec={spec}
-                    onOpen={() => {
-                      playSFX("select")
-                      playSFX("expand")
-                      setActiveSpec(spec.key)
-                    }}
-                  >
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      whileInView={{ opacity: 1 }}
-                      viewport={{ once: false }}
-                      transition={{
-                        delay: spec.delay,
-                        duration: 0.8,
-                        ease: EASE,
-                      }}
-                    >
-                      <ArmLabel
-                        spec={spec}
-                        size="lg"
-                        hovered={hoveredSpec === spec.key}
-                      />
-                    </motion.div>
-                  </ArmTrigger>
-                </div>
-              </Fragment>
-            ))}
-          </div>
-
-          {/* Stacked labels (mobile) — arm lines are omitted here per spec */}
-          <div className="flex flex-col items-center gap-8 md:hidden">
-            {SPECIALIZATIONS.map((spec) => (
+              key={vertex.id}
+              onMouseEnter={() => setHoveredVertex(vertex.id)}
+              onMouseLeave={() => setHoveredVertex(null)}
+              className="absolute z-[2]"
+              style={{
+                left: point.x,
+                top: point.y,
+                width: isTop ? 140 : 160,
+                height: 140,
+                marginLeft: isTop ? -70 : -80,
+                marginTop: -70,
+                cursor: "none",
+              }}
+            >
+              {/* Dot sits exactly on the vertex */}
               <motion.div
-                key={spec.label}
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: false }}
-                transition={{ delay: spec.delay, duration: 0.8, ease: EASE }}
-                className="max-w-[280px] text-center"
-                onMouseEnter={() => setHoveredSpec(spec.key)}
-                onMouseLeave={() => setHoveredSpec(null)}
+                animate={{
+                  scale: isHovered ? 1.3 : dimmed ? 0.97 : 1,
+                  opacity: dimmed ? 0.7 : 1,
+                }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className="absolute left-1/2 top-1/2"
                 style={{
-                  opacity: hoveredSpec === spec.key ? 0.7 : 1,
-                  transition: "opacity 0.2s",
+                  width: isHovered ? 16 : 12,
+                  height: isHovered ? 16 : 12,
+                  marginLeft: isHovered ? -8 : -6,
+                  marginTop: isHovered ? -8 : -6,
+                  borderRadius: "50%",
+                  background: isHovered ? "#0099ff" : "rgba(0,153,255,0.4)",
+                  border: isHovered
+                    ? "1.5px solid rgba(0,153,255,0.9)"
+                    : "1px solid rgba(0,153,255,0.4)",
+                  boxShadow: isHovered
+                    ? "0 0 16px rgba(0,153,255,1), 0 0 32px rgba(0,153,255,0.6), 0 0 60px rgba(0,153,255,0.3)"
+                    : "0 0 8px rgba(0,153,255,0.3)",
+                  transition:
+                    "width 0.3s cubic-bezier(0.16,1,0.3,1), height 0.3s cubic-bezier(0.16,1,0.3,1), background 0.3s, border 0.3s, box-shadow 0.3s",
+                }}
+              />
+
+              {/* Label block, below the dot */}
+              <motion.div
+                animate={{
+                  scale: isHovered ? 1.08 : dimmed ? 0.97 : 1,
+                  opacity: dimmed ? 0.7 : 1,
+                }}
+                transition={{ type: "spring", stiffness: 280, damping: 22 }}
+                className="absolute left-1/2 flex flex-col items-center"
+                style={{
+                  top: "calc(50% + 18px)",
+                  width: isTop ? 140 : 160,
+                  marginLeft: isTop ? -70 : -80,
                 }}
               >
-                <ArmTrigger spec={spec} onOpen={() => {
-                  playSFX("select")
-                  playSFX("expand")
-                  setActiveSpec(spec.key)
-                }}>
-                  <ArmLabel
-                    spec={spec}
-                    size="sm"
-                    hovered={hoveredSpec === spec.key}
-                  />
-                </ArmTrigger>
+                <span
+                  className="block whitespace-nowrap text-[18px] font-medium text-ink"
+                  style={{
+                    letterSpacing: "-0.5px",
+                    textShadow: isHovered
+                      ? "0 0 20px rgba(0,153,255,0.5)"
+                      : "none",
+                    transition: "text-shadow 0.2s, opacity 0.2s",
+                  }}
+                >
+                  {vertex.label}
+                </span>
+                <span className="mt-[2px] block whitespace-nowrap text-[10px] uppercase tracking-[0.12em] text-[#444444]">
+                  {vertex.sublabel}
+                </span>
               </motion.div>
-            ))}
-          </div>
-        </div>
+            </div>
+          );
+        })}
       </div>
-
-      <AnimatePresence>
-        {activeSpec && (
-          <SpecializationOverlay
-            key={activeSpec}
-            specKey={activeSpec}
-            onClose={() => {
-              playSFX("close")
-              setActiveSpec(null)
-            }}
-          />
-        )}
-      </AnimatePresence>
     </section>
   );
 }
