@@ -234,8 +234,7 @@ function TitleEdges({ hoveredSpec }: { hoveredSpec: SpecKey | null }) {
             y2={b.y}
             fill="none"
             initial={{ pathLength: 0, opacity: 0 }}
-            whileInView={{ pathLength: 1, opacity: 1 }}
-            viewport={{ once: false }}
+            animate={{ pathLength: 1, opacity: 1 }}
             transition={{
               pathLength: {
                 duration: 1.2,
@@ -794,12 +793,12 @@ export default function SpecializationsSection() {
   const [hoveredSpec, setHoveredSpec] = useState<SpecKey | null>(null);
   // The compass is laid out in fixed pixels, so it is scaled to fit rather
   // than reflowed. Starts at 1 so server and first client render agree.
-  const [compassScale, setCompassScale] = useState(1);
+  const [compassScale, setCompassScale] = useState(0.78);
 
   useEffect(() => {
     const pick = () => {
       const w = window.innerWidth;
-      setCompassScale(w >= 1200 ? 1 : w >= 900 ? 0.85 : 0.7);
+      setCompassScale(w >= 1200 ? 0.78 : w >= 900 ? 0.66 : 0.54);
     };
     pick();
     window.addEventListener("resize", pick);
