@@ -471,7 +471,7 @@ export default function SpecializationsSection() {
         02 — Specializations
       </p>
 
-      <div className="relative z-[2] h-[520px] w-[600px]">
+      <div className="relative z-[2] hidden h-[440px] w-[500px] md:block lg:h-[520px] lg:w-[600px]">
         {/* Ambient bloom behind the triangle */}
         <motion.div
           aria-hidden="true"
@@ -678,6 +678,38 @@ export default function SpecializationsSection() {
             </div>
           );
         })}
+      </div>
+
+      {/* Below md the triangle is replaced by stacked cards. */}
+      <div className="relative z-[2] flex w-full flex-col gap-3 px-6 md:hidden">
+        {vertices.map((vertex) => (
+          <div
+            key={vertex.id}
+            style={{
+              background: "#141414",
+              border: "0.5px solid #1e1e1e",
+              borderRadius: "14px",
+              padding: "24px",
+            }}
+          >
+            <span className="block text-[18px] font-medium tracking-[-0.5px] text-ink">
+              {vertex.label}
+            </span>
+            <span className="mt-[2px] block text-[10px] uppercase tracking-[0.12em] text-[#444444]">
+              {vertex.sublabel}
+            </span>
+            <div className="mt-4 flex flex-wrap gap-[6px]">
+              {vertex.projects.map((project, i) => (
+                <ProjectPill
+                  key={project.title}
+                  title={project.title}
+                  index={i}
+                  onOpen={() => openProject(project.title)}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
 
       <AnimatePresence>
