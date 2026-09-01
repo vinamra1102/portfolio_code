@@ -2,7 +2,8 @@
 
 import { Fragment, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { HalftoneTexture } from "@/components/HalftoneTexture";
+import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
+import { playSFX } from "@/lib/sfx";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -95,26 +96,29 @@ const SPECIALIZATIONS = [
     label: "LeRobot",
     sublabel: "Imitation Learning Pipeline",
     x: 0,
-    y: -230,
+    y: -325,
     rotate: 180,
+    armLength: 235,
     delay: 0,
   },
   {
     key: "ros2" as SpecKey,
     label: "ROS2",
     sublabel: "Robot Operating System",
-    x: -200,
-    y: 175,
-    rotate: 48.81,
+    x: -350,
+    y: 310,
+    rotate: 52.35,
+    armLength: 387,
     delay: 0.2,
   },
   {
     key: "moveit2" as SpecKey,
     label: "MoveIt2",
     sublabel: "Motion Planning and Manipulation",
-    x: 200,
-    y: 175,
-    rotate: -48.81,
+    x: 350,
+    y: 310,
+    rotate: -52.35,
+    armLength: 387,
     delay: 0.4,
   },
 ] as const;
@@ -143,6 +147,170 @@ const JARVIS_KEYFRAMES = `
  * ring, a hot centre dot and the monogram. All motion is CSS keyframes, so
  * Framer Motion is left to the arm entrances and the overlay only.
  */
+/**
+ * Triangle corners, measured from the compass centre. Each sits where its arm
+ * line terminates, just inside the matching label.
+ *
+ * These are deliberately well clear of the core: at the previous size the
+ * bottom edge ran at y=128 while the core's box reaches y=130, so that edge
+ * was buried in the glow and read as missing. It now clears it by 140px.
+ */
+const TIPS: Record<SpecKey, { x: number; y: number }> = {
+  lerobot: { x: 0, y: -290 },
+  ros2: { x: -350, y: 270 },
+  moveit2: { x: 350, y: 270 },
+};
+
+/** The three title-to-title edges, each lit by the two vertices it joins. */
+const TITLE_EDGES: {
+  key: string;
+  from: SpecKey;
+  to: SpecKey;
+  delay: number;
+}[] = [
+  { key: "a", from: "lerobot", to: "ros2", delay: 0.9 },
+  { key: "b", from: "lerobot", to: "moveit2", delay: 1.0 },
+  { key: "c", from: "ros2", to: "moveit2", delay: 1.1 },
+];
+
+const VERTEX_PULSE_DELAY: Record<SpecKey, string> = {
+  lerobot: "0s",
+  ros2: "0.6s",
+  moveit2: "1.2s",
+};
+
+const TITLE_EDGE_KEYFRAMES = `
+  @keyframes vertex-pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.8; }
+  }
+`;
+
+/** Closes the triangle between the three arm tips. */
+function TitleEdges({ hoveredSpec }: { hoveredSpec: SpecKey | null }) {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="-500 -350 1000 700"
+      className="pointer-events-none absolute left-1/2 top-1/2"
+      style={{
+        width: 1000,
+        height: 700,
+        marginLeft: -500,
+        marginTop: -350,
+        overflow: "visible",
+      }}
+    >
+      <style>{TITLE_EDGE_KEYFRAMES}</style>
+      <defs>
+        <filter id="glow-soft" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+        <filter id="glow-bright" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="6" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+
+      {TITLE_EDGES.map((edge) => {
+        const a = TIPS[edge.from];
+        const b = TIPS[edge.to];
+        const adjacent = hoveredSpec === edge.from || hoveredSpec === edge.to;
+        const lit = hoveredSpec !== null && adjacent;
+        const dimmed = hoveredSpec !== null && !adjacent;
+        return (
+          <motion.line
+            key={edge.key}
+            x1={a.x}
+            y1={a.y}
+            x2={b.x}
+            y2={b.y}
+            fill="none"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 1 }}
+            transition={{
+              pathLength: {
+                duration: 1.2,
+                delay: edge.delay,
+                ease: "easeOut",
+              },
+              opacity: { duration: 0.3, delay: edge.delay },
+            }}
+            stroke={
+              lit
+                ? "rgba(0,153,255,0.75)"
+                : dimmed
+                  ? "rgba(0,153,255,0.08)"
+                  : "rgba(0,153,255,0.18)"
+            }
+            strokeWidth={lit ? 1.2 : dimmed ? 0.4 : 0.6}
+            filter={`url(#${lit ? "glow-bright" : "glow-soft"})`}
+            style={{ transition: "stroke 0.3s ease, stroke-width 0.3s ease" }}
+          />
+        );
+      })}
+
+      <motion.line
+        x1={TIPS.ros2.x}
+        y1={TIPS.ros2.y}
+        x2={TIPS.moveit2.x}
+        y2={TIPS.moveit2.y}
+        fill="none"
+        initial={{ pathLength: 0, opacity: 0 }}
+        animate={{ pathLength: 1, opacity: 1 }}
+        transition={{
+          pathLength: { duration: 1.2, ease: "easeOut", delay: 1.1 },
+          opacity: { duration: 0.3, delay: 1.1 },
+        }}
+        stroke={
+          hoveredSpec === "ros2" || hoveredSpec === "moveit2"
+            ? "rgba(0,153,255,0.75)"
+            : hoveredSpec === "lerobot"
+              ? "rgba(0,153,255,0.08)"
+              : "rgba(0,153,255,0.18)"
+        }
+        strokeWidth={
+          hoveredSpec === "ros2" || hoveredSpec === "moveit2"
+            ? 1.2
+            : hoveredSpec === "lerobot"
+              ? 0.4
+              : 0.6
+        }
+        filter={`url(#${hoveredSpec === "ros2" || hoveredSpec === "moveit2" ? "glow-bright" : "glow-soft"})`}
+        style={{ transition: "stroke 0.3s ease, stroke-width 0.3s ease" }}
+      />
+
+      {(Object.keys(TIPS) as SpecKey[]).map((key) => {
+        const tip = TIPS[key];
+        const active = hoveredSpec === key;
+        return (
+          <circle
+            key={key}
+            cx={tip.x}
+            cy={tip.y}
+            r={active ? 4 : 3}
+            fill={active ? "#0099ff" : "rgba(0,153,255,0.4)"}
+            filter={`url(#${active ? "glow-bright" : "glow-soft"})`}
+            style={{
+              animation: active
+                ? undefined
+                : `vertex-pulse 2s ease-in-out ${VERTEX_PULSE_DELAY[key]} infinite`,
+              transition: "r 0.3s, fill 0.3s",
+            }}
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
 function JarvisCore() {
   return (
     <div
@@ -653,6 +821,19 @@ function SpecializationOverlay({
 export default function SpecializationsSection() {
   const [activeSpec, setActiveSpec] = useState<SpecKey | null>(null);
   const [hoveredSpec, setHoveredSpec] = useState<SpecKey | null>(null);
+  // The compass is laid out in fixed pixels, so it is scaled to fit rather
+  // than reflowed. Starts at 1 so server and first client render agree.
+  const [compassScale, setCompassScale] = useState(0.78);
+
+  useEffect(() => {
+    const pick = () => {
+      const w = window.innerWidth;
+      setCompassScale(w >= 1200 ? 0.78 : w >= 900 ? 0.66 : 0.54);
+    };
+    pick();
+    window.addEventListener("resize", pick);
+    return () => window.removeEventListener("resize", pick);
+  }, []);
 
   useEffect(() => {
     if (activeSpec) {
@@ -667,7 +848,10 @@ export default function SpecializationsSection() {
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setActiveSpec(null);
+      if (e.key === "Escape") {
+        playSFX("close");
+        setActiveSpec(null);
+      }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
@@ -678,7 +862,20 @@ export default function SpecializationsSection() {
       id="specializations"
       className="sticky left-0 top-0 flex h-screen w-full items-center justify-center overflow-hidden bg-canvas"
     >
-      <HalftoneTexture maskPosition="75% 20%" blue={true} />
+      <DottedGlowBackground
+        className="pointer-events-none absolute inset-0 z-0 mask-radial-to-80-top-right"
+        opacity={0.65}
+        gap={18}
+        radius={1.2}
+        colorLightVar="--color-neutral-500"
+        glowColorLightVar="--color-neutral-600"
+        colorDarkVar="--color-neutral-700"
+        glowColorDarkVar="--color-sky-600"
+        backgroundOpacity={0}
+        speedMin={0.2}
+        speedMax={0.7}
+        speedScale={0.5}
+      />
 
       {/* Vignette */}
       <div
@@ -698,7 +895,10 @@ export default function SpecializationsSection() {
       {/* Centred against the full sticky panel. The translate lives on a
           static parent because Framer Motion owns the transform of the element
           it scales and would overwrite it. */}
-      <div className="absolute left-1/2 top-1/2 z-[2] -translate-x-1/2 -translate-y-1/2">
+      <div
+        className="absolute left-1/2 top-1/2 z-[2] -translate-x-1/2 -translate-y-1/2"
+        style={{ scale: compassScale, transformOrigin: "center center" }}
+      >
         <div className="flex flex-col items-center gap-10 md:gap-0">
           <div className="relative flex items-center justify-center">
             {/* Decorative crosshair */}
@@ -714,6 +914,8 @@ export default function SpecializationsSection() {
             />
 
             <JarvisCore />
+
+            <TitleEdges hoveredSpec={hoveredSpec} />
 
             {/* Radial arms and labels (desktop) */}
             {SPECIALIZATIONS.map((spec) => (
@@ -737,7 +939,7 @@ export default function SpecializationsSection() {
                     }}
                     style={{
                       width: 1,
-                      height: 140,
+                      height: spec.armLength,
                       marginTop: 55,
                       transformOrigin: "top center",
                       background:
@@ -758,7 +960,11 @@ export default function SpecializationsSection() {
                 >
                   <ArmTrigger
                     spec={spec}
-                    onOpen={() => setActiveSpec(spec.key)}
+                    onOpen={() => {
+                      playSFX("select");
+                      playSFX("expand");
+                      setActiveSpec(spec.key);
+                    }}
                   >
                     <motion.div
                       initial={{ opacity: 0 }}
@@ -799,7 +1005,14 @@ export default function SpecializationsSection() {
                   transition: "opacity 0.2s",
                 }}
               >
-                <ArmTrigger spec={spec} onOpen={() => setActiveSpec(spec.key)}>
+                <ArmTrigger
+                  spec={spec}
+                  onOpen={() => {
+                    playSFX("select");
+                    playSFX("expand");
+                    setActiveSpec(spec.key);
+                  }}
+                >
                   <ArmLabel
                     spec={spec}
                     size="sm"
@@ -817,7 +1030,10 @@ export default function SpecializationsSection() {
           <SpecializationOverlay
             key={activeSpec}
             specKey={activeSpec}
-            onClose={() => setActiveSpec(null)}
+            onClose={() => {
+              playSFX("close");
+              setActiveSpec(null);
+            }}
           />
         )}
       </AnimatePresence>

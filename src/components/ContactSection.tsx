@@ -3,6 +3,9 @@
 import { useState, FormEvent } from "react";
 import { motion } from "framer-motion";
 import emailjs from "@emailjs/browser";
+import { playSFX } from "@/lib/sfx";
+import { SFXToggle } from "@/components/SFXToggle";
+import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
 
 // ---------------------------------------------------------------------------
 // TODO: EmailJS placeholders — the contact form will not send until these three
@@ -48,7 +51,10 @@ export default function ContactSection() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate()) {
+      playSFX("error")
+      return;
+    }
 
     setStatus("loading");
 
@@ -65,6 +71,7 @@ export default function ContactSection() {
         EMAILJS_PUBLIC_KEY,
       );
       setStatus("success");
+      playSFX("success")
       setTimeout(() => {
         setName("");
         setEmail("");
@@ -73,6 +80,7 @@ export default function ContactSection() {
       }, 3000);
     } catch {
       setStatus("error");
+      playSFX("error")
     }
   };
 
@@ -83,8 +91,22 @@ export default function ContactSection() {
   return (
     <section
       id="contact"
-      className="halftone-bg halftone-center relative w-full bg-canvas"
+      className="relative w-full overflow-hidden bg-canvas"
     >
+      <DottedGlowBackground
+        className="pointer-events-none absolute inset-0 z-0 mask-radial-to-75-center"
+        opacity={0.55}
+        gap={18}
+        radius={1.2}
+        colorLightVar="--color-neutral-500"
+        glowColorLightVar="--color-neutral-600"
+        colorDarkVar="--color-neutral-700"
+        glowColorDarkVar="--color-sky-600"
+        backgroundOpacity={0}
+        speedMin={0.2}
+        speedMax={0.7}
+        speedScale={0.5}
+      />
       <div className="relative z-[1] mx-auto max-w-[640px] px-6 py-[72px] md:px-[60px] md:py-[96px_80px]">
         {/* Section label */}
         <motion.p
@@ -145,6 +167,7 @@ export default function ContactSection() {
                 setName(e.target.value);
                 clearError("name");
               }}
+              onFocus={() => playSFX("focus")}
               className="h-12 w-full rounded-[10px] border-[0.5px] border-hairline bg-surface-1 px-[18px] text-[14px] text-ink outline-none placeholder:text-[#555555] transition-colors duration-200 focus:border-accent-blue"
             />
             {errors.name && (
@@ -167,6 +190,7 @@ export default function ContactSection() {
                 setEmail(e.target.value);
                 clearError("email");
               }}
+              onFocus={() => playSFX("focus")}
               className="h-12 w-full rounded-[10px] border-[0.5px] border-hairline bg-surface-1 px-[18px] text-[14px] text-ink outline-none placeholder:text-[#555555] transition-colors duration-200 focus:border-accent-blue"
             />
             {errors.email && (
@@ -188,6 +212,7 @@ export default function ContactSection() {
                 setMessage(e.target.value);
                 clearError("message");
               }}
+              onFocus={() => playSFX("focus")}
               className="h-[140px] w-full resize-none rounded-[10px] border-[0.5px] border-hairline bg-surface-1 px-[18px] py-[14px] text-[14px] text-ink outline-none placeholder:text-[#555555] transition-colors duration-200 focus:border-accent-blue"
             />
             {errors.message && (
@@ -282,6 +307,10 @@ export default function ContactSection() {
             Email
           </a>
         </motion.div>
+
+        <div className="flex justify-center">
+          <SFXToggle />
+        </div>
       </div>
     </section>
   );
