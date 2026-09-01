@@ -144,6 +144,142 @@ const JARVIS_KEYFRAMES = `
  * ring, a hot centre dot and the monogram. All motion is CSS keyframes, so
  * Framer Motion is left to the arm entrances and the overlay only.
  */
+/**
+ * Where each arm line terminates, measured from the compass centre: the line
+ * starts 55px out and runs 140px, so the tip is 195px along the arm's
+ * direction. Joining these tips closes the triangle just clear of the labels.
+ * Joining the label centres instead would run a horizontal line straight
+ * through the ROS2 and MoveIt2 text, since both sit at y=175.
+ */
+const ARM_TIP_RADIUS = 55 + 140;
+
+const TIPS: Record<SpecKey, { x: number; y: number }> = {
+  lerobot: { x: 0, y: -ARM_TIP_RADIUS },
+  ros2: { x: -146.7, y: 128.4 },
+  moveit2: { x: 146.7, y: 128.4 },
+};
+
+/** The three title-to-title edges, each lit by the two vertices it joins. */
+const TITLE_EDGES: {
+  key: string;
+  from: SpecKey;
+  to: SpecKey;
+  delay: number;
+}[] = [
+  { key: "a", from: "lerobot", to: "ros2", delay: 0.9 },
+  { key: "b", from: "lerobot", to: "moveit2", delay: 1.0 },
+  { key: "c", from: "ros2", to: "moveit2", delay: 1.1 },
+];
+
+const VERTEX_PULSE_DELAY: Record<SpecKey, string> = {
+  lerobot: "0s",
+  ros2: "0.6s",
+  moveit2: "1.2s",
+};
+
+const TITLE_EDGE_KEYFRAMES = `
+  @keyframes vertex-pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.8; }
+  }
+`;
+
+/** Closes the triangle between the three arm tips. */
+function TitleEdges({ hoveredSpec }: { hoveredSpec: SpecKey | null }) {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="-260 -240 520 480"
+      className="pointer-events-none absolute left-1/2 top-1/2"
+      style={{
+        width: 520,
+        height: 480,
+        marginLeft: -260,
+        marginTop: -240,
+        overflow: "visible",
+      }}
+    >
+      <style>{TITLE_EDGE_KEYFRAMES}</style>
+      <defs>
+        <filter id="glow-soft" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+        <filter id="glow-bright" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="6" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+
+      {TITLE_EDGES.map((edge) => {
+        const a = TIPS[edge.from];
+        const b = TIPS[edge.to];
+        const adjacent = hoveredSpec === edge.from || hoveredSpec === edge.to;
+        const lit = hoveredSpec !== null && adjacent;
+        const dimmed = hoveredSpec !== null && !adjacent;
+        return (
+          <motion.line
+            key={edge.key}
+            x1={a.x}
+            y1={a.y}
+            x2={b.x}
+            y2={b.y}
+            fill="none"
+            initial={{ pathLength: 0, opacity: 0 }}
+            whileInView={{ pathLength: 1, opacity: 1 }}
+            viewport={{ once: false }}
+            transition={{
+              pathLength: {
+                duration: 1.2,
+                delay: edge.delay,
+                ease: "easeOut",
+              },
+              opacity: { duration: 0.3, delay: edge.delay },
+            }}
+            stroke={
+              lit
+                ? "rgba(0,153,255,0.75)"
+                : dimmed
+                  ? "rgba(0,153,255,0.08)"
+                  : "rgba(0,153,255,0.18)"
+            }
+            strokeWidth={lit ? 1.2 : dimmed ? 0.4 : 0.6}
+            filter={`url(#${lit ? "glow-bright" : "glow-soft"})`}
+            style={{ transition: "stroke 0.3s ease, stroke-width 0.3s ease" }}
+          />
+        );
+      })}
+
+      {(Object.keys(TIPS) as SpecKey[]).map((key) => {
+        const tip = TIPS[key];
+        const active = hoveredSpec === key;
+        return (
+          <circle
+            key={key}
+            cx={tip.x}
+            cy={tip.y}
+            r={active ? 4 : 3}
+            fill={active ? "#0099ff" : "rgba(0,153,255,0.4)"}
+            filter={`url(#${active ? "glow-bright" : "glow-soft"})`}
+            style={{
+              animation: active
+                ? undefined
+                : `vertex-pulse 2s ease-in-out ${VERTEX_PULSE_DELAY[key]} infinite`,
+              transition: "r 0.3s, fill 0.3s",
+            }}
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
 function JarvisCore() {
   return (
     <div
@@ -669,8 +805,8 @@ export default function SpecializationsSection() {
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        playSFX("close")
-        setActiveSpec(null)
+        playSFX("close");
+        setActiveSpec(null);
       }
     };
     window.addEventListener("keydown", handleKey);
@@ -732,6 +868,8 @@ export default function SpecializationsSection() {
 
             <JarvisCore />
 
+            <TitleEdges hoveredSpec={hoveredSpec} />
+
             {/* Radial arms and labels (desktop) */}
             {SPECIALIZATIONS.map((spec) => (
               <Fragment key={spec.label}>
@@ -776,9 +914,9 @@ export default function SpecializationsSection() {
                   <ArmTrigger
                     spec={spec}
                     onOpen={() => {
-                      playSFX("select")
-                      playSFX("expand")
-                      setActiveSpec(spec.key)
+                      playSFX("select");
+                      playSFX("expand");
+                      setActiveSpec(spec.key);
                     }}
                   >
                     <motion.div
@@ -820,11 +958,14 @@ export default function SpecializationsSection() {
                   transition: "opacity 0.2s",
                 }}
               >
-                <ArmTrigger spec={spec} onOpen={() => {
-                  playSFX("select")
-                  playSFX("expand")
-                  setActiveSpec(spec.key)
-                }}>
+                <ArmTrigger
+                  spec={spec}
+                  onOpen={() => {
+                    playSFX("select");
+                    playSFX("expand");
+                    setActiveSpec(spec.key);
+                  }}
+                >
                   <ArmLabel
                     spec={spec}
                     size="sm"
@@ -843,8 +984,8 @@ export default function SpecializationsSection() {
             key={activeSpec}
             specKey={activeSpec}
             onClose={() => {
-              playSFX("close")
-              setActiveSpec(null)
+              playSFX("close");
+              setActiveSpec(null);
             }}
           />
         )}
