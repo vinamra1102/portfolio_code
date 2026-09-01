@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
 
 const skillCards = [
   {
@@ -27,8 +28,22 @@ export default function AboutSection() {
   return (
     <section
       id="about"
-      className="halftone-bg halftone-top-left relative w-full bg-canvas"
+      className="relative w-full overflow-hidden bg-canvas"
     >
+      <DottedGlowBackground
+        className="pointer-events-none absolute inset-0 z-0 mask-radial-to-75-top-left"
+        opacity={0.5}
+        gap={18}
+        radius={1.2}
+        colorLightVar="--color-neutral-500"
+        glowColorLightVar="--color-neutral-600"
+        colorDarkVar="--color-neutral-700"
+        glowColorDarkVar="--color-sky-600"
+        backgroundOpacity={0}
+        speedMin={0.15}
+        speedMax={0.6}
+        speedScale={0.5}
+      />
       <div className="relative z-[1] mx-auto max-w-[1400px] px-6 py-16 md:px-[60px] md:py-[96px]">
         {/* Section number label */}
         <motion.p
