@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
+import { playSFX } from "@/lib/sfx";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -61,8 +62,61 @@ const EDGES: { from: VertexPosition; to: VertexPosition; lit: string[] }[] = [
   { from: "bottom-left", to: "bottom-right", lit: ["ros2", "moveit2"] },
 ];
 
+/** One project pill under a hovered vertex. */
+function ProjectPill({
+  title,
+  index,
+  onOpen,
+}: {
+  title: string;
+  index: number;
+  onOpen: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <motion.button
+      type="button"
+      initial={{ opacity: 0, y: 6, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 6, scale: 0.95 }}
+      transition={{ duration: 0.25, ease: EASE, delay: index * 0.05 }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={onOpen}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "6px",
+        background: hovered ? "rgba(0,153,255,0.18)" : "rgba(0,153,255,0.08)",
+        border: `0.5px solid ${hovered ? "rgba(0,153,255,0.7)" : "rgba(0,153,255,0.35)"}`,
+        borderRadius: "100px",
+        padding: "6px 14px",
+        fontSize: "12px",
+        color: "#ffffff",
+        cursor: "none",
+        whiteSpace: "nowrap",
+        boxShadow: hovered ? "0 0 10px rgba(0,153,255,0.2)" : "none",
+        transform: hovered ? "translateY(-1px)" : "translateY(0)",
+        transition:
+          "background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.2s",
+      }}
+    >
+      {title}
+    </motion.button>
+  );
+}
+
 export default function SpecializationsSection() {
   const [hoveredVertex, setHoveredVertex] = useState<string | null>(null);
+
+  const openProject = (title: string) => {
+    playSFX("select");
+    playSFX("expand");
+    setSelectedTitle(title);
+  };
+  const [selectedTitle, setSelectedTitle] = useState<string | null>(null);
+  void selectedTitle;
 
   return (
     <section
@@ -128,13 +182,7 @@ export default function SpecializationsSection() {
           aria-hidden="true"
         >
           <defs>
-            <filter
-              id="glow-edge"
-              x="-20%"
-              y="-20%"
-              width="140%"
-              height="140%"
-            >
+            <filter id="glow-edge" x="-20%" y="-20%" width="140%" height="140%">
               <feGaussianBlur stdDeviation="3" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
@@ -159,7 +207,8 @@ export default function SpecializationsSection() {
           {EDGES.map((edge) => {
             const a = POINTS[edge.from];
             const b = POINTS[edge.to];
-            const lit = hoveredVertex !== null && edge.lit.includes(hoveredVertex);
+            const lit =
+              hoveredVertex !== null && edge.lit.includes(hoveredVertex);
             return (
               <line
                 key={`${edge.from}-${edge.to}`}
@@ -168,9 +217,7 @@ export default function SpecializationsSection() {
                 x2={b.x}
                 y2={b.y}
                 fill="none"
-                stroke={
-                  lit ? "rgba(0,153,255,0.9)" : "rgba(0,153,255,0.25)"
-                }
+                stroke={lit ? "rgba(0,153,255,0.9)" : "rgba(0,153,255,0.25)"}
                 strokeWidth={lit ? 1.5 : 1}
                 filter={`url(#${lit ? "glow-edge-bright" : "glow-edge"})`}
                 style={{ transition: "stroke 0.3s, stroke-width 0.3s" }}
@@ -257,7 +304,50 @@ export default function SpecializationsSection() {
                 <span className="mt-[2px] block whitespace-nowrap text-[10px] uppercase tracking-[0.12em] text-[#444444]">
                   {vertex.sublabel}
                 </span>
+
+                {isTop && (
+                  <AnimatePresence>
+                    {isHovered && (
+                      <div className="mt-[10px] flex flex-col items-center gap-[6px]">
+                        {vertex.projects.map((project, i) => (
+                          <ProjectPill
+                            key={project.title}
+                            title={project.title}
+                            index={i}
+                            onOpen={() => openProject(project.title)}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </AnimatePresence>
+                )}
               </motion.div>
+
+              {/* Bottom vertices sit near the container floor, so their pills
+                  rise above the dot rather than running off the edge. */}
+              {!isTop && (
+                <AnimatePresence>
+                  {isHovered && (
+                    <div
+                      className="absolute left-1/2 flex flex-col items-center gap-[6px]"
+                      style={{
+                        bottom: "calc(50% + 18px)",
+                        width: 220,
+                        marginLeft: -110,
+                      }}
+                    >
+                      {vertex.projects.map((project, i) => (
+                        <ProjectPill
+                          key={project.title}
+                          title={project.title}
+                          index={i}
+                          onOpen={() => openProject(project.title)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </AnimatePresence>
+              )}
             </div>
           );
         })}
