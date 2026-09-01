@@ -257,6 +257,36 @@ function TitleEdges({ hoveredSpec }: { hoveredSpec: SpecKey | null }) {
         );
       })}
 
+      <motion.line
+        x1={TIPS.ros2.x}
+        y1={TIPS.ros2.y}
+        x2={TIPS.moveit2.x}
+        y2={TIPS.moveit2.y}
+        fill="none"
+        initial={{ pathLength: 0, opacity: 0 }}
+        animate={{ pathLength: 1, opacity: 1 }}
+        transition={{
+          pathLength: { duration: 1.2, ease: "easeOut", delay: 1.1 },
+          opacity: { duration: 0.3, delay: 1.1 },
+        }}
+        stroke={
+          hoveredSpec === "ros2" || hoveredSpec === "moveit2"
+            ? "rgba(0,153,255,0.75)"
+            : hoveredSpec === "lerobot"
+              ? "rgba(0,153,255,0.08)"
+              : "rgba(0,153,255,0.18)"
+        }
+        strokeWidth={
+          hoveredSpec === "ros2" || hoveredSpec === "moveit2"
+            ? 1.2
+            : hoveredSpec === "lerobot"
+              ? 0.4
+              : 0.6
+        }
+        filter={`url(#${hoveredSpec === "ros2" || hoveredSpec === "moveit2" ? "glow-bright" : "glow-soft"})`}
+        style={{ transition: "stroke 0.3s ease, stroke-width 0.3s ease" }}
+      />
+
       {(Object.keys(TIPS) as SpecKey[]).map((key) => {
         const tip = TIPS[key];
         const active = hoveredSpec === key;
