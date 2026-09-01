@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
 import { playSFX } from "@/lib/sfx";
@@ -55,6 +55,51 @@ const vertices: {
   },
 ];
 
+const allProjects = [
+  {
+    title: "OpenBot Giraffe",
+    status: "Open Source",
+    tagline: "Affordable 5-DOF robotic arm for hobbyists and researchers",
+    description:
+      "Designed an affordable 5-DOF robotic manipulator with a 3D-printed frame and ST3215 servos. Integrated with LeRobot, ROS2 and MoveIt for trajectory planning, teleoperation and imitation learning in both simulated and real-world applications.",
+    tech: ["ROS2", "LeRobot", "MoveIt2", "Python", "Fusion 360", "Isaac Sim"],
+    github: "https://github.com/anantppandey/openbot-giraffe",
+    initials: "OG",
+  },
+  {
+    title: "5-DOF Manipulation Stack",
+    status: "Robotics",
+    tagline: "Custom IK solver with collision-aware grasp planning",
+    description:
+      "Engineered a custom 5-DOF IK solver and octomap-based obstacle avoidance in Gazebo, planning collision-aware grasps with MoveIt Task Constructor. Built a ROS2 action-server pipeline with multi-object perception and automatic grasp-failure retry.",
+    tech: ["ROS2", "MoveIt2", "Gazebo", "Python", "MoveIt Task Constructor"],
+    github: "https://github.com/anantppandey/manipulation-stack",
+    initials: "5D",
+  },
+  {
+    title: "MuJoCo-Gazebo RL Transfer",
+    status: "Research",
+    tagline: "PPO reach policy trained in MuJoCo and transferred to Gazebo",
+    description:
+      "Trained a PPO reach policy from scratch in MuJoCo using Stable-Baselines3, raising success rate from 37% to 78% through seed-controlled ablation. Built a ROS2 and Gazebo pipeline with retry-based trajectory generation and closed-loop control.",
+    tech: ["MuJoCo", "Stable-Baselines3", "ROS2", "Gazebo", "Python", "PPO"],
+    github: "https://github.com/anantppandey/mujoco-gazebo-transfer",
+    initials: "MG",
+  },
+  {
+    title: "RRT Maze Solver",
+    status: "Algorithm",
+    tagline: "Rapidly-exploring Random Tree path planning in dynamic mazes",
+    description:
+      "Python-based maze solver using the RRT algorithm to navigate complex dynamic environments. Built an interactive maze editor for creating custom obstacle layouts and start and goal points.",
+    tech: ["Python", "RRT Algorithm", "NumPy", "Matplotlib"],
+    github: "https://github.com/anantppandey/rrt-maze-solver",
+    initials: "RM",
+  },
+];
+
+type Project = (typeof allProjects)[number];
+
 /** Each edge lights when either of the vertices it joins is hovered. */
 const EDGES: { from: VertexPosition; to: VertexPosition; lit: string[] }[] = [
   { from: "top", to: "bottom-left", lit: ["lerobot", "ros2"] },
@@ -107,16 +152,289 @@ function ProjectPill({
   );
 }
 
+function ProjectDetailOverlay({
+  project,
+  onClose,
+}: {
+  project: Project;
+  onClose: () => void;
+}) {
+  const [closeHovered, setCloseHovered] = useState(false);
+  const [linkHovered, setLinkHovered] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={project.title}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 200,
+        background: "rgba(9,9,9,0.95)",
+        backdropFilter: "blur(20px)",
+        display: "flex",
+        alignItems: "stretch",
+      }}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 20 }}
+        transition={{ duration: 0.4, ease: EASE }}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          display: "grid",
+          gridTemplateColumns: "55% 45%",
+          width: "100%",
+          height: "100%",
+        }}
+      >
+        <div style={{ position: "relative", background: "#0a0a0a" }}>
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              background: "#141414",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: "column",
+              gap: "12px",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "64px",
+                fontWeight: 500,
+                color: "#1e1e1e",
+                letterSpacing: "-3px",
+              }}
+            >
+              {project.initials}
+            </div>
+            <div
+              style={{
+                fontSize: "11px",
+                color: "#222",
+                letterSpacing: "0.2em",
+                textTransform: "uppercase",
+              }}
+            >
+              Preview soon
+            </div>
+          </div>
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "linear-gradient(to right, transparent 60%, rgba(9,9,9,0.8) 100%)",
+              pointerEvents: "none",
+            }}
+          />
+        </div>
+
+        <div
+          style={{
+            padding: "56px 52px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            overflowY: "auto",
+          }}
+        >
+          <button
+            type="button"
+            onClick={onClose}
+            onMouseEnter={() => setCloseHovered(true)}
+            onMouseLeave={() => setCloseHovered(false)}
+            aria-label="Close project details"
+            style={{
+              position: "absolute",
+              top: "32px",
+              right: "32px",
+              width: "40px",
+              height: "40px",
+              borderRadius: "50%",
+              background: "#141414",
+              border: `0.5px solid ${closeHovered ? "#0099ff" : "#262626"}`,
+              color: closeHovered ? "#ffffff" : "#999999",
+              fontSize: "18px",
+              cursor: "none",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "border-color 0.2s, color 0.2s",
+            }}
+          >
+            x
+          </button>
+
+          <div
+            style={{
+              display: "inline-flex",
+              background: "rgba(255,255,255,0.06)",
+              border: "0.5px solid rgba(255,255,255,0.12)",
+              borderRadius: "100px",
+              padding: "4px 12px",
+              fontSize: "11px",
+              color: "#cccccc",
+              marginBottom: "20px",
+              width: "fit-content",
+            }}
+          >
+            {project.status}
+          </div>
+
+          <h2
+            style={{
+              fontSize: "clamp(28px, 3.5vw, 44px)",
+              fontWeight: 500,
+              color: "#ffffff",
+              letterSpacing: "-2px",
+              lineHeight: 1.0,
+              margin: "0 0 16px 0",
+            }}
+          >
+            {project.title}
+          </h2>
+
+          <p
+            style={{
+              fontSize: "14px",
+              color: "#666666",
+              lineHeight: 1.6,
+              margin: "0 0 32px 0",
+              maxWidth: "380px",
+            }}
+          >
+            {project.description}
+          </p>
+
+          <p
+            style={{
+              fontSize: "11px",
+              color: "#555555",
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              margin: "0 0 12px 0",
+            }}
+          >
+            Tools and Technologies
+          </p>
+
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "6px",
+              marginBottom: "32px",
+            }}
+          >
+            {project.tech.map((t) => (
+              <span
+                key={t}
+                style={{
+                  background: "#1c1c1c",
+                  border: "0.5px solid #262626",
+                  borderRadius: "100px",
+                  padding: "5px 13px",
+                  fontSize: "12px",
+                  color: "#cccccc",
+                }}
+              >
+                {t}
+              </span>
+            ))}
+          </div>
+
+          <p
+            style={{
+              fontSize: "11px",
+              color: "#555555",
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              margin: "0 0 12px 0",
+            }}
+          >
+            Links
+          </p>
+
+          <a
+            href={project.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            onMouseEnter={() => setLinkHovered(true)}
+            onMouseLeave={() => setLinkHovered(false)}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              background: "#141414",
+              border: `0.5px solid ${linkHovered ? "#0099ff" : "#262626"}`,
+              borderRadius: "100px",
+              padding: "10px 20px",
+              fontSize: "12px",
+              color: linkHovered ? "#ffffff" : "#cccccc",
+              textDecoration: "none",
+              width: "fit-content",
+              cursor: "none",
+              transition: "border-color 0.2s, color 0.2s",
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+            </svg>
+            View on GitHub
+          </a>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 export default function SpecializationsSection() {
   const [hoveredVertex, setHoveredVertex] = useState<string | null>(null);
 
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+
   const openProject = (title: string) => {
+    const project = allProjects.find((p) => p.title === title);
+    if (!project) return;
     playSFX("select");
     playSFX("expand");
-    setSelectedTitle(title);
+    setSelectedProject(project);
   };
-  const [selectedTitle, setSelectedTitle] = useState<string | null>(null);
-  void selectedTitle;
+
+  const closeProject = () => {
+    playSFX("close");
+    setSelectedProject(null);
+  };
+
+  useEffect(() => {
+    if (selectedProject) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [selectedProject]);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelectedProject(null);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
 
   return (
     <section
@@ -352,6 +670,16 @@ export default function SpecializationsSection() {
           );
         })}
       </div>
+
+      <AnimatePresence>
+        {selectedProject && (
+          <ProjectDetailOverlay
+            key={selectedProject.title}
+            project={selectedProject}
+            onClose={closeProject}
+          />
+        )}
+      </AnimatePresence>
     </section>
   );
 }
