@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import HoverImageReveal from "@/components/HoverImageReveal";
+import { playSFX } from "@/lib/sfx";
 
 const projects = [
   {
@@ -80,7 +81,10 @@ export default function ProjectsSection() {
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setSelectedProject(null);
+      if (e.key === "Escape") {
+        playSFX("close")
+        setSelectedProject(null)
+      }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
@@ -198,7 +202,11 @@ export default function ProjectsSection() {
             gap: "0px",
             overflow: "visible",
           }}
-          onItemClick={(index) => setSelectedProject(projects[index])}
+          onItemClick={(index) => {
+            playSFX("select")
+            playSFX("expand")
+            setSelectedProject(projects[index])
+          }}
         />
       </div>
 
@@ -209,7 +217,10 @@ export default function ProjectsSection() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            onClick={() => setSelectedProject(null)}
+            onClick={() => {
+              playSFX("close")
+              setSelectedProject(null)
+            }}
             role="dialog"
             aria-modal="true"
             aria-label={selectedProject.title}
@@ -291,7 +302,10 @@ export default function ProjectsSection() {
                 }}
               >
                 <button
-                  onClick={() => setSelectedProject(null)}
+                  onClick={() => {
+              playSFX("close")
+              setSelectedProject(null)
+            }}
                   aria-label="Close project details"
                   style={{
                     position: "absolute",
@@ -407,6 +421,9 @@ export default function ProjectsSection() {
                   href={selectedProject.github}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={(e) => {
+                    playSFX("navigate")
+                  }}
                   style={{
                     display: "inline-flex",
                     alignItems: "center",

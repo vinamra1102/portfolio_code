@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { HalftoneTexture } from "@/components/HalftoneTexture";
+import { playSFX } from "@/lib/sfx";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -667,7 +668,10 @@ export default function SpecializationsSection() {
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setActiveSpec(null);
+      if (e.key === "Escape") {
+        playSFX("close")
+        setActiveSpec(null)
+      }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
@@ -758,7 +762,11 @@ export default function SpecializationsSection() {
                 >
                   <ArmTrigger
                     spec={spec}
-                    onOpen={() => setActiveSpec(spec.key)}
+                    onOpen={() => {
+                      playSFX("select")
+                      playSFX("expand")
+                      setActiveSpec(spec.key)
+                    }}
                   >
                     <motion.div
                       initial={{ opacity: 0 }}
@@ -799,7 +807,11 @@ export default function SpecializationsSection() {
                   transition: "opacity 0.2s",
                 }}
               >
-                <ArmTrigger spec={spec} onOpen={() => setActiveSpec(spec.key)}>
+                <ArmTrigger spec={spec} onOpen={() => {
+                  playSFX("select")
+                  playSFX("expand")
+                  setActiveSpec(spec.key)
+                }}>
                   <ArmLabel
                     spec={spec}
                     size="sm"
@@ -817,7 +829,10 @@ export default function SpecializationsSection() {
           <SpecializationOverlay
             key={activeSpec}
             specKey={activeSpec}
-            onClose={() => setActiveSpec(null)}
+            onClose={() => {
+              playSFX("close")
+              setActiveSpec(null)
+            }}
           />
         )}
       </AnimatePresence>

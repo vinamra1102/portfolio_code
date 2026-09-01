@@ -3,6 +3,8 @@
 import { useState, FormEvent } from "react";
 import { motion } from "framer-motion";
 import emailjs from "@emailjs/browser";
+import { playSFX } from "@/lib/sfx";
+import { SFXToggle } from "@/components/SFXToggle";
 
 // ---------------------------------------------------------------------------
 // TODO: EmailJS placeholders — the contact form will not send until these three
@@ -48,7 +50,10 @@ export default function ContactSection() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate()) {
+      playSFX("error")
+      return;
+    }
 
     setStatus("loading");
 
@@ -65,6 +70,7 @@ export default function ContactSection() {
         EMAILJS_PUBLIC_KEY,
       );
       setStatus("success");
+      playSFX("success")
       setTimeout(() => {
         setName("");
         setEmail("");
@@ -73,6 +79,7 @@ export default function ContactSection() {
       }, 3000);
     } catch {
       setStatus("error");
+      playSFX("error")
     }
   };
 
@@ -145,6 +152,7 @@ export default function ContactSection() {
                 setName(e.target.value);
                 clearError("name");
               }}
+              onFocus={() => playSFX("focus")}
               className="h-12 w-full rounded-[10px] border-[0.5px] border-hairline bg-surface-1 px-[18px] text-[14px] text-ink outline-none placeholder:text-[#555555] transition-colors duration-200 focus:border-accent-blue"
             />
             {errors.name && (
@@ -167,6 +175,7 @@ export default function ContactSection() {
                 setEmail(e.target.value);
                 clearError("email");
               }}
+              onFocus={() => playSFX("focus")}
               className="h-12 w-full rounded-[10px] border-[0.5px] border-hairline bg-surface-1 px-[18px] text-[14px] text-ink outline-none placeholder:text-[#555555] transition-colors duration-200 focus:border-accent-blue"
             />
             {errors.email && (
@@ -188,6 +197,7 @@ export default function ContactSection() {
                 setMessage(e.target.value);
                 clearError("message");
               }}
+              onFocus={() => playSFX("focus")}
               className="h-[140px] w-full resize-none rounded-[10px] border-[0.5px] border-hairline bg-surface-1 px-[18px] py-[14px] text-[14px] text-ink outline-none placeholder:text-[#555555] transition-colors duration-200 focus:border-accent-blue"
             />
             {errors.message && (
@@ -282,6 +292,10 @@ export default function ContactSection() {
             Email
           </a>
         </motion.div>
+
+        <div className="flex justify-center">
+          <SFXToggle />
+        </div>
       </div>
     </section>
   );
