@@ -522,14 +522,23 @@ export default function SpecializationsSection() {
             </filter>
           </defs>
 
-          {EDGES.map((edge) => {
+          {EDGES.map((edge, edgeIndex) => {
             const a = POINTS[edge.from];
             const b = POINTS[edge.to];
             const lit =
               hoveredVertex !== null && edge.lit.includes(hoveredVertex);
             return (
-              <line
+              <motion.line
                 key={`${edge.from}-${edge.to}`}
+                initial={{ strokeDashoffset: 1000 }}
+                whileInView={{ strokeDashoffset: 0 }}
+                viewport={{ once: false }}
+                transition={{
+                  duration: 1.2,
+                  delay: edgeIndex * 0.2,
+                  ease: "easeOut",
+                }}
+                strokeDasharray={1000}
                 x1={a.x}
                 y1={a.y}
                 x2={b.x}
