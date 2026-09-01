@@ -7,182 +7,53 @@ import { playSFX } from "@/lib/sfx";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-/**
- * Outer triangle points up. The inner one is the same triangle rotated 180
- * degrees about the shared centroid and scaled, which is what makes the two
- * concentric and leaves three even gaps.
- *
- * The brief's inner coordinates were neither concentric (their centroid landed
- * at y=268 against the outer's y=367) nor at the stated 0.42 scale, so they are
- * derived here instead.
- */
-const OUTER: [number, number][] = [
-  [350, 60],
-  [80, 520],
-  [620, 520],
-];
+/** Vertex coordinates inside the 600 x 520 viewBox. */
+const POINTS = {
+  top: { x: 300, y: 60 },
+  "bottom-left": { x: 80, y: 460 },
+  "bottom-right": { x: 520, y: 460 },
+} as const;
 
-const CENTROID = {
-  x: (OUTER[0][0] + OUTER[1][0] + OUTER[2][0]) / 3,
-  y: (OUTER[0][1] + OUTER[1][1] + OUTER[2][1]) / 3,
-};
+type VertexPosition = keyof typeof POINTS;
 
-const INNER_SCALE = 0.42;
-
-/** Rotate 180 degrees about the centroid, then scale toward it. */
-const INNER: [number, number][] = OUTER.map(([x, y]) => [
-  CENTROID.x + INNER_SCALE * (2 * CENTROID.x - x - CENTROID.x),
-  CENTROID.y + INNER_SCALE * (2 * CENTROID.y - y - CENTROID.y),
-]);
-
-const [O_TOP, O_LEFT, O_RIGHT] = OUTER;
-const [I_BOTTOM, I_RIGHT, I_LEFT] = INNER;
-
-type ZoneId = "lerobot" | "ros2" | "moveit2";
-
-const ZONES: {
-  id: ZoneId;
+const vertices: {
+  id: string;
   label: string;
   sublabel: string;
-  polygon: [number, number][];
-  projects: string[];
+  position: VertexPosition;
+  projects: { title: string; initials: string }[];
 }[] = [
   {
     id: "lerobot",
     label: "LeRobot",
     sublabel: "Imitation Learning",
-    polygon: [O_TOP, I_LEFT, I_RIGHT],
-    projects: ["OpenBot Giraffe", "5-DOF Manipulation Stack"],
+    position: "top",
+    projects: [
+      { title: "OpenBot Giraffe", initials: "OG" },
+      { title: "5-DOF Manipulation Stack", initials: "5D" },
+    ],
   },
   {
     id: "ros2",
     label: "ROS2",
     sublabel: "Robot Operating System",
-    polygon: [O_LEFT, I_BOTTOM, I_LEFT],
-    projects: ["MuJoCo-Gazebo RL Transfer", "RRT Maze Solver"],
+    position: "bottom-left",
+    projects: [
+      { title: "MuJoCo-Gazebo RL Transfer", initials: "MG" },
+      { title: "RRT Maze Solver", initials: "RM" },
+    ],
   },
   {
     id: "moveit2",
     label: "MoveIt2",
     sublabel: "Motion Planning",
-    polygon: [O_RIGHT, I_RIGHT, I_BOTTOM],
-    projects: ["5-DOF Manipulation Stack", "OpenBot Giraffe"],
+    position: "bottom-right",
+    projects: [
+      { title: "5-DOF Manipulation Stack", initials: "5D" },
+      { title: "OpenBot Giraffe", initials: "OG" },
+    ],
   },
 ];
-
-/** Every drawn edge, with the zones that light it. */
-const EDGES: {
-  key: string;
-  from: [number, number];
-  to: [number, number];
-  lit: ZoneId[];
-  kind: "outer" | "inner" | "connector";
-  delay: number;
-}[] = [
-  {
-    key: "o-left",
-    from: O_TOP,
-    to: O_LEFT,
-    lit: ["lerobot", "ros2"],
-    kind: "outer",
-    delay: 0,
-  },
-  {
-    key: "o-right",
-    from: O_TOP,
-    to: O_RIGHT,
-    lit: ["lerobot", "moveit2"],
-    kind: "outer",
-    delay: 0.15,
-  },
-  {
-    key: "o-base",
-    from: O_LEFT,
-    to: O_RIGHT,
-    lit: ["ros2", "moveit2"],
-    kind: "outer",
-    delay: 0.3,
-  },
-  {
-    key: "i-top",
-    from: I_LEFT,
-    to: I_RIGHT,
-    lit: ["lerobot"],
-    kind: "inner",
-    delay: 0.5,
-  },
-  {
-    key: "i-left",
-    from: I_LEFT,
-    to: I_BOTTOM,
-    lit: ["ros2"],
-    kind: "inner",
-    delay: 0.65,
-  },
-  {
-    key: "i-right",
-    from: I_RIGHT,
-    to: I_BOTTOM,
-    lit: ["moveit2"],
-    kind: "inner",
-    delay: 0.8,
-  },
-  {
-    key: "c-top",
-    from: O_TOP,
-    to: I_BOTTOM,
-    lit: [],
-    kind: "connector",
-    delay: 1.0,
-  },
-  {
-    key: "c-left",
-    from: O_LEFT,
-    to: I_LEFT,
-    lit: ["ros2"],
-    kind: "connector",
-    delay: 1.1,
-  },
-  {
-    key: "c-right",
-    from: O_RIGHT,
-    to: I_RIGHT,
-    lit: ["moveit2"],
-    kind: "connector",
-    delay: 1.2,
-  },
-];
-
-const EDGE_REST = {
-  outer: { stroke: "rgba(0,153,255,0.3)", width: 1 },
-  inner: { stroke: "rgba(0,153,255,0.2)", width: 0.8 },
-  connector: { stroke: "rgba(0,153,255,0.12)", width: 0.5 },
-};
-
-const EDGE_LIT = {
-  outer: { stroke: "rgba(0,153,255,0.9)", width: 1.5 },
-  inner: { stroke: "rgba(0,153,255,0.7)", width: 1.2 },
-  connector: { stroke: "rgba(0,153,255,0.5)", width: 0.8 },
-};
-
-const SVG_KEYFRAMES = `
-  @keyframes svg-rotate {
-    from { transform-origin: ${CENTROID.x}px ${CENTROID.y}px; transform: rotate(0deg); }
-    to { transform-origin: ${CENTROID.x}px ${CENTROID.y}px; transform: rotate(360deg); }
-  }
-  @keyframes svg-rotate-reverse {
-    from { transform-origin: ${CENTROID.x}px ${CENTROID.y}px; transform: rotate(0deg); }
-    to { transform-origin: ${CENTROID.x}px ${CENTROID.y}px; transform: rotate(-360deg); }
-  }
-  @keyframes core-pulse-svg {
-    0%, 100% { opacity: 0.9; }
-    50% { opacity: 1; }
-  }
-  @keyframes ambient-pulse-svg {
-    0%, 100% { opacity: 0.5; }
-    50% { opacity: 1; }
-  }
-`;
 
 const allProjects = [
   {
@@ -229,6 +100,14 @@ const allProjects = [
 
 type Project = (typeof allProjects)[number];
 
+/** Each edge lights when either of the vertices it joins is hovered. */
+const EDGES: { from: VertexPosition; to: VertexPosition; lit: string[] }[] = [
+  { from: "top", to: "bottom-left", lit: ["lerobot", "ros2"] },
+  { from: "top", to: "bottom-right", lit: ["lerobot", "moveit2"] },
+  { from: "bottom-left", to: "bottom-right", lit: ["ros2", "moveit2"] },
+];
+
+/** One project pill under a hovered vertex. */
 function ProjectPill({
   title,
   index,
@@ -521,8 +400,9 @@ function ProjectDetailOverlay({
 }
 
 export default function SpecializationsSection() {
+  const [hoveredVertex, setHoveredVertex] = useState<string | null>(null);
+
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [hoveredZone, setHoveredZone] = useState<ZoneId | null>(null);
 
   const openProject = (title: string) => {
     const project = allProjects.find((p) => p.title === title);
@@ -576,6 +456,7 @@ export default function SpecializationsSection() {
         speedScale={0.5}
       />
 
+      {/* Vignette */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 z-[1] h-full w-full"
@@ -585,22 +466,41 @@ export default function SpecializationsSection() {
         }}
       />
 
+      {/* Section label */}
       <p className="absolute left-6 top-12 z-[5] text-[11px] uppercase tracking-[0.18em] text-[#444444] md:left-[60px]">
-        02 &mdash; Specializations
+        02 — Specializations
       </p>
 
-      <div
-        className="relative z-[2] hidden h-[620px] w-[700px] shrink-0 md:block"
-        style={{ transform: "scale(0.8)", transformOrigin: "center center" }}
-      >
+      <div className="relative z-[2] hidden h-[440px] w-[500px] md:block lg:h-[520px] lg:w-[600px]">
+        {/* Ambient bloom behind the triangle */}
+        <motion.div
+          aria-hidden="true"
+          animate={{ opacity: hoveredVertex ? 1 : [0.4, 0.8, 0.4] }}
+          transition={
+            hoveredVertex
+              ? { duration: 0.4, ease: EASE }
+              : { duration: 4, repeat: Infinity, ease: "easeInOut" }
+          }
+          className="pointer-events-none absolute left-1/2 top-1/2 z-0"
+          style={{
+            width: 400,
+            height: 400,
+            marginLeft: -200,
+            marginTop: -200,
+            borderRadius: "50%",
+            background:
+              "radial-gradient(circle, rgba(0,153,255,0.06) 0%, transparent 70%)",
+            filter: "blur(40px)",
+          }}
+        />
+
         <svg
-          viewBox="0 0 700 620"
-          className="absolute inset-0 h-full w-full"
-          style={{ zIndex: 1 }}
+          viewBox="0 0 600 520"
+          className="absolute inset-0 z-[1] h-full w-full"
+          aria-hidden="true"
         >
-          <style>{SVG_KEYFRAMES}</style>
           <defs>
-            <filter id="glow-soft" x="-20%" y="-20%" width="140%" height="140%">
+            <filter id="glow-edge" x="-20%" y="-20%" width="140%" height="140%">
               <feGaussianBlur stdDeviation="3" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
@@ -608,216 +508,167 @@ export default function SpecializationsSection() {
               </feMerge>
             </filter>
             <filter
-              id="glow-bright"
+              id="glow-edge-bright"
               x="-30%"
               y="-30%"
               width="160%"
               height="160%"
             >
-              <feGaussianBlur stdDeviation="6" result="blur" />
+              <feGaussianBlur stdDeviation="5" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
-            <filter
-              id="glow-intense"
-              x="-40%"
-              y="-40%"
-              width="180%"
-              height="180%"
-            >
-              <feGaussianBlur stdDeviation="10" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-            <radialGradient id="ambient-fill">
-              <stop offset="0%" stopColor="rgba(0,153,255,0.1)" />
-              <stop offset="100%" stopColor="rgba(0,153,255,0)" />
-            </radialGradient>
-            <radialGradient id="core-fill">
-              <stop offset="0%" stopColor="#001833" />
-              <stop offset="100%" stopColor="#000510" />
-            </radialGradient>
           </defs>
 
-          {/* Jarvis core at the shared centroid */}
-          <g aria-hidden="true" style={{ pointerEvents: "none" }}>
-            <circle
-              cx={CENTROID.x}
-              cy={CENTROID.y}
-              r={100}
-              fill="url(#ambient-fill)"
-              filter="url(#glow-intense)"
-              style={{ animation: "ambient-pulse-svg 3s ease-in-out infinite" }}
-            />
-            <circle
-              cx={CENTROID.x}
-              cy={CENTROID.y}
-              r={80}
-              fill="none"
-              stroke="rgba(0,153,255,0.15)"
-              strokeWidth={0.5}
-              style={{ animation: "svg-rotate 20s linear infinite" }}
-            />
-            <circle
-              cx={CENTROID.x}
-              cy={CENTROID.y}
-              r={58}
-              fill="none"
-              stroke="rgba(0,153,255,0.2)"
-              strokeWidth={1}
-              strokeDasharray="4 8"
-              style={{ animation: "svg-rotate-reverse 12s linear infinite" }}
-            />
-            <circle
-              cx={CENTROID.x}
-              cy={CENTROID.y}
-              r={40}
-              fill="url(#core-fill)"
-              stroke="rgba(0,153,255,0.5)"
-              strokeWidth={1}
-              filter="url(#glow-bright)"
-              style={{ animation: "core-pulse-svg 2.5s ease-in-out infinite" }}
-            />
-            <circle
-              cx={CENTROID.x}
-              cy={CENTROID.y}
-              r={4}
-              fill="#0099ff"
-              filter="url(#glow-intense)"
-            />
-            <text
-              x={CENTROID.x}
-              y={CENTROID.y + 5}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fill="rgba(255,255,255,0.9)"
-              fontSize={12}
-              fontWeight={500}
-              fontFamily="Inter"
-            >
-              AP
-            </text>
-          </g>
-
-          {/* Edges */}
-          {EDGES.map((edge) => {
-            const lit = hoveredZone !== null && edge.lit.includes(hoveredZone);
-            const rest = EDGE_REST[edge.kind];
-            const bright = EDGE_LIT[edge.kind];
+          {EDGES.map((edge, edgeIndex) => {
+            const a = POINTS[edge.from];
+            const b = POINTS[edge.to];
+            const lit =
+              hoveredVertex !== null && edge.lit.includes(hoveredVertex);
             return (
               <motion.line
-                key={edge.key}
-                x1={edge.from[0]}
-                y1={edge.from[1]}
-                x2={edge.to[0]}
-                y2={edge.to[1]}
-                fill="none"
-                initial={{ pathLength: 0 }}
-                whileInView={{ pathLength: 1 }}
+                key={`${edge.from}-${edge.to}`}
+                initial={{ strokeDashoffset: 1000 }}
+                whileInView={{ strokeDashoffset: 0 }}
                 viewport={{ once: false }}
-                animate={{
-                  stroke: lit ? bright.stroke : rest.stroke,
-                  strokeWidth: lit ? bright.width : rest.width,
-                }}
                 transition={{
-                  pathLength: {
-                    duration: 1.4,
-                    delay: edge.delay,
-                    ease: "easeOut",
-                  },
-                  stroke: { duration: 0.3, ease: "easeOut" },
-                  strokeWidth: { duration: 0.3, ease: "easeOut" },
+                  duration: 1.2,
+                  delay: edgeIndex * 0.2,
+                  ease: "easeOut",
                 }}
-                filter={`url(#${lit ? "glow-bright" : "glow-soft"})`}
-                style={{ pointerEvents: "none" }}
+                strokeDasharray={1000}
+                x1={a.x}
+                y1={a.y}
+                x2={b.x}
+                y2={b.y}
+                fill="none"
+                stroke={lit ? "rgba(0,153,255,0.9)" : "rgba(0,153,255,0.25)"}
+                strokeWidth={lit ? 1.5 : 1}
+                filter={`url(#${lit ? "glow-edge-bright" : "glow-edge"})`}
+                style={{ transition: "stroke 0.3s, stroke-width 0.3s" }}
               />
             );
           })}
-
-          {/* Invisible hit areas, one per gap */}
-          {ZONES.map((zone) => (
-            <polygon
-              key={zone.id}
-              points={zone.polygon.map((pt) => pt.join(",")).join(" ")}
-              fill="transparent"
-              stroke="none"
-              style={{ cursor: "none", pointerEvents: "all" }}
-              onMouseEnter={() => setHoveredZone(zone.id)}
-              onMouseLeave={() => setHoveredZone(null)}
-            />
-          ))}
         </svg>
 
-        {/* Labels sit over the SVG, one per gap */}
-        {ZONES.map((zone) => {
-          const active = hoveredZone === zone.id;
-          const isTop = zone.id === "lerobot";
-          const placement =
-            zone.id === "lerobot"
-              ? { top: 80, left: "50%", transform: "translateX(-50%)" }
-              : zone.id === "ros2"
-                ? { bottom: 130, left: 60 }
-                : { bottom: 130, right: 60 };
+        {/* Vertex nodes, each centred on its triangle corner */}
+        {vertices.map((vertex) => {
+          const point = POINTS[vertex.position];
+          const isHovered = hoveredVertex === vertex.id;
+          const dimmed = hoveredVertex !== null && !isHovered;
+          const isTop = vertex.position === "top";
 
           return (
             <div
-              key={zone.id}
-              className="pointer-events-none absolute z-[3] text-center"
-              style={placement}
+              key={vertex.id}
+              onMouseEnter={() => setHoveredVertex(vertex.id)}
+              onMouseLeave={() => setHoveredVertex(null)}
+              className="absolute z-[2]"
+              style={{
+                left: point.x,
+                top: point.y,
+                width: isTop ? 140 : 160,
+                height: 140,
+                marginLeft: isTop ? -70 : -80,
+                marginTop: -70,
+                cursor: "none",
+              }}
             >
+              {/* Dot sits exactly on the vertex */}
+              <motion.div
+                animate={{
+                  scale: isHovered ? 1.3 : dimmed ? 0.97 : 1,
+                  opacity: dimmed ? 0.7 : 1,
+                }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className="absolute left-1/2 top-1/2"
+                style={{
+                  width: isHovered ? 16 : 12,
+                  height: isHovered ? 16 : 12,
+                  marginLeft: isHovered ? -8 : -6,
+                  marginTop: isHovered ? -8 : -6,
+                  borderRadius: "50%",
+                  background: isHovered ? "#0099ff" : "rgba(0,153,255,0.4)",
+                  border: isHovered
+                    ? "1.5px solid rgba(0,153,255,0.9)"
+                    : "1px solid rgba(0,153,255,0.4)",
+                  boxShadow: isHovered
+                    ? "0 0 16px rgba(0,153,255,1), 0 0 32px rgba(0,153,255,0.6), 0 0 60px rgba(0,153,255,0.3)"
+                    : "0 0 8px rgba(0,153,255,0.3)",
+                  transition:
+                    "width 0.3s cubic-bezier(0.16,1,0.3,1), height 0.3s cubic-bezier(0.16,1,0.3,1), background 0.3s, border 0.3s, box-shadow 0.3s",
+                }}
+              />
+
+              {/* Label block, below the dot */}
+              <motion.div
+                animate={{
+                  scale: isHovered ? 1.08 : dimmed ? 0.97 : 1,
+                  opacity: dimmed ? 0.7 : 1,
+                }}
+                transition={{ type: "spring", stiffness: 280, damping: 22 }}
+                className="absolute left-1/2 flex flex-col items-center"
+                style={{
+                  top: "calc(50% + 18px)",
+                  width: isTop ? 140 : 160,
+                  marginLeft: isTop ? -70 : -80,
+                }}
+              >
+                <span
+                  className="block whitespace-nowrap text-[18px] font-medium text-ink"
+                  style={{
+                    letterSpacing: "-0.5px",
+                    textShadow: isHovered
+                      ? "0 0 20px rgba(0,153,255,0.5)"
+                      : "none",
+                    transition: "text-shadow 0.2s, opacity 0.2s",
+                  }}
+                >
+                  {vertex.label}
+                </span>
+                <span className="mt-[2px] block whitespace-nowrap text-[10px] uppercase tracking-[0.12em] text-[#444444]">
+                  {vertex.sublabel}
+                </span>
+
+                {isTop && (
+                  <AnimatePresence>
+                    {isHovered && (
+                      <div className="mt-[10px] flex flex-col items-center gap-[6px]">
+                        {vertex.projects.map((project, i) => (
+                          <ProjectPill
+                            key={project.title}
+                            title={project.title}
+                            index={i}
+                            onOpen={() => openProject(project.title)}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </AnimatePresence>
+                )}
+              </motion.div>
+
+              {/* Bottom vertices sit near the container floor, so their pills
+                  rise above the dot rather than running off the edge. */}
               {!isTop && (
                 <AnimatePresence>
-                  {active && (
-                    <div className="mb-[10px] flex flex-col items-start gap-[5px]">
-                      {zone.projects.map((title, i) => (
+                  {isHovered && (
+                    <div
+                      className="absolute left-1/2 flex flex-col items-center gap-[6px]"
+                      style={{
+                        bottom: "calc(50% + 18px)",
+                        width: 220,
+                        marginLeft: -110,
+                      }}
+                    >
+                      {vertex.projects.map((project, i) => (
                         <ProjectPill
-                          key={title}
-                          title={title}
+                          key={project.title}
+                          title={project.title}
                           index={i}
-                          onOpen={() => openProject(title)}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </AnimatePresence>
-              )}
-
-              <span
-                className="block whitespace-nowrap text-[18px] font-medium"
-                style={{
-                  color: active ? "#ffffff" : "#555555",
-                  letterSpacing: "-0.5px",
-                  textShadow: active ? "0 0 20px rgba(0,153,255,0.6)" : "none",
-                  transition: "color 0.3s, text-shadow 0.3s",
-                }}
-              >
-                {zone.label}
-              </span>
-              <span
-                className="mt-[3px] block whitespace-nowrap text-[10px] uppercase"
-                style={{
-                  color: active ? "#666666" : "#333333",
-                  letterSpacing: "0.12em",
-                  transition: "color 0.3s",
-                }}
-              >
-                {zone.sublabel}
-              </span>
-
-              {isTop && (
-                <AnimatePresence>
-                  {active && (
-                    <div className="mt-[10px] flex flex-col items-center gap-[5px]">
-                      {zone.projects.map((title, i) => (
-                        <ProjectPill
-                          key={title}
-                          title={title}
-                          index={i}
-                          onOpen={() => openProject(title)}
+                          onOpen={() => openProject(project.title)}
                         />
                       ))}
                     </div>
@@ -831,9 +682,9 @@ export default function SpecializationsSection() {
 
       {/* Below md the triangle is replaced by stacked cards. */}
       <div className="relative z-[2] flex w-full flex-col gap-3 px-6 md:hidden">
-        {ZONES.map((zone) => (
+        {vertices.map((vertex) => (
           <div
-            key={zone.id}
+            key={vertex.id}
             style={{
               background: "#141414",
               border: "0.5px solid #1e1e1e",
@@ -842,18 +693,18 @@ export default function SpecializationsSection() {
             }}
           >
             <span className="block text-[18px] font-medium tracking-[-0.5px] text-ink">
-              {zone.label}
+              {vertex.label}
             </span>
             <span className="mt-[2px] block text-[10px] uppercase tracking-[0.12em] text-[#444444]">
-              {zone.sublabel}
+              {vertex.sublabel}
             </span>
             <div className="mt-4 flex flex-wrap gap-[6px]">
-              {zone.projects.map((title, i) => (
+              {vertex.projects.map((project, i) => (
                 <ProjectPill
-                  key={title}
-                  title={title}
+                  key={project.title}
+                  title={project.title}
                   index={i}
-                  onOpen={() => openProject(title)}
+                  onOpen={() => openProject(project.title)}
                 />
               ))}
             </div>
