@@ -2,7 +2,7 @@
 
 import { Fragment, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { HalftoneTexture } from "@/components/HalftoneTexture";
+import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
 import { playSFX } from "@/lib/sfx";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -682,7 +682,20 @@ export default function SpecializationsSection() {
       id="specializations"
       className="sticky left-0 top-0 flex h-screen w-full items-center justify-center overflow-hidden bg-canvas"
     >
-      <HalftoneTexture maskPosition="75% 20%" blue={true} />
+      <DottedGlowBackground
+        className="pointer-events-none absolute inset-0 z-0 mask-radial-to-80-top-right"
+        opacity={0.65}
+        gap={18}
+        radius={1.2}
+        colorLightVar="--color-neutral-500"
+        glowColorLightVar="--color-neutral-600"
+        colorDarkVar="--color-neutral-700"
+        glowColorDarkVar="--color-sky-600"
+        backgroundOpacity={0}
+        speedMin={0.2}
+        speedMax={0.7}
+        speedScale={0.5}
+      />
 
       {/* Vignette */}
       <div
