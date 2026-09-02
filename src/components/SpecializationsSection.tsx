@@ -171,10 +171,16 @@ function ProjectPill({
   project,
   index,
   onOpen,
+  onHoverStart,
+  onHoverMove,
+  onHoverEnd,
 }: {
   project: SegmentProject;
   index: number;
   onOpen: () => void;
+  onHoverStart: (e: React.MouseEvent) => void;
+  onHoverMove: (e: React.MouseEvent) => void;
+  onHoverEnd: () => void;
 }) {
   const [hovered, setHovered] = useState(false);
   return (
@@ -184,8 +190,15 @@ function ProjectPill({
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.9, y: 4 }}
       transition={{ duration: 0.2, delay: index * 0.05 }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={(e) => {
+        setHovered(true);
+        onHoverStart(e);
+      }}
+      onMouseMove={onHoverMove}
+      onMouseLeave={() => {
+        setHovered(false);
+        onHoverEnd();
+      }}
       onClick={onOpen}
       style={{
         display: "inline-flex",
@@ -462,6 +475,15 @@ function ProjectDetailOverlay({
 export default function SpecializationsSection() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [hoveredSegment, setHoveredSegment] = useState<string | null>(null);
+  const [hoveredPill, setHoveredPill] = useState<SegmentProject | null>(null);
+  const [pillPos, setPillPos] = useState({ x: 0, y: 0 });
+  const showPreview = (project: SegmentProject, e: React.MouseEvent) => {
+    setHoveredPill(project);
+    setPillPos({ x: e.clientX, y: e.clientY });
+  };
+  const movePreview = (e: React.MouseEvent) =>
+    setPillPos({ x: e.clientX, y: e.clientY });
+  const hidePreview = () => setHoveredPill(null);
   // The pills sit outside the donut, so the pointer has to cross a gap to reach
   // them. A short grace period stops the segment from un-hovering on the way.
   const clearTimer = useRef<number | null>(null);
@@ -826,6 +848,9 @@ export default function SpecializationsSection() {
                         project={project}
                         index={i}
                         onOpen={() => openProject(project.title)}
+                        onHoverStart={(e) => showPreview(project, e)}
+                        onHoverMove={movePreview}
+                        onHoverEnd={hidePreview}
                       />
                     ))}
                   </div>
@@ -853,6 +878,9 @@ export default function SpecializationsSection() {
                     project={project}
                     index={i}
                     onOpen={() => openProject(project.title)}
+                    onHoverStart={(e) => showPreview(project, e)}
+                    onHoverMove={movePreview}
+                    onHoverEnd={hidePreview}
                   />
                 ))}
               </div>
@@ -860,6 +888,66 @@ export default function SpecializationsSection() {
           </AnimatePresence>
         </div>
       </div>
+
+      <AnimatePresence>
+        {hoveredPill && (
+          <motion.div
+            key="pill-preview"
+            initial={{ opacity: 0, scale: 0.92, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.92, y: 8 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            aria-hidden="true"
+            style={{
+              position: "fixed",
+              left: pillPos.x + 20,
+              top: pillPos.y - 120,
+              width: 200,
+              height: 140,
+              borderRadius: 10,
+              background: "#141414",
+              border: "0.5px solid #262626",
+              overflow: "hidden",
+              pointerEvents: "none",
+              zIndex: 500,
+            }}
+          >
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                background: "#111111",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "28px",
+                  fontWeight: 500,
+                  color: "#1e1e1e",
+                  letterSpacing: "-1px",
+                }}
+              >
+                {hoveredPill.initials}
+              </div>
+              <div
+                style={{
+                  fontSize: "10px",
+                  color: "#222222",
+                  letterSpacing: "0.15em",
+                  textTransform: "uppercase",
+                  marginTop: "6px",
+                }}
+              >
+                Preview soon
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {selectedProject && (
