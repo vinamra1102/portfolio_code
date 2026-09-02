@@ -6,6 +6,28 @@ import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
+type SegmentProject = {
+  title: string;
+  status: string;
+  tagline: string;
+  description: string;
+  tech: string[];
+  github: string;
+  initials: string;
+};
+
+/** Shared by the Training slice and the Hardware centre, which open the same project. */
+const OPENBOT_GIRAFFE: SegmentProject = {
+  title: "OpenBot Giraffe",
+  status: "Open Source",
+  tagline: "Affordable 5-DOF robotic arm for hobbyists and researchers",
+  description:
+    "Designed an affordable 5-DOF robotic manipulator with a 3D-printed frame and ST3215 servos. Integrated with LeRobot, ROS2 and MoveIt for trajectory planning, teleoperation and imitation learning in both simulated and real-world applications.",
+  tech: ["ROS2", "LeRobot", "MoveIt2", "Python", "Fusion 360", "Isaac Sim"],
+  github: "https://github.com/anantppandey/openbot-giraffe",
+  initials: "OG",
+};
+
 const segments = [
   {
     id: "simulation",
@@ -16,6 +38,16 @@ const segments = [
     endAngle: 30,
     videoSrc: "",
     // Replace videoSrc: "/videos/simulation-demo.mp4" when available
+    primaryProject: {
+      title: "MuJoCo-Gazebo RL Transfer",
+      status: "Research",
+      tagline: "PPO reach policy trained in MuJoCo and transferred to Gazebo",
+      description:
+        "Trained a PPO reach policy from scratch in MuJoCo using Stable-Baselines3, raising success rate from 37% to 78% through seed-controlled ablation. Built a ROS2 and Gazebo pipeline transferring the policy across simulators with retry-based trajectory generation and closed-loop control.",
+      tech: ["MuJoCo", "Stable-Baselines3", "ROS2", "Gazebo", "Python", "PPO"],
+      github: "https://github.com/anantppandey/mujoco-gazebo-transfer",
+      initials: "MG",
+    } satisfies SegmentProject,
   },
   {
     id: "training",
@@ -26,6 +58,7 @@ const segments = [
     endAngle: 150,
     videoSrc: "",
     // Replace videoSrc: "/videos/training-demo.mp4" when available
+    primaryProject: OPENBOT_GIRAFFE,
   },
   {
     id: "deployment",
@@ -36,6 +69,16 @@ const segments = [
     endAngle: 270,
     videoSrc: "",
     // Replace videoSrc: "/videos/deployment-demo.mp4" when available
+    primaryProject: {
+      title: "5-DOF Manipulation Stack",
+      status: "Robotics",
+      tagline: "Custom IK solver with collision-aware grasp planning",
+      description:
+        "Engineered a custom 5-DOF IK solver and octomap-based obstacle avoidance in Gazebo, planning collision-aware grasps with MoveIt Task Constructor. Built a ROS2 action-server pipeline with multi-object perception and automatic grasp-failure retry for autonomous pick-and-place.",
+      tech: ["ROS2", "MoveIt2", "Gazebo", "Python", "MoveIt Task Constructor"],
+      github: "https://github.com/anantppandey/manipulation-stack",
+      initials: "5D",
+    } satisfies SegmentProject,
   },
 ];
 
@@ -45,6 +88,7 @@ const centerData = {
   subtitle: "Real Robot",
   videoSrc: "",
   // Replace videoSrc with the real robot demo when available
+  primaryProject: OPENBOT_GIRAFFE,
 };
 
 // ---- geometry ---------------------------------------------------------------
@@ -188,6 +232,9 @@ const PIE_KEYFRAMES = `
 
 export default function SpecializationsSection() {
   const [hoveredSegment, setHoveredSegment] = useState<string | null>(null);
+  const [selectedProject, setSelectedProject] = useState<SegmentProject | null>(
+    null,
+  );
   // The pie is laid out in fixed pixels, so it scales to fit rather than
   // reflowing. Starts at 1 so server and first client render agree.
   const [pieScale, setPieScale] = useState(1);
@@ -204,6 +251,25 @@ export default function SpecializationsSection() {
     window.addEventListener("resize", pick);
     return () => window.removeEventListener("resize", pick);
   }, []);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelectedProject(null);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
+
+  useEffect(() => {
+    if (selectedProject) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [selectedProject]);
 
   return (
     <section
@@ -360,6 +426,7 @@ export default function SpecializationsSection() {
                 }
                 onMouseEnter={() => setHoveredSegment(segment.id)}
                 onMouseLeave={() => setHoveredSegment(null)}
+                onClick={() => setSelectedProject(segment.primaryProject)}
                 style={{ cursor: "none", pointerEvents: "all" }}
               />
             </motion.g>
@@ -458,6 +525,7 @@ export default function SpecializationsSection() {
               fill="transparent"
               onMouseEnter={() => setHoveredSegment(centerData.id)}
               onMouseLeave={() => setHoveredSegment(null)}
+              onClick={() => setSelectedProject(centerData.primaryProject)}
               style={{ cursor: "none", pointerEvents: "all" }}
             />
           </motion.g>
@@ -584,6 +652,256 @@ export default function SpecializationsSection() {
           </AnimatePresence>
         </div>
       </div>
+
+      {/* Full screen project overlay. Kept outside the scaled pie wrapper: a
+          transformed ancestor would become the containing block for the fixed
+          positioning and trap the overlay inside the pie. */}
+      <AnimatePresence>
+        {selectedProject && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            onClick={() => setSelectedProject(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-label={selectedProject.title}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 300,
+              background: "rgba(9,9,9,0.96)",
+              backdropFilter: "blur(20px)",
+              display: "grid",
+              gridTemplateColumns: "55% 45%",
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.4, ease: EASE }}
+              onClick={(e) => e.stopPropagation()}
+              style={{ display: "contents" }}
+            >
+              {/* Left: preview */}
+              <div
+                style={{
+                  position: "relative",
+                  background: "#0a0a0a",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexDirection: "column",
+                  gap: "12px",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "72px",
+                    fontWeight: 500,
+                    color: "#1a1a1a",
+                    letterSpacing: "-4px",
+                  }}
+                >
+                  {selectedProject.initials}
+                </div>
+                <div
+                  style={{
+                    fontSize: "11px",
+                    color: "#1e1e1e",
+                    letterSpacing: "0.2em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Preview soon
+                </div>
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background:
+                      "linear-gradient(to right, transparent 60%, rgba(9,9,9,0.8) 100%)",
+                    pointerEvents: "none",
+                  }}
+                />
+              </div>
+
+              {/* Right: details */}
+              <div
+                style={{
+                  padding: "56px 52px",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  overflowY: "auto",
+                  position: "relative",
+                }}
+              >
+                <button
+                  onClick={() => setSelectedProject(null)}
+                  aria-label="Close project details"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "#0099ff";
+                    e.currentTarget.style.color = "#ffffff";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "#262626";
+                    e.currentTarget.style.color = "#999999";
+                  }}
+                  style={{
+                    position: "absolute",
+                    top: "32px",
+                    right: "32px",
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "50%",
+                    background: "#141414",
+                    border: "0.5px solid #262626",
+                    color: "#999999",
+                    fontSize: "18px",
+                    cursor: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  x
+                </button>
+
+                <div
+                  style={{
+                    display: "inline-flex",
+                    background: "rgba(255,255,255,0.06)",
+                    border: "0.5px solid rgba(255,255,255,0.12)",
+                    borderRadius: "100px",
+                    padding: "4px 12px",
+                    fontSize: "11px",
+                    color: "#cccccc",
+                    marginBottom: "20px",
+                    width: "fit-content",
+                  }}
+                >
+                  {selectedProject.status}
+                </div>
+
+                <h2
+                  style={{
+                    fontSize: "clamp(28px, 3.5vw, 44px)",
+                    fontWeight: 500,
+                    color: "#ffffff",
+                    letterSpacing: "-2px",
+                    lineHeight: 1.0,
+                    margin: "0 0 16px 0",
+                  }}
+                >
+                  {selectedProject.title}
+                </h2>
+
+                <p
+                  style={{
+                    fontSize: "14px",
+                    color: "#666666",
+                    lineHeight: 1.6,
+                    margin: "0 0 32px 0",
+                    maxWidth: "380px",
+                  }}
+                >
+                  {selectedProject.description}
+                </p>
+
+                <p
+                  style={{
+                    fontSize: "11px",
+                    color: "#555555",
+                    letterSpacing: "0.14em",
+                    textTransform: "uppercase",
+                    margin: "0 0 12px 0",
+                  }}
+                >
+                  Tools and Technologies
+                </p>
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "6px",
+                    marginBottom: "32px",
+                  }}
+                >
+                  {selectedProject.tech.map((t) => (
+                    <span
+                      key={t}
+                      style={{
+                        background: "#1c1c1c",
+                        border: "0.5px solid #262626",
+                        borderRadius: "100px",
+                        padding: "5px 13px",
+                        fontSize: "12px",
+                        color: "#cccccc",
+                      }}
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+
+                <p
+                  style={{
+                    fontSize: "11px",
+                    color: "#555555",
+                    letterSpacing: "0.14em",
+                    textTransform: "uppercase",
+                    margin: "0 0 12px 0",
+                  }}
+                >
+                  Links
+                </p>
+
+                <a
+                  href={selectedProject.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "#0099ff";
+                    e.currentTarget.style.color = "#ffffff";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "#262626";
+                    e.currentTarget.style.color = "#cccccc";
+                  }}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    background: "#141414",
+                    border: "0.5px solid #262626",
+                    borderRadius: "100px",
+                    padding: "10px 20px",
+                    fontSize: "12px",
+                    color: "#cccccc",
+                    textDecoration: "none",
+                    width: "fit-content",
+                    cursor: "none",
+                  }}
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+                  </svg>
+                  View on GitHub
+                </a>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
