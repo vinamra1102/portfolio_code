@@ -238,41 +238,74 @@ export default function HoverImageReveal({
                   style={{
                     width: "100%",
                     height: "100%",
-                    background: "#111111",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexDirection: "column",
-                    gap: "8px",
+                    background: "#0d0d0d",
+                    fontFamily: "Inter",
                   }}
                 >
+                  {/* Video frame: play affordance */}
                   <div
                     style={{
-                      fontSize: "36px",
-                      fontWeight: 500,
-                      color: "#1e1e1e",
-                      fontFamily: "Inter",
-                      letterSpacing: "-1px",
+                      height: "60%",
+                      background: "#111111",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
-                    {(item.text ?? "")
-                      .split(" ")
-                      .map((w: string) => w[0])
-                      .join("")
-                      .slice(0, 2)
-                      .toUpperCase()}
+                    <div
+                      style={{
+                        width: "48px",
+                        height: "48px",
+                        borderRadius: "50%",
+                        background: "rgba(0,153,255,0.1)",
+                        border: "1px solid rgba(0,153,255,0.3)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <svg width="14" height="14">
+                        <path d="M5,3 L14,8 L5,13 Z" fill="rgba(0,153,255,0.8)" />
+                      </svg>
+                    </div>
                   </div>
+
+                  {/* Caption strip */}
                   <div
                     style={{
-                      fontSize: "10px",
-                      color: "#1a1a1a",
-                      letterSpacing: "0.15em",
-                      textTransform: "uppercase",
-                      fontFamily: "Inter",
-                      fontWeight: 400,
+                      height: "40%",
+                      background: "#0d0d0d",
+                      padding: "10px 14px",
+                      borderTop: "0.5px solid #1a1a1a",
                     }}
                   >
-                    Preview soon
+                    <span
+                      style={{
+                        display: "block",
+                        fontSize: "11px",
+                        fontWeight: 500,
+                        color: "#333333",
+                        letterSpacing: "-0.3px",
+                        marginBottom: "2px",
+                      }}
+                    >
+                      {(item.text ?? "")
+                        .split(" ")
+                        .map((w: string) => w[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase()}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "9px",
+                        color: "#222222",
+                        letterSpacing: "0.12em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Preview soon
+                    </span>
                   </div>
                 </div>
               );
