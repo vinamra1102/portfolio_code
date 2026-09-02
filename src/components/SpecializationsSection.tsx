@@ -476,14 +476,20 @@ export default function SpecializationsSection() {
                     justifyContent: "center",
                     textAlign: "center",
                     fontFamily: "Inter",
+                    opacity: isDimmed(segment.id) ? 0.4 : 1,
+                    transition: "opacity 0.3s ease",
                   }}
                 >
                   <div
                     style={{
                       fontSize: "13px",
                       fontWeight: 500,
-                      color: "#ffffff",
+                      color: isHovered(segment.id) ? "#ffffff" : "#cccccc",
+                      textShadow: isHovered(segment.id)
+                        ? "0 0 16px rgba(0,153,255,0.5)"
+                        : "none",
                       letterSpacing: "-0.3px",
+                      transition: "color 0.3s ease, text-shadow 0.3s ease",
                     }}
                   >
                     {segment.title}
@@ -491,9 +497,12 @@ export default function SpecializationsSection() {
                   <div
                     style={{
                       fontSize: "10px",
-                      color: "rgba(0,153,255,0.8)",
+                      color: isHovered(segment.id)
+                        ? "#0099ff"
+                        : "rgba(0,153,255,0.6)",
                       letterSpacing: "0.05em",
                       marginTop: "3px",
+                      transition: "color 0.3s ease",
                     }}
                   >
                     {segment.tools}
@@ -501,8 +510,9 @@ export default function SpecializationsSection() {
                   <div
                     style={{
                       fontSize: "9px",
-                      color: "#555555",
+                      color: isHovered(segment.id) ? "#888888" : "#444444",
                       letterSpacing: "0.08em",
+                      transition: "color 0.3s ease",
                       textTransform: "uppercase",
                       marginTop: "2px",
                       maxWidth: "90px",
