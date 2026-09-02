@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -14,6 +14,8 @@ const segments = [
     description: "Simulate, test and validate",
     startAngle: -90,
     endAngle: 30,
+    videoSrc: "",
+    // Replace videoSrc: "/videos/simulation-demo.mp4" when available
   },
   {
     id: "training",
@@ -22,6 +24,8 @@ const segments = [
     description: "RL training and optimisation",
     startAngle: 30,
     endAngle: 150,
+    videoSrc: "",
+    // Replace videoSrc: "/videos/training-demo.mp4" when available
   },
   {
     id: "deployment",
@@ -30,6 +34,8 @@ const segments = [
     description: "Deploy policy and control robot",
     startAngle: 150,
     endAngle: 270,
+    videoSrc: "",
+    // Replace videoSrc: "/videos/deployment-demo.mp4" when available
   },
 ];
 
@@ -37,6 +43,8 @@ const centerData = {
   id: "hardware",
   title: "Hardware",
   subtitle: "Real Robot",
+  videoSrc: "",
+  // Replace videoSrc with the real robot demo when available
 };
 
 // ---- geometry ---------------------------------------------------------------
@@ -85,6 +93,89 @@ function describeArc(
 
 const midAngle = (s: { startAngle: number; endAngle: number }) =>
   (s.startAngle + s.endAngle) / 2;
+
+/** Distance from centre to the video card, just past the expanded slice. */
+const POPUP_R = 310;
+
+/** Floating video card. Falls back to a placeholder until a source exists. */
+function VideoPopup({ title, videoSrc }: { title: string; videoSrc: string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.88, y: 8 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.88, y: 8 }}
+      transition={{ duration: 0.22, ease: EASE }}
+      aria-hidden="true"
+      style={{
+        width: 220,
+        height: 150,
+        borderRadius: 12,
+        background: "#0a0a0a",
+        border: "0.5px solid rgba(0,153,255,0.25)",
+        overflow: "hidden",
+        boxShadow: "0 0 30px rgba(0,153,255,0.15), 0 8px 32px rgba(0,0,0,0.6)",
+      }}
+    >
+      {videoSrc ? (
+        <video
+          src={videoSrc}
+          autoPlay
+          muted
+          loop
+          playsInline
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      ) : (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            background: "#111111",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+            fontFamily: "Inter",
+          }}
+        >
+          <svg width="48" height="48" viewBox="0 0 48 48">
+            <circle
+              cx="24"
+              cy="24"
+              r="20"
+              fill="rgba(0,153,255,0.15)"
+              stroke="rgba(0,153,255,0.4)"
+              strokeWidth="1"
+            />
+            <polygon points="20,16 32,24 20,32" fill="rgba(0,153,255,0.8)" />
+          </svg>
+          <div
+            style={{
+              fontSize: "11px",
+              color: "#333333",
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+            }}
+          >
+            {title}
+          </div>
+          <div
+            style={{
+              fontSize: "9px",
+              color: "#222222",
+              letterSpacing: "0.15em",
+              textTransform: "uppercase",
+              marginTop: "2px",
+            }}
+          >
+            Preview soon
+          </div>
+        </div>
+      )}
+    </motion.div>
+  );
+}
 
 const PIE_KEYFRAMES = `
   @keyframes pulse-ring {
@@ -288,13 +379,18 @@ export default function SpecializationsSection() {
               cy={CY}
               r={108}
               fill="#090909"
-              stroke="rgba(0,153,255,0.3)"
+              stroke={
+                hoveredSegment === centerData.id
+                  ? "rgba(0,153,255,0.6)"
+                  : "rgba(0,153,255,0.3)"
+              }
               strokeWidth={1}
               filter={
                 hoveredSegment === centerData.id
                   ? "url(#center-glow)"
                   : undefined
               }
+              style={{ transition: "stroke 0.35s ease" }}
             />
             <circle
               cx={CX}
@@ -419,6 +515,49 @@ export default function SpecializationsSection() {
             );
           })}
         </svg>
+
+        {/* Video cards, one per hovered slice, in the same 600x600 space */}
+        <div className="pointer-events-none absolute inset-0 z-20">
+          {segments.map((segment) => {
+            const at = polar(POPUP_R, midAngle(segment));
+            return (
+              <AnimatePresence key={segment.id}>
+                {hoveredSegment === segment.id && (
+                  <div
+                    className="absolute"
+                    style={{
+                      left: at.x,
+                      top: at.y,
+                      transform: "translate(-50%, -50%)",
+                    }}
+                  >
+                    <VideoPopup
+                      title={segment.title}
+                      videoSrc={segment.videoSrc}
+                    />
+                  </div>
+                )}
+              </AnimatePresence>
+            );
+          })}
+          <AnimatePresence>
+            {hoveredSegment === centerData.id && (
+              <div
+                className="absolute"
+                style={{
+                  left: "50%",
+                  top: "calc(50% - 140px)",
+                  transform: "translateX(-50%)",
+                }}
+              >
+                <VideoPopup
+                  title={centerData.title}
+                  videoSrc={centerData.videoSrc}
+                />
+              </div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </section>
   );
