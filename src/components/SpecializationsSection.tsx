@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
 
@@ -163,6 +163,50 @@ const PIE_KEYFRAMES = `
     50% { opacity: 1; transform: scale(1.04); }
   }
 `;
+
+const PILL_R = 270;
+
+/** One project pill, shown beside a hovered segment. */
+function ProjectPill({
+  project,
+  index,
+  onOpen,
+}: {
+  project: SegmentProject;
+  index: number;
+  onOpen: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <motion.button
+      type="button"
+      initial={{ opacity: 0, scale: 0.9, y: 4 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.9, y: 4 }}
+      transition={{ duration: 0.2, delay: index * 0.05 }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={onOpen}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "8px",
+        background: hovered ? "rgba(0,153,255,0.12)" : "rgba(0,0,0,0.85)",
+        border: `0.5px solid ${hovered ? "rgba(0,153,255,0.65)" : "rgba(0,153,255,0.35)"}`,
+        borderRadius: "100px",
+        padding: "6px 14px",
+        fontSize: "11px",
+        color: hovered ? "#ffffff" : "#cccccc",
+        whiteSpace: "nowrap",
+        cursor: "none",
+        backdropFilter: "blur(8px)",
+        transition: "background 0.2s, border-color 0.2s, color 0.2s",
+      }}
+    >
+      {project.title}
+    </motion.button>
+  );
+}
 
 // ---- detail overlay ------------------------------------------------------------
 
@@ -417,6 +461,23 @@ function ProjectDetailOverlay({
 
 export default function SpecializationsSection() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [hoveredSegment, setHoveredSegment] = useState<string | null>(null);
+  // The pills sit outside the donut, so the pointer has to cross a gap to reach
+  // them. A short grace period stops the segment from un-hovering on the way.
+  const clearTimer = useRef<number | null>(null);
+  const hold = (id: string) => {
+    if (clearTimer.current !== null) window.clearTimeout(clearTimer.current);
+    clearTimer.current = null;
+    setHoveredSegment(id);
+  };
+  const release = () => {
+    if (clearTimer.current !== null) window.clearTimeout(clearTimer.current);
+    clearTimer.current = window.setTimeout(() => setHoveredSegment(null), 120);
+  };
+  const openProject = (title: string) => {
+    const project = allProjects.find((pr) => pr.title === title);
+    if (project) setSelectedProject(project);
+  };
   // The pie is laid out in fixed pixels, so it scales to fit rather than
   // reflowing. Starts at 1 so server and first client render agree.
   const [pieScale, setPieScale] = useState(1);
@@ -528,7 +589,7 @@ export default function SpecializationsSection() {
             strokeWidth={0.5}
             strokeDasharray="3 6"
           />
-          <circle
+          <motion.circle
             cx={CX}
             cy={CY}
             r={255}
@@ -536,7 +597,8 @@ export default function SpecializationsSection() {
             stroke="rgba(0,153,255,0.04)"
             strokeWidth={8}
             filter="url(#segment-glow)"
-            style={{ opacity: 0.3 }}
+            animate={{ opacity: hoveredSegment ? 0.7 : 0.3 }}
+            transition={{ duration: 0.3 }}
           />
 
           {/* Segments */}
@@ -551,16 +613,30 @@ export default function SpecializationsSection() {
                 transformOrigin: "300px 300px",
               }}
             >
-              <path
+              <motion.path
                 d={describeArc(
                   OUTER_R,
                   INNER_R,
                   segment.startAngle,
                   segment.endAngle,
                 )}
-                fill="#0d1a2a"
-                stroke="#0a0a0a"
-                strokeWidth={2}
+                animate={{
+                  fill: hoveredSegment === segment.id ? "#0a2040" : "#0d1a2a",
+                  stroke:
+                    hoveredSegment === segment.id
+                      ? "rgba(0,153,255,0.6)"
+                      : "#0a0a0a",
+                  strokeWidth: hoveredSegment === segment.id ? 1 : 2,
+                }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                filter={
+                  hoveredSegment === segment.id
+                    ? "url(#segment-glow)"
+                    : undefined
+                }
+                onMouseEnter={() => hold(segment.id)}
+                onMouseLeave={release}
+                style={{ cursor: "none", pointerEvents: "all" }}
               />
             </motion.g>
           ))}
@@ -596,6 +672,11 @@ export default function SpecializationsSection() {
               fill="#090909"
               stroke="rgba(0,153,255,0.3)"
               strokeWidth={1}
+              filter={
+                hoveredSegment === centerData.id
+                  ? "url(#center-glow)"
+                  : undefined
+              }
             />
             <circle
               cx={CX}
@@ -641,6 +722,15 @@ export default function SpecializationsSection() {
             >
               {centerData.subtitle}
             </text>
+            <circle
+              cx={CX}
+              cy={CY}
+              r={108}
+              fill="transparent"
+              onMouseEnter={() => hold(centerData.id)}
+              onMouseLeave={release}
+              style={{ cursor: "none", pointerEvents: "all" }}
+            />
           </motion.g>
 
           {/* Segment labels. Hits pass through to the segment beneath. */}
@@ -711,6 +801,64 @@ export default function SpecializationsSection() {
             );
           })}
         </svg>
+
+        {/* Pills, in the same 600x600 space as the SVG */}
+        <div className="pointer-events-none absolute inset-0 z-10">
+          {segments.map((segment) => {
+            const at = polar(PILL_R, midAngle(segment));
+            return (
+              <AnimatePresence key={segment.id}>
+                {hoveredSegment === segment.id && (
+                  <div
+                    className="absolute flex flex-col items-center gap-[5px]"
+                    style={{
+                      left: at.x,
+                      top: at.y,
+                      transform: "translate(-50%, -50%)",
+                      pointerEvents: "all",
+                    }}
+                    onMouseEnter={() => hold(segment.id)}
+                    onMouseLeave={release}
+                  >
+                    {segment.projects.map((project, i) => (
+                      <ProjectPill
+                        key={project.title}
+                        project={project}
+                        index={i}
+                        onOpen={() => openProject(project.title)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </AnimatePresence>
+            );
+          })}
+
+          <AnimatePresence>
+            {hoveredSegment === centerData.id && (
+              <div
+                className="absolute flex flex-col items-center gap-[5px]"
+                style={{
+                  left: "50%",
+                  top: "calc(50% - 130px)",
+                  transform: "translateX(-50%)",
+                  pointerEvents: "all",
+                }}
+                onMouseEnter={() => hold(centerData.id)}
+                onMouseLeave={release}
+              >
+                {centerData.projects.map((project, i) => (
+                  <ProjectPill
+                    key={project.title}
+                    project={project}
+                    index={i}
+                    onOpen={() => openProject(project.title)}
+                  />
+                ))}
+              </div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       <AnimatePresence>
