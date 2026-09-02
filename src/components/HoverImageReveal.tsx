@@ -248,7 +248,7 @@ export default function HoverImageReveal({
                 >
                   <div
                     style={{
-                      fontSize: "32px",
+                      fontSize: "36px",
                       fontWeight: 500,
                       color: "#1e1e1e",
                       fontFamily: "Inter",
@@ -265,7 +265,7 @@ export default function HoverImageReveal({
                   <div
                     style={{
                       fontSize: "10px",
-                      color: "#222",
+                      color: "#1a1a1a",
                       letterSpacing: "0.15em",
                       textTransform: "uppercase",
                       fontFamily: "Inter",
