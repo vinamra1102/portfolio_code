@@ -316,6 +316,9 @@ export default function SpecializationsSection() {
                   segment.startAngle,
                   segment.endAngle,
                 )}
+                fill="#0d1a2a"
+                stroke="rgba(0,153,255,0.15)"
+                strokeWidth={1}
                 animate={{
                   d: describeArc(
                     isHovered(segment.id) ? HOVER_OUTER_R : OUTER_R,
