@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import HoverImageReveal from "@/components/HoverImageReveal";
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
-import { playSFX } from "@/lib/sfx";
 
 const projects = [
   {
@@ -83,7 +82,6 @@ export default function ProjectsSection() {
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        playSFX("close")
         setSelectedProject(null)
       }
     };
@@ -218,8 +216,6 @@ export default function ProjectsSection() {
             overflow: "visible",
           }}
           onItemClick={(index) => {
-            playSFX("select")
-            playSFX("expand")
             setSelectedProject(projects[index])
           }}
         />
@@ -233,7 +229,6 @@ export default function ProjectsSection() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
             onClick={() => {
-              playSFX("close")
               setSelectedProject(null)
             }}
             role="dialog"
@@ -318,7 +313,6 @@ export default function ProjectsSection() {
               >
                 <button
                   onClick={() => {
-              playSFX("close")
               setSelectedProject(null)
             }}
                   aria-label="Close project details"
@@ -436,9 +430,6 @@ export default function ProjectsSection() {
                   href={selectedProject.github}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={(e) => {
-                    playSFX("navigate")
-                  }}
                   style={{
                     display: "inline-flex",
                     alignItems: "center",

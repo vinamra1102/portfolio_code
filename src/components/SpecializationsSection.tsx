@@ -3,7 +3,6 @@
 import { Fragment, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
-import { playSFX } from "@/lib/sfx";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -849,7 +848,6 @@ export default function SpecializationsSection() {
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        playSFX("close");
         setActiveSpec(null);
       }
     };
@@ -961,8 +959,6 @@ export default function SpecializationsSection() {
                   <ArmTrigger
                     spec={spec}
                     onOpen={() => {
-                      playSFX("select");
-                      playSFX("expand");
                       setActiveSpec(spec.key);
                     }}
                   >
@@ -1008,8 +1004,6 @@ export default function SpecializationsSection() {
                 <ArmTrigger
                   spec={spec}
                   onOpen={() => {
-                    playSFX("select");
-                    playSFX("expand");
                     setActiveSpec(spec.key);
                   }}
                 >
@@ -1031,7 +1025,6 @@ export default function SpecializationsSection() {
             key={activeSpec}
             specKey={activeSpec}
             onClose={() => {
-              playSFX("close");
               setActiveSpec(null);
             }}
           />
