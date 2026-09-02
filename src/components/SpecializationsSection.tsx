@@ -44,6 +44,8 @@ const centerData = {
 const CX = 300;
 const CY = 300;
 const OUTER_R = 240;
+/** A hovered slice grows outward to this radius. */
+const HOVER_OUTER_R = 280;
 const INNER_R = 110;
 const LABEL_R = 175;
 
@@ -98,6 +100,9 @@ export default function SpecializationsSection() {
   // The pie is laid out in fixed pixels, so it scales to fit rather than
   // reflowing. Starts at 1 so server and first client render agree.
   const [pieScale, setPieScale] = useState(1);
+  const isHovered = (id: string) => hoveredSegment === id;
+  const isDimmed = (id: string) =>
+    hoveredSegment !== null && hoveredSegment !== id;
 
   useEffect(() => {
     const pick = () => {
@@ -178,25 +183,27 @@ export default function SpecializationsSection() {
           </defs>
 
           {/* Outer ring decoration */}
-          <circle
+          <motion.circle
             cx={CX}
             cy={CY}
             r={248}
             fill="none"
-            stroke="rgba(0,153,255,0.06)"
+            stroke="#0099ff"
             strokeWidth={0.5}
             strokeDasharray="3 6"
+            animate={{ strokeOpacity: hoveredSegment ? 0.2 : 0.06 }}
+            transition={{ duration: 0.4, ease: "easeInOut" }}
           />
           <motion.circle
             cx={CX}
             cy={CY}
-            r={255}
+            r={260}
             fill="none"
             stroke="rgba(0,153,255,0.04)"
-            strokeWidth={8}
+            strokeWidth={12}
             filter="url(#segment-glow)"
-            animate={{ opacity: hoveredSegment ? 0.7 : 0.3 }}
-            transition={{ duration: 0.3 }}
+            animate={{ opacity: hoveredSegment ? 0.6 : 0 }}
+            transition={{ duration: 0.4, ease: "easeInOut" }}
           />
 
           {/* Segments */}
@@ -219,18 +226,31 @@ export default function SpecializationsSection() {
                   segment.endAngle,
                 )}
                 animate={{
-                  fill: hoveredSegment === segment.id ? "#0a2040" : "#0d1a2a",
-                  stroke:
-                    hoveredSegment === segment.id
-                      ? "rgba(0,153,255,0.6)"
-                      : "#0a0a0a",
-                  strokeWidth: hoveredSegment === segment.id ? 1 : 2,
+                  d: describeArc(
+                    isHovered(segment.id) ? HOVER_OUTER_R : OUTER_R,
+                    INNER_R,
+                    segment.startAngle,
+                    segment.endAngle,
+                  ),
+                  fill: isHovered(segment.id)
+                    ? "#0a2040"
+                    : isDimmed(segment.id)
+                      ? "#080e18"
+                      : "#0d1a2a",
+                  stroke: isHovered(segment.id)
+                    ? "rgba(0,153,255,0.8)"
+                    : isDimmed(segment.id)
+                      ? "rgba(0,153,255,0.08)"
+                      : "rgba(0,153,255,0.15)",
+                  strokeWidth: isHovered(segment.id) ? 1.5 : 1,
+                  opacity: isDimmed(segment.id) ? 0.7 : 1,
                 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
+                transition={{
+                  d: { type: "spring", stiffness: 300, damping: 28 },
+                  default: { duration: 0.35, ease: "easeInOut" },
+                }}
                 filter={
-                  hoveredSegment === segment.id
-                    ? "url(#segment-glow)"
-                    : undefined
+                  isHovered(segment.id) ? "url(#segment-glow)" : undefined
                 }
                 onMouseEnter={() => setHoveredSegment(segment.id)}
                 onMouseLeave={() => setHoveredSegment(null)}
