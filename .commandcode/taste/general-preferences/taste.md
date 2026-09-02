@@ -40,3 +40,18 @@
 - Prefers status pill notifications for form feedback: rounded-full pills with rgba-tinted backgrounds and matching 0.5px borders (e.g. green rgba for success, red rgba for error), animated with Framer Motion fade-in. Confidence: 0.85
 - Submit button state machine: idle (default colors) → loading (disabled, "Sending...") → success (green bg, "Message sent") → error (red bg, specific error text), with auto-reset after timeout. Confidence: 0.85
 - Social links pattern: horizontal row with hairline dot separators (·), uppercase, letter-spaced, muted color (#555555) that brightens to white on hover. Confidence: 0.8
+- Uses `uisfx` library for UI sound effects with a centralized singleton player (`lib/sfx.ts`), SSR guards (`typeof window`), lazy initialization, and localStorage persistence for enabled/volume preferences. Confidence: 0.9
+- Audio unlock pattern: one-time `pointerdown`/`keydown` listener in a dedicated `SFXUnlocker` component placed in the root layout, gating all `playSFX` calls until first user gesture. Confidence: 0.9
+- When rules forbid modifying a component file, creates a wrapper component using event delegation (e.g. `HeroSectionSFX` wrapping `HeroSection` with `onPointerOver`/`onClick` handlers) rather than violating the constraint. Confidence: 0.85
+- Sound and motion are independent accessibility settings -- `prefers-reduced-motion` does NOT suppress audio. Confidence: 0.9
+- Sound reinforces but never replaces visual state changes, ARIA updates, form validation messages, or overlay animations. Confidence: 0.9
+- Selective sonification: only intentional, sparse interactions get sound (clicks, focus, opens/closes, navigation). Does NOT sonify scrolling, passive layout changes, or hover states on dense repeated elements. Confidence: 0.9
+- Documents action-to-cue mapping as a comment block at the top of the SFX module file. Confidence: 0.85
+- Sound preference toggle (SFXToggle) placed in the contact/footer section below social links, with `aria-label` describing current state and visible text label. Confidence: 0.85
+- Uses Aceternity UI as a component library for animated/interactive UI primitives (e.g. dotted glow background). Installs via shadcn CLI or direct registry JSON fetch. Confidence: 0.85
+- Prefers canvas-based animated backgrounds (e.g. DottedGlowBackground) over CSS pseudo-element textures for section backgrounds -- canvas gives per-dot shimmer/glow animation. Confidence: 0.85
+- Performance-tiered canvas animations: interactive sections (Specializations, Contact) get full animation speed; passive/scroll-heavy sections (Projects, About, Footer) get reduced speed (speedMin 0.1, speedMax 0.4) to reduce GPU load. Confidence: 0.85
+- Requires a z-index audit after adding absolutely-positioned background layers -- all section content must be verified at z-index 1+ to render above z-index 0 backgrounds. Confidence: 0.9
+- Multi-commit strategy for component swaps: (1) install new component, (2) remove old component + cleanup, (3) apply new component to sections. Each commit is atomic and buildable. Confidence: 0.9
+- Uses CSS radial gradient mask utilities for directional glow concentration on section backgrounds -- each section gets a unique mask direction (top-right, bottom-left, center, etc.) matching its visual energy direction. Confidence: 0.85
+- Section background opacity and speed are tuned per-section based on importance: hero-adjacent sections get higher opacity (0.65), footer gets lowest (0.35). Confidence: 0.8
