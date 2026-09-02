@@ -58,6 +58,13 @@ export default function HoverImageReveal({
 }: HoverImageRevealProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState<number | null>(null);
+  /** Indices whose video or image failed to load, keyed so each is retried once. */
+  const [failedMedia, setFailedMedia] = useState<Record<number, boolean>>({});
+
+  const markBroken = (index: number) =>
+    setFailedMedia((prev) =>
+      prev[index] ? prev : { ...prev, [index]: true },
+    );
 
   const spring = {
     stiffness: transition?.stiffness ?? 350,
@@ -203,109 +210,107 @@ export default function HoverImageReveal({
               overflow: "hidden",
               pointerEvents: "none",
               zIndex: 20,
+              background: "#0a0a0a",
+              border: "0.5px solid rgba(0,153,255,0.25)",
+              boxShadow:
+                "0 0 30px rgba(0,153,255,0.15), 0 8px 32px rgba(0,0,0,0.6)",
             }}
           >
             {(() => {
               const item = list[hovered];
               const src = item.image?.src;
-              return src && (src.endsWith(".mp4") || src.endsWith(".webm")) ? (
-                <video
-                  src={src}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    display: "block",
-                  }}
-                />
-              ) : src && !src.startsWith("/videos") ? (
-                <img
-                  src={src}
-                  alt={item.image?.alt || item.text || ""}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    display: "block",
-                  }}
-                />
-              ) : (
+              const isVideo =
+                !!src && (src.endsWith(".mp4") || src.endsWith(".webm"));
+              const isImage = !!src && !isVideo && !src.startsWith("/videos");
+              // A missing asset must not leave an empty box behind, so a failed
+              // load falls through to the placeholder card.
+              const broken = failedMedia[hovered];
+
+              if (isVideo && !broken) {
+                return (
+                  <video
+                    src={src}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    onError={() => markBroken(hovered)}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      display: "block",
+                    }}
+                  />
+                );
+              }
+
+              if (isImage && !broken) {
+                return (
+                  <img
+                    src={src}
+                    alt={item.image?.alt || item.text || ""}
+                    onError={() => markBroken(hovered)}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      display: "block",
+                    }}
+                  />
+                );
+              }
+
+              return (
                 <div
                   style={{
                     width: "100%",
                     height: "100%",
-                    background: "#0d0d0d",
+                    background: "#111111",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
                     fontFamily: "Inter",
                   }}
                 >
-                  {/* Video frame: play affordance */}
+                  <svg width="48" height="48" viewBox="0 0 48 48">
+                    <circle
+                      cx="24"
+                      cy="24"
+                      r="20"
+                      fill="rgba(0,153,255,0.15)"
+                      stroke="rgba(0,153,255,0.4)"
+                      strokeWidth="1"
+                    />
+                    <polygon
+                      points="20,16 32,24 20,32"
+                      fill="rgba(0,153,255,0.8)"
+                    />
+                  </svg>
                   <div
                     style={{
-                      height: "60%",
-                      background: "#111111",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
+                      fontSize: "11px",
+                      color: "#333333",
+                      letterSpacing: "0.12em",
+                      textTransform: "uppercase",
+                      textAlign: "center",
+                      padding: "0 16px",
                     }}
                   >
-                    <div
-                      style={{
-                        width: "48px",
-                        height: "48px",
-                        borderRadius: "50%",
-                        background: "rgba(0,153,255,0.1)",
-                        border: "1px solid rgba(0,153,255,0.3)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <svg width="14" height="14">
-                        <path d="M5,3 L14,8 L5,13 Z" fill="rgba(0,153,255,0.8)" />
-                      </svg>
-                    </div>
+                    {item.text}
                   </div>
-
-                  {/* Caption strip */}
                   <div
                     style={{
-                      height: "40%",
-                      background: "#0d0d0d",
-                      padding: "10px 14px",
-                      borderTop: "0.5px solid #1a1a1a",
+                      fontSize: "9px",
+                      color: "#222222",
+                      letterSpacing: "0.15em",
+                      textTransform: "uppercase",
+                      marginTop: "2px",
                     }}
                   >
-                    <span
-                      style={{
-                        display: "block",
-                        fontSize: "11px",
-                        fontWeight: 500,
-                        color: "#333333",
-                        letterSpacing: "-0.3px",
-                        marginBottom: "2px",
-                      }}
-                    >
-                      {(item.text ?? "")
-                        .split(" ")
-                        .map((w: string) => w[0])
-                        .join("")
-                        .slice(0, 2)
-                        .toUpperCase()}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "9px",
-                        color: "#222222",
-                        letterSpacing: "0.12em",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      Preview soon
-                    </span>
+                    Preview soon
                   </div>
                 </div>
               );
