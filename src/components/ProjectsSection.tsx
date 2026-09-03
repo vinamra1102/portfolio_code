@@ -190,12 +190,6 @@ export default function ProjectsSection() {
           dimColor="#252525"
           align="left"
           rowGap={0}
-          imageWidth={280}
-          imageHeight={380}
-          rounded={10}
-          offsetX={160}
-          offsetY={-190}
-          followStrength={20}
           font={{
             fontSize: "clamp(22px, 3vw, 40px)",
             fontWeight: 400,
