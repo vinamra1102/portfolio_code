@@ -150,9 +150,12 @@ const PIE_SIZE = 600;
 function SegmentMedia({
   active,
   videoSrc,
+  placeholder,
 }: {
   active: boolean;
   videoSrc: string;
+  /** Shown instead of footage while `videoSrc` is empty. */
+  placeholder?: React.ReactNode;
 }) {
   return (
     <div
@@ -201,10 +204,84 @@ function SegmentMedia({
               "radial-gradient(circle at center, rgba(0,10,25,0.3) 0%, rgba(0,5,15,0.7) 60%, rgba(0,0,0,0.85) 100%)",
           }}
         />
+
+        {/* Above the rim gradient so the play glyph is not dimmed by it. */}
+        {!videoSrc && placeholder ? (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 3,
+              pointerEvents: "none",
+            }}
+          >
+            {placeholder}
+          </div>
+        ) : null}
       </div>
     </div>
   );
 }
+
+/**
+ * Play glyph and "Preview soon" label, each pinned to a point in the pie's
+ * 600x600 space. Positions are explicit because a centred layout would land
+ * at the pie's centre, outside every slice's clip. The title is left to the
+ * slice label or the Hardware text that already sits on top of the media.
+ */
+function MediaPlaceholder({
+  play,
+  label,
+}: {
+  play: { x: number; y: number };
+  label: { x: number; y: number };
+}) {
+  const pin = (p: { x: number; y: number }): React.CSSProperties => ({
+    position: "absolute",
+    left: `${p.x}px`,
+    top: `${p.y}px`,
+    transform: "translate(-50%, -50%)",
+  });
+  return (
+    <>
+      <div
+        style={{
+          ...pin(play),
+          width: "44px",
+          height: "44px",
+          borderRadius: "50%",
+          background: "rgba(0,153,255,0.12)",
+          border: "1px solid rgba(0,153,255,0.35)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <svg width="12" height="12" viewBox="0 0 14 14">
+          <path d="M4,2 L13,7 L4,12 Z" fill="rgba(0,153,255,0.9)" />
+        </svg>
+      </div>
+      <div
+        style={{
+          ...pin(label),
+          fontFamily: "Inter",
+          fontSize: "9px",
+          color: "rgba(255,255,255,0.2)",
+          letterSpacing: "0.15em",
+          textTransform: "uppercase",
+          whiteSpace: "nowrap",
+        }}
+      >
+        Preview soon
+      </div>
+    </>
+  );
+}
+
+/** Radius along a slice's mid-angle where its play glyph sits, past the label. */
+const PLACEHOLDER_R = 232;
+/** Vertical drop from the play glyph to its "Preview soon" label. */
+const PLACEHOLDER_LABEL_DROP = 28;
 
 const PIE_KEYFRAMES = `
   @keyframes pulse-ring {
@@ -445,6 +522,15 @@ export default function SpecializationsSection() {
                 <SegmentMedia
                   active={isHovered(segment.id)}
                   videoSrc={segment.videoSrc}
+                  placeholder={(() => {
+                    const at = polar(PLACEHOLDER_R, midAngle(segment));
+                    return (
+                      <MediaPlaceholder
+                        play={at}
+                        label={{ x: at.x, y: at.y + PLACEHOLDER_LABEL_DROP }}
+                      />
+                    );
+                  })()}
                 />
               </foreignObject>
             </motion.g>
@@ -505,6 +591,13 @@ export default function SpecializationsSection() {
               <SegmentMedia
                 active={hoveredSegment === centerData.id}
                 videoSrc={centerData.videoSrc}
+                placeholder={
+                  // Straddles the Hardware / Real Robot text at y 295 and 313.
+                  <MediaPlaceholder
+                    play={{ x: CX, y: CY - 50 }}
+                    label={{ x: CX, y: CY + 38 }}
+                  />
+                }
               />
             </foreignObject>
 
