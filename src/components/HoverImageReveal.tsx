@@ -8,6 +8,16 @@ const PLACEHOLDER_GIF = "https://media.giphy.com/media/ICOgUNjpvO0PC/giphy.gif";
 
 const EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
 
+/**
+ * Media rendered on the server can fail before hydration attaches onError,
+ * and the error event does not fire twice. These read the element's settled
+ * state on commit so such a failure is still caught.
+ */
+const imgAlreadyFailed = (el: HTMLImageElement | null) =>
+  !!el && el.complete && el.naturalWidth === 0;
+const videoAlreadyFailed = (el: HTMLVideoElement | null) =>
+  !!el && el.error !== null;
+
 export type HoverImageRevealItem = {
   text?: string;
   image?: { src?: string; alt?: string };
@@ -192,6 +202,9 @@ export default function HoverImageReveal({
                   muted
                   loop
                   playsInline
+                  ref={(el) => {
+                    if (videoAlreadyFailed(el)) markBroken(i);
+                  }}
                   onError={() => markBroken(i)}
                   style={mediaStyle}
                 />
@@ -200,6 +213,9 @@ export default function HoverImageReveal({
                 <img
                   src={src}
                   alt={item.image?.alt || item.text || ""}
+                  ref={(el) => {
+                    if (imgAlreadyFailed(el)) markBroken(i);
+                  }}
                   onError={() => markBroken(i)}
                   style={mediaStyle}
                 />
@@ -209,6 +225,9 @@ export default function HoverImageReveal({
                   src={PLACEHOLDER_GIF}
                   alt={`${item.text ?? "Project"} preview`}
                   loading="eager"
+                  ref={(el) => {
+                    if (imgAlreadyFailed(el)) setGifFailed(true);
+                  }}
                   onError={(e) => {
                     e.currentTarget.style.display = "none";
                     setGifFailed(true);

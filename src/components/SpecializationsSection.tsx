@@ -145,6 +145,13 @@ const PIE_SIZE = 600;
 const PLACEHOLDER_GIF = "https://media.giphy.com/media/ICOgUNjpvO0PC/giphy.gif";
 
 /**
+ * An image rendered on the server can fail before hydration attaches
+ * onError, and the error event does not fire twice. Read on commit instead.
+ */
+const imgAlreadyFailed = (el: HTMLImageElement | null) =>
+  !!el && el.complete && el.naturalWidth === 0;
+
+/**
  * Media revealed inside a slice or the centre disc. It fills the whole pie
  * and relies on the caller's clipPath to cut it to shape, so the video's
  * framing stays fixed while the slice grows around it. Everything here uses
@@ -202,6 +209,9 @@ function SegmentMedia({
             src={PLACEHOLDER_GIF}
             alt="Preview"
             loading="eager"
+            ref={(el) => {
+              if (imgAlreadyFailed(el)) setGifFailed(true);
+            }}
             onError={(e) => {
               e.currentTarget.style.display = "none";
               setGifFailed(true);
