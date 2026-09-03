@@ -141,6 +141,9 @@ const midAngle = (s: { startAngle: number; endAngle: number }) =>
 /** The pie's drawing surface, which every media layer fills before clipping. */
 const PIE_SIZE = 600;
 
+/** Stand-in footage for every slice until the real demo clips exist. */
+const PLACEHOLDER_GIF = "https://media.giphy.com/media/ICOgUNjpvO0PC/giphy.gif";
+
 /**
  * Media revealed inside a slice or the centre disc. It fills the whole pie
  * and relies on the caller's clipPath to cut it to shape, so the video's
@@ -154,9 +157,10 @@ function SegmentMedia({
 }: {
   active: boolean;
   videoSrc: string;
-  /** Shown instead of footage while `videoSrc` is empty. */
+  /** Shown only if the stand-in gif fails to load and there is no footage. */
   placeholder?: React.ReactNode;
 }) {
+  const [gifFailed, setGifFailed] = useState(false);
   return (
     <div
       style={{
@@ -173,7 +177,8 @@ function SegmentMedia({
           zIndex: 1,
           opacity: active ? 1 : 0,
           transition: "opacity 0.4s ease",
-          background: videoSrc ? undefined : "rgba(0,10,25,0.85)",
+          // Dark base that shows through only if nothing above it loads.
+          background: "rgba(0,10,25,0.85)",
         }}
       >
         {videoSrc ? (
@@ -183,6 +188,24 @@ function SegmentMedia({
             muted
             loop
             playsInline
+            style={{
+              width: `${PIE_SIZE}px`,
+              height: `${PIE_SIZE}px`,
+              objectFit: "cover",
+              objectPosition: "center",
+              display: "block",
+            }}
+          />
+        ) : !gifFailed ? (
+          // eslint-disable-next-line @next/next/no-img-element -- remote gif; next/image would need a config change
+          <img
+            src={PLACEHOLDER_GIF}
+            alt="Preview"
+            loading="eager"
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+              setGifFailed(true);
+            }}
             style={{
               width: `${PIE_SIZE}px`,
               height: `${PIE_SIZE}px`,
@@ -201,12 +224,12 @@ function SegmentMedia({
             zIndex: 2,
             pointerEvents: "none",
             background:
-              "radial-gradient(circle at center, rgba(0,10,25,0.3) 0%, rgba(0,5,15,0.7) 60%, rgba(0,0,0,0.85) 100%)",
+              "radial-gradient(circle at center, rgba(0,10,25,0.2) 0%, rgba(0,0,0,0.65) 100%)",
           }}
         />
 
         {/* Above the rim gradient so the play glyph is not dimmed by it. */}
-        {!videoSrc && placeholder ? (
+        {!videoSrc && gifFailed && placeholder ? (
           <div
             style={{
               position: "absolute",
