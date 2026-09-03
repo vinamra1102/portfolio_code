@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { playSFX } from "@/lib/sfx";
 
 const sections = [
   { id: "hero", label: "Hero" },
@@ -43,7 +42,6 @@ export default function ScrollDotNav() {
   }, []);
 
   const handleClick = (id: string) => {
-    playSFX("navigate")
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
 

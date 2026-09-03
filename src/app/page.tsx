@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import HeroSectionSFX from "@/components/HeroSectionSFX";
+import HeroSection from "@/components/HeroSection";
 import SpecializationsSection from "@/components/SpecializationsSection";
 import AboutSection from "@/components/AboutSection";
 import ProjectsSection from "@/components/ProjectsSection";
@@ -37,7 +37,7 @@ export default function Home() {
             }}
             className="sticky top-0 h-screen w-full overflow-hidden"
           >
-            <HeroSectionSFX />
+            <HeroSection />
           </motion.div>
         </div>
 
