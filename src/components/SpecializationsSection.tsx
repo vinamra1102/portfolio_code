@@ -138,86 +138,71 @@ function describeArc(
 const midAngle = (s: { startAngle: number; endAngle: number }) =>
   (s.startAngle + s.endAngle) / 2;
 
-/** Distance from centre to the video card, just past the expanded slice. */
-const POPUP_R = 310;
+/** The pie's drawing surface, which every media layer fills before clipping. */
+const PIE_SIZE = 600;
 
-/** Floating video card. Falls back to a placeholder until a source exists. */
-function VideoPopup({ title, videoSrc }: { title: string; videoSrc: string }) {
+/**
+ * Media revealed inside a slice or the centre disc. It fills the whole pie
+ * and relies on the caller's clipPath to cut it to shape, so the video's
+ * framing stays fixed while the slice grows around it. Everything here uses
+ * inline styles: foreignObject content gets no reliable class support.
+ */
+function SegmentMedia({
+  active,
+  videoSrc,
+}: {
+  active: boolean;
+  videoSrc: string;
+}) {
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.88, y: 8 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.88, y: 8 }}
-      transition={{ duration: 0.22, ease: EASE }}
-      aria-hidden="true"
+    <div
       style={{
-        width: 220,
-        height: 150,
-        borderRadius: 12,
-        background: "#0a0a0a",
-        border: "0.5px solid rgba(0,153,255,0.25)",
+        position: "relative",
+        width: `${PIE_SIZE}px`,
+        height: `${PIE_SIZE}px`,
         overflow: "hidden",
-        boxShadow: "0 0 30px rgba(0,153,255,0.15), 0 8px 32px rgba(0,0,0,0.6)",
       }}
     >
-      {videoSrc ? (
-        <video
-          src={videoSrc}
-          autoPlay
-          muted
-          loop
-          playsInline
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
-      ) : (
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          zIndex: 1,
+          opacity: active ? 1 : 0,
+          transition: "opacity 0.4s ease",
+          background: videoSrc ? undefined : "rgba(0,10,25,0.85)",
+        }}
+      >
+        {videoSrc ? (
+          <video
+            src={videoSrc}
+            autoPlay
+            muted
+            loop
+            playsInline
+            style={{
+              width: `${PIE_SIZE}px`,
+              height: `${PIE_SIZE}px`,
+              objectFit: "cover",
+              objectPosition: "center",
+              display: "block",
+            }}
+          />
+        ) : null}
+
+        {/* Darkens the rim so the labels stay legible over footage. */}
         <div
           style={{
-            width: "100%",
-            height: "100%",
-            background: "#111111",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "8px",
-            fontFamily: "Inter",
+            position: "absolute",
+            inset: 0,
+            zIndex: 2,
+            pointerEvents: "none",
+            background:
+              "radial-gradient(circle at center, rgba(0,10,25,0.3) 0%, rgba(0,5,15,0.7) 60%, rgba(0,0,0,0.85) 100%)",
           }}
-        >
-          <svg width="48" height="48" viewBox="0 0 48 48">
-            <circle
-              cx="24"
-              cy="24"
-              r="20"
-              fill="rgba(0,153,255,0.15)"
-              stroke="rgba(0,153,255,0.4)"
-              strokeWidth="1"
-            />
-            <polygon points="20,16 32,24 20,32" fill="rgba(0,153,255,0.8)" />
-          </svg>
-          <div
-            style={{
-              fontSize: "11px",
-              color: "#333333",
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-            }}
-          >
-            {title}
-          </div>
-          <div
-            style={{
-              fontSize: "9px",
-              color: "#222222",
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              marginTop: "2px",
-            }}
-          >
-            Preview soon
-          </div>
-        </div>
-      )}
-    </motion.div>
+        />
+      </div>
+    </div>
   );
 }
 
@@ -337,6 +322,21 @@ export default function SpecializationsSection() {
                 <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
+
+            {/* Media clips use the expanded radius and the same seam gap as
+                the slice paths, so footage never bleeds into the dividers. */}
+            {segments.map((segment) => (
+              <clipPath key={segment.id} id={`clip-${segment.id}`}>
+                <path
+                  d={describeArc(
+                    HOVER_OUTER_R,
+                    INNER_R,
+                    segment.startAngle,
+                    segment.endAngle,
+                  )}
+                />
+              </clipPath>
+            ))}
           </defs>
 
           {/* Outer ring decoration */}
@@ -429,6 +429,21 @@ export default function SpecializationsSection() {
                 onClick={() => setSelectedProject(segment.primaryProject)}
                 style={{ cursor: "none", pointerEvents: "all" }}
               />
+
+              {/* Media inside the slice. Hits pass through to the path. */}
+              <foreignObject
+                x={0}
+                y={0}
+                width={PIE_SIZE}
+                height={PIE_SIZE}
+                clipPath={`url(#clip-${segment.id})`}
+                style={{ pointerEvents: "none" }}
+              >
+                <SegmentMedia
+                  active={isHovered(segment.id)}
+                  videoSrc={segment.videoSrc}
+                />
+              </foreignObject>
             </motion.g>
           ))}
 
@@ -551,6 +566,8 @@ export default function SpecializationsSection() {
               >
                 <div
                   style={{
+                    position: "relative",
+                    zIndex: 3,
                     width: "100%",
                     height: "100%",
                     display: "flex",
@@ -569,7 +586,7 @@ export default function SpecializationsSection() {
                       fontWeight: 500,
                       color: isHovered(segment.id) ? "#ffffff" : "#cccccc",
                       textShadow: isHovered(segment.id)
-                        ? "0 0 16px rgba(0,153,255,0.5)"
+                        ? "0 0 16px rgba(0,153,255,0.5), 0 1px 6px rgba(0,0,0,0.9)"
                         : "none",
                       letterSpacing: "-0.3px",
                       transition: "color 0.3s ease, text-shadow 0.3s ease",
@@ -583,9 +600,12 @@ export default function SpecializationsSection() {
                       color: isHovered(segment.id)
                         ? "#0099ff"
                         : "rgba(0,153,255,0.6)",
+                      textShadow: isHovered(segment.id)
+                        ? "0 1px 6px rgba(0,0,0,0.9)"
+                        : "none",
                       letterSpacing: "0.05em",
                       marginTop: "3px",
-                      transition: "color 0.3s ease",
+                      transition: "color 0.3s ease, text-shadow 0.3s ease",
                     }}
                   >
                     {segment.tools}
@@ -594,8 +614,11 @@ export default function SpecializationsSection() {
                     style={{
                       fontSize: "9px",
                       color: isHovered(segment.id) ? "#888888" : "#444444",
+                      textShadow: isHovered(segment.id)
+                        ? "0 1px 6px rgba(0,0,0,0.9)"
+                        : "none",
                       letterSpacing: "0.08em",
-                      transition: "color 0.3s ease",
+                      transition: "color 0.3s ease, text-shadow 0.3s ease",
                       textTransform: "uppercase",
                       marginTop: "2px",
                       maxWidth: "90px",
@@ -608,49 +631,6 @@ export default function SpecializationsSection() {
             );
           })}
         </svg>
-
-        {/* Video cards, one per hovered slice, in the same 600x600 space */}
-        <div className="pointer-events-none absolute inset-0 z-20">
-          {segments.map((segment) => {
-            const at = polar(POPUP_R, midAngle(segment));
-            return (
-              <AnimatePresence key={segment.id}>
-                {hoveredSegment === segment.id && (
-                  <div
-                    className="absolute"
-                    style={{
-                      left: at.x,
-                      top: at.y,
-                      transform: "translate(-50%, -50%)",
-                    }}
-                  >
-                    <VideoPopup
-                      title={segment.title}
-                      videoSrc={segment.videoSrc}
-                    />
-                  </div>
-                )}
-              </AnimatePresence>
-            );
-          })}
-          <AnimatePresence>
-            {hoveredSegment === centerData.id && (
-              <div
-                className="absolute"
-                style={{
-                  left: "50%",
-                  top: "calc(50% - 140px)",
-                  transform: "translateX(-50%)",
-                }}
-              >
-                <VideoPopup
-                  title={centerData.title}
-                  videoSrc={centerData.videoSrc}
-                />
-              </div>
-            )}
-          </AnimatePresence>
-        </div>
       </div>
 
       {/* Full screen project overlay. Kept outside the scaled pie wrapper: a
