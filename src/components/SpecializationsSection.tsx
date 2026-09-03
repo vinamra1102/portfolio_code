@@ -93,13 +93,15 @@ const centerData = {
 
 // ---- geometry ---------------------------------------------------------------
 
-const CX = 300;
-const CY = 300;
-const OUTER_R = 240;
+const CX = 450;
+const CY = 450;
+const OUTER_R = 360;
 /** A hovered slice grows outward to this radius. */
-const HOVER_OUTER_R = 280;
-const INNER_R = 110;
-const LABEL_R = 175;
+const HOVER_OUTER_R = 415;
+const INNER_R = 165;
+/** The Hardware disc, its clip and its hit area, 2px inside the donut hole. */
+const DISC_R = 163;
+const LABEL_R = 265;
 
 const toRad = (deg: number) => (deg * Math.PI) / 180;
 
@@ -139,7 +141,9 @@ const midAngle = (s: { startAngle: number; endAngle: number }) =>
   (s.startAngle + s.endAngle) / 2;
 
 /** The pie's drawing surface, which every media layer fills before clipping. */
-const PIE_SIZE = 600;
+const PIE_SIZE = 900;
+/** On-screen box the 900 unit viewBox is scaled into before responsive scaling. */
+const PIE_BOX = 800;
 
 /** Stand-in footage for every slice until the real demo clips exist. */
 const PLACEHOLDER_GIF = "https://media.giphy.com/media/ICOgUNjpvO0PC/giphy.gif";
@@ -258,7 +262,7 @@ function SegmentMedia({
 
 /**
  * Play glyph and "Preview soon" label, each pinned to a point in the pie's
- * 600x600 space. Positions are explicit because a centred layout would land
+ * 900x900 space. Positions are explicit because a centred layout would land
  * at the pie's centre, outside every slice's clip. The title is left to the
  * slice label or the Hardware text that already sits on top of the media.
  */
@@ -312,7 +316,7 @@ function MediaPlaceholder({
 }
 
 /** Radius along a slice's mid-angle where its play glyph sits, past the label. */
-const PLACEHOLDER_R = 232;
+const PLACEHOLDER_R = 348;
 /** Vertical drop from the play glyph to its "Preview soon" label. */
 const PLACEHOLDER_LABEL_DROP = 28;
 
@@ -340,7 +344,7 @@ export default function SpecializationsSection() {
   useEffect(() => {
     const pick = () => {
       const w = window.innerWidth;
-      setPieScale(w < 768 ? 0.55 : w < 1024 ? 0.8 : 1);
+      setPieScale(w < 768 ? 0.5 : w < 900 ? 0.72 : w < 1200 ? 0.88 : 1);
     };
     pick();
     window.addEventListener("resize", pick);
@@ -393,14 +397,14 @@ export default function SpecializationsSection() {
       <div
         className="relative z-[2] shrink-0"
         style={{
-          width: 600,
-          height: 600,
+          width: PIE_BOX,
+          height: PIE_BOX,
           scale: pieScale,
           transformOrigin: "center center",
         }}
       >
         <svg
-          viewBox="0 0 600 600"
+          viewBox={`0 0 ${PIE_SIZE} ${PIE_SIZE}`}
           className="absolute inset-0 h-full w-full"
           style={{ overflow: "visible" }}
         >
@@ -413,7 +417,7 @@ export default function SpecializationsSection() {
               width="140%"
               height="140%"
             >
-              <feGaussianBlur stdDeviation="8" result="coloredBlur" />
+              <feGaussianBlur stdDeviation="12" result="coloredBlur" />
               <feMerge>
                 <feMergeNode in="coloredBlur" />
                 <feMergeNode in="SourceGraphic" />
@@ -426,7 +430,7 @@ export default function SpecializationsSection() {
               width="160%"
               height="160%"
             >
-              <feGaussianBlur stdDeviation="12" result="coloredBlur" />
+              <feGaussianBlur stdDeviation="18" result="coloredBlur" />
               <feMerge>
                 <feMergeNode in="coloredBlur" />
                 <feMergeNode in="SourceGraphic" />
@@ -448,7 +452,7 @@ export default function SpecializationsSection() {
               </clipPath>
             ))}
             <clipPath id="clip-hardware">
-              <circle cx={CX} cy={CY} r={108} />
+              <circle cx={CX} cy={CY} r={DISC_R} />
             </clipPath>
           </defs>
 
@@ -456,21 +460,21 @@ export default function SpecializationsSection() {
           <motion.circle
             cx={CX}
             cy={CY}
-            r={248}
+            r={370}
             fill="none"
             stroke="#0099ff"
-            strokeWidth={0.5}
-            strokeDasharray="3 6"
+            strokeWidth={0.75}
+            strokeDasharray="4.5 9"
             animate={{ strokeOpacity: hoveredSegment ? 0.2 : 0.06 }}
             transition={{ duration: 0.4, ease: "easeInOut" }}
           />
           <motion.circle
             cx={CX}
             cy={CY}
-            r={260}
+            r={385}
             fill="none"
             stroke="rgba(0,153,255,0.04)"
-            strokeWidth={12}
+            strokeWidth={18}
             filter="url(#segment-glow)"
             animate={{ opacity: hoveredSegment ? 0.6 : 0 }}
             transition={{ duration: 0.4, ease: "easeInOut" }}
@@ -485,7 +489,7 @@ export default function SpecializationsSection() {
               transition={{ duration: 0.7, delay: i * 0.15, ease: EASE }}
               style={{
                 transformBox: "view-box",
-                transformOrigin: "300px 300px",
+                transformOrigin: `${CX}px ${CY}px`,
               }}
             >
               <motion.path
@@ -581,7 +585,7 @@ export default function SpecializationsSection() {
                 x2={b.x}
                 y2={b.y}
                 stroke="#090909"
-                strokeWidth={2}
+                strokeWidth={3}
               />
             );
           })}
@@ -591,12 +595,12 @@ export default function SpecializationsSection() {
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.7, delay: 0.5, ease: EASE }}
-            style={{ transformBox: "view-box", transformOrigin: "300px 300px" }}
+            style={{ transformBox: "view-box", transformOrigin: `${CX}px ${CY}px` }}
           >
             <circle
               cx={CX}
               cy={CY}
-              r={108}
+              r={DISC_R}
               fill="#090909"
               stroke={
                 hoveredSegment === centerData.id
@@ -625,10 +629,10 @@ export default function SpecializationsSection() {
                 active={hoveredSegment === centerData.id}
                 videoSrc={centerData.videoSrc}
                 placeholder={
-                  // Straddles the Hardware / Real Robot text at y 295 and 313.
+                  // Straddles the Hardware / Real Robot text at y 442 and 464.
                   <MediaPlaceholder
-                    play={{ x: CX, y: CY - 50 }}
-                    label={{ x: CX, y: CY + 38 }}
+                    play={{ x: CX, y: CY - 75 }}
+                    label={{ x: CX, y: CY + 57 }}
                   />
                 }
               />
@@ -637,30 +641,30 @@ export default function SpecializationsSection() {
             <circle
               cx={CX}
               cy={CY}
-              r={100}
+              r={150}
               fill="none"
               stroke="rgba(0,153,255,0.08)"
               strokeWidth={0.5}
               style={{
                 transformBox: "view-box",
-                transformOrigin: "300px 300px",
+                transformOrigin: `${CX}px ${CY}px`,
                 animation: "pulse-ring 3s ease-in-out infinite",
               }}
             />
             <circle
               cx={CX}
               cy={CY}
-              r={90}
+              r={135}
               fill="none"
               stroke="rgba(0,153,255,0.12)"
               strokeWidth={0.5}
             />
             <text
               x={CX}
-              y={295}
+              y={442}
               textAnchor="middle"
               fill="#ffffff"
-              fontSize={16}
+              fontSize={22}
               fontWeight={500}
               fontFamily="Inter"
               letterSpacing={-0.5}
@@ -669,10 +673,10 @@ export default function SpecializationsSection() {
             </text>
             <text
               x={CX}
-              y={313}
+              y={464}
               textAnchor="middle"
               fill="#555555"
-              fontSize={10}
+              fontSize={13}
               fontFamily="Inter"
               letterSpacing={1}
             >
@@ -681,7 +685,7 @@ export default function SpecializationsSection() {
             <circle
               cx={CX}
               cy={CY}
-              r={108}
+              r={DISC_R}
               fill="transparent"
               onMouseEnter={() => setHoveredSegment(centerData.id)}
               onMouseLeave={() => setHoveredSegment(null)}
@@ -696,10 +700,10 @@ export default function SpecializationsSection() {
             return (
               <motion.foreignObject
                 key={segment.id}
-                x={p.x - 55}
-                y={p.y - 40}
-                width={110}
-                height={80}
+                x={p.x - 70}
+                y={p.y - 50}
+                width={140}
+                height={100}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{
@@ -727,7 +731,7 @@ export default function SpecializationsSection() {
                 >
                   <div
                     style={{
-                      fontSize: "13px",
+                      fontSize: "15px",
                       fontWeight: 500,
                       color: isHovered(segment.id) ? "#ffffff" : "#cccccc",
                       textShadow: isHovered(segment.id)
@@ -741,7 +745,7 @@ export default function SpecializationsSection() {
                   </div>
                   <div
                     style={{
-                      fontSize: "10px",
+                      fontSize: "11px",
                       color: isHovered(segment.id)
                         ? "#0099ff"
                         : "rgba(0,153,255,0.6)",
@@ -757,7 +761,7 @@ export default function SpecializationsSection() {
                   </div>
                   <div
                     style={{
-                      fontSize: "9px",
+                      fontSize: "10px",
                       color: isHovered(segment.id) ? "#888888" : "#444444",
                       textShadow: isHovered(segment.id)
                         ? "0 1px 6px rgba(0,0,0,0.9)"
@@ -766,7 +770,7 @@ export default function SpecializationsSection() {
                       transition: "color 0.3s ease, text-shadow 0.3s ease",
                       textTransform: "uppercase",
                       marginTop: "2px",
-                      maxWidth: "90px",
+                      maxWidth: "130px",
                     }}
                   >
                     {segment.description}
