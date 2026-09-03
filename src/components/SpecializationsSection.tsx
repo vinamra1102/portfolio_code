@@ -138,88 +138,204 @@ function describeArc(
 const midAngle = (s: { startAngle: number; endAngle: number }) =>
   (s.startAngle + s.endAngle) / 2;
 
-/** Distance from centre to the video card, just past the expanded slice. */
-const POPUP_R = 310;
+/** The pie's drawing surface, which every media layer fills before clipping. */
+const PIE_SIZE = 600;
 
-/** Floating video card. Falls back to a placeholder until a source exists. */
-function VideoPopup({ title, videoSrc }: { title: string; videoSrc: string }) {
+/** Stand-in footage for every slice until the real demo clips exist. */
+const PLACEHOLDER_GIF = "https://media.giphy.com/media/ICOgUNjpvO0PC/giphy.gif";
+
+/**
+ * An image rendered on the server can fail before hydration attaches
+ * onError, and the error event does not fire twice. Read on commit instead.
+ */
+const imgAlreadyFailed = (el: HTMLImageElement | null) =>
+  !!el && el.complete && el.naturalWidth === 0;
+
+/** Midline of the donut band, where a slice's own area is centred. */
+const MEDIA_MID_R = (INNER_R + HOVER_OUTER_R) / 2;
+
+/**
+ * Anchor point for a slice's zoom, as a percentage of the pie box. Scaling
+ * about the pie's centre would push the enlarged frame out of the slice's
+ * clip, so each slice anchors on the middle of its own band instead.
+ */
+function mediaOriginFor(deg: number) {
+  const p = polar(MEDIA_MID_R, deg);
+  const pct = (v: number) => ((v / PIE_SIZE) * 100).toFixed(1);
+  return `${pct(p.x)}% ${pct(p.y)}%`;
+}
+
+/**
+ * Media revealed inside a slice or the centre disc. It fills the whole pie
+ * and relies on the caller's clipPath to cut it to shape, so the video's
+ * framing stays fixed while the slice grows around it. Everything here uses
+ * inline styles: foreignObject content gets no reliable class support.
+ */
+function SegmentMedia({
+  active,
+  videoSrc,
+  placeholder,
+  hoverScale,
+  origin,
+}: {
+  active: boolean;
+  videoSrc: string;
+  /** Shown only if the stand-in gif fails to load and there is no footage. */
+  placeholder?: React.ReactNode;
+  /** How far the footage zooms in while hovered, filling more of the shape. */
+  hoverScale: number;
+  /** transform-origin for that zoom, as a percentage pair. */
+  origin: string;
+}) {
+  const [gifFailed, setGifFailed] = useState(false);
+  const mediaStyle: React.CSSProperties = {
+    width: `${PIE_SIZE}px`,
+    height: `${PIE_SIZE}px`,
+    objectFit: "cover",
+    objectPosition: "center",
+    display: "block",
+    transform: `scale(${active ? hoverScale : 1})`,
+    transformOrigin: origin,
+    transition: "transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
+  };
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.88, y: 8 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.88, y: 8 }}
-      transition={{ duration: 0.22, ease: EASE }}
-      aria-hidden="true"
+    <div
       style={{
-        width: 220,
-        height: 150,
-        borderRadius: 12,
-        background: "#0a0a0a",
-        border: "0.5px solid rgba(0,153,255,0.25)",
+        position: "relative",
+        width: `${PIE_SIZE}px`,
+        height: `${PIE_SIZE}px`,
         overflow: "hidden",
-        boxShadow: "0 0 30px rgba(0,153,255,0.15), 0 8px 32px rgba(0,0,0,0.6)",
       }}
     >
-      {videoSrc ? (
-        <video
-          src={videoSrc}
-          autoPlay
-          muted
-          loop
-          playsInline
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
-      ) : (
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          zIndex: 1,
+          opacity: active ? 1 : 0,
+          transition: "opacity 0.4s ease",
+          // Dark base that shows through only if nothing above it loads.
+          background: "rgba(0,10,25,0.85)",
+        }}
+      >
+        {videoSrc ? (
+          <video
+            src={videoSrc}
+            autoPlay
+            muted
+            loop
+            playsInline
+            style={mediaStyle}
+          />
+        ) : !gifFailed ? (
+          // eslint-disable-next-line @next/next/no-img-element -- remote gif; next/image would need a config change
+          <img
+            src={PLACEHOLDER_GIF}
+            alt="Preview"
+            loading="eager"
+            ref={(el) => {
+              if (imgAlreadyFailed(el)) setGifFailed(true);
+            }}
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+              setGifFailed(true);
+            }}
+            style={mediaStyle}
+          />
+        ) : null}
+
+        {/* Darkens the rim so the labels stay legible over footage, and
+            lifts while hovered so more of the media reads through. */}
         <div
           style={{
-            width: "100%",
-            height: "100%",
-            background: "#111111",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "8px",
-            fontFamily: "Inter",
+            position: "absolute",
+            inset: 0,
+            zIndex: 2,
+            pointerEvents: "none",
+            transition: "background 0.4s ease",
+            background: active
+              ? "radial-gradient(circle at center, rgba(0,10,25,0.15) 0%, rgba(0,5,15,0.5) 50%, rgba(0,0,0,0.75) 100%)"
+              : "radial-gradient(circle at center, rgba(0,10,25,0.5) 0%, rgba(0,5,15,0.85) 60%, rgba(0,0,0,0.95) 100%)",
           }}
-        >
-          <svg width="48" height="48" viewBox="0 0 48 48">
-            <circle
-              cx="24"
-              cy="24"
-              r="20"
-              fill="rgba(0,153,255,0.15)"
-              stroke="rgba(0,153,255,0.4)"
-              strokeWidth="1"
-            />
-            <polygon points="20,16 32,24 20,32" fill="rgba(0,153,255,0.8)" />
-          </svg>
+        />
+
+        {/* Above the rim gradient so the play glyph is not dimmed by it. */}
+        {!videoSrc && gifFailed && placeholder ? (
           <div
             style={{
-              fontSize: "11px",
-              color: "#333333",
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
+              position: "absolute",
+              inset: 0,
+              zIndex: 3,
+              pointerEvents: "none",
             }}
           >
-            {title}
+            {placeholder}
           </div>
-          <div
-            style={{
-              fontSize: "9px",
-              color: "#222222",
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              marginTop: "2px",
-            }}
-          >
-            Preview soon
-          </div>
-        </div>
-      )}
-    </motion.div>
+        ) : null}
+      </div>
+    </div>
   );
 }
+
+/**
+ * Play glyph and "Preview soon" label, each pinned to a point in the pie's
+ * 600x600 space. Positions are explicit because a centred layout would land
+ * at the pie's centre, outside every slice's clip. The title is left to the
+ * slice label or the Hardware text that already sits on top of the media.
+ */
+function MediaPlaceholder({
+  play,
+  label,
+}: {
+  play: { x: number; y: number };
+  label: { x: number; y: number };
+}) {
+  const pin = (p: { x: number; y: number }): React.CSSProperties => ({
+    position: "absolute",
+    left: `${p.x}px`,
+    top: `${p.y}px`,
+    transform: "translate(-50%, -50%)",
+  });
+  return (
+    <>
+      <div
+        style={{
+          ...pin(play),
+          width: "44px",
+          height: "44px",
+          borderRadius: "50%",
+          background: "rgba(0,153,255,0.12)",
+          border: "1px solid rgba(0,153,255,0.35)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <svg width="12" height="12" viewBox="0 0 14 14">
+          <path d="M4,2 L13,7 L4,12 Z" fill="rgba(0,153,255,0.9)" />
+        </svg>
+      </div>
+      <div
+        style={{
+          ...pin(label),
+          fontFamily: "Inter",
+          fontSize: "9px",
+          color: "rgba(255,255,255,0.2)",
+          letterSpacing: "0.15em",
+          textTransform: "uppercase",
+          whiteSpace: "nowrap",
+        }}
+      >
+        Preview soon
+      </div>
+    </>
+  );
+}
+
+/** Radius along a slice's mid-angle where its play glyph sits, past the label. */
+const PLACEHOLDER_R = 232;
+/** Vertical drop from the play glyph to its "Preview soon" label. */
+const PLACEHOLDER_LABEL_DROP = 28;
 
 const PIE_KEYFRAMES = `
   @keyframes pulse-ring {
@@ -337,6 +453,24 @@ export default function SpecializationsSection() {
                 <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
+
+            {/* Media clips use the expanded radius and the same seam gap as
+                the slice paths, so footage never bleeds into the dividers. */}
+            {segments.map((segment) => (
+              <clipPath key={segment.id} id={`clip-${segment.id}`}>
+                <path
+                  d={describeArc(
+                    HOVER_OUTER_R,
+                    INNER_R,
+                    segment.startAngle,
+                    segment.endAngle,
+                  )}
+                />
+              </clipPath>
+            ))}
+            <clipPath id="clip-hardware">
+              <circle cx={CX} cy={CY} r={108} />
+            </clipPath>
           </defs>
 
           {/* Outer ring decoration */}
@@ -429,6 +563,32 @@ export default function SpecializationsSection() {
                 onClick={() => setSelectedProject(segment.primaryProject)}
                 style={{ cursor: "none", pointerEvents: "all" }}
               />
+
+              {/* Media inside the slice. Hits pass through to the path. */}
+              <foreignObject
+                x={0}
+                y={0}
+                width={PIE_SIZE}
+                height={PIE_SIZE}
+                clipPath={`url(#clip-${segment.id})`}
+                style={{ pointerEvents: "none" }}
+              >
+                <SegmentMedia
+                  active={isHovered(segment.id)}
+                  videoSrc={segment.videoSrc}
+                  hoverScale={1.4}
+                  origin={mediaOriginFor(midAngle(segment))}
+                  placeholder={(() => {
+                    const at = polar(PLACEHOLDER_R, midAngle(segment));
+                    return (
+                      <MediaPlaceholder
+                        play={at}
+                        label={{ x: at.x, y: at.y + PLACEHOLDER_LABEL_DROP }}
+                      />
+                    );
+                  })()}
+                />
+              </foreignObject>
             </motion.g>
           ))}
 
@@ -474,6 +634,31 @@ export default function SpecializationsSection() {
               }
               style={{ transition: "stroke 0.35s ease" }}
             />
+
+            {/* Media inside the disc, beneath the rings and the title text. */}
+            <foreignObject
+              x={0}
+              y={0}
+              width={PIE_SIZE}
+              height={PIE_SIZE}
+              clipPath="url(#clip-hardware)"
+              style={{ pointerEvents: "none" }}
+            >
+              <SegmentMedia
+                active={hoveredSegment === centerData.id}
+                videoSrc={centerData.videoSrc}
+                hoverScale={1.6}
+                origin="50% 50%"
+                placeholder={
+                  // Straddles the Hardware / Real Robot text at y 295 and 313.
+                  <MediaPlaceholder
+                    play={{ x: CX, y: CY - 50 }}
+                    label={{ x: CX, y: CY + 38 }}
+                  />
+                }
+              />
+            </foreignObject>
+
             <circle
               cx={CX}
               cy={CY}
@@ -551,6 +736,11 @@ export default function SpecializationsSection() {
               >
                 <div
                   style={{
+                    position: "relative",
+                    // SVG has no working z-index, so what actually keeps the
+                    // labels above the media is that this foreignObject is
+                    // painted after the slices. This tracks the intent.
+                    zIndex: isHovered(segment.id) ? 10 : 5,
                     width: "100%",
                     height: "100%",
                     display: "flex",
@@ -569,7 +759,7 @@ export default function SpecializationsSection() {
                       fontWeight: 500,
                       color: isHovered(segment.id) ? "#ffffff" : "#cccccc",
                       textShadow: isHovered(segment.id)
-                        ? "0 0 16px rgba(0,153,255,0.5)"
+                        ? "0 0 16px rgba(0,153,255,0.5), 0 1px 6px rgba(0,0,0,0.9)"
                         : "none",
                       letterSpacing: "-0.3px",
                       transition: "color 0.3s ease, text-shadow 0.3s ease",
@@ -583,9 +773,12 @@ export default function SpecializationsSection() {
                       color: isHovered(segment.id)
                         ? "#0099ff"
                         : "rgba(0,153,255,0.6)",
+                      textShadow: isHovered(segment.id)
+                        ? "0 1px 6px rgba(0,0,0,0.9)"
+                        : "none",
                       letterSpacing: "0.05em",
                       marginTop: "3px",
-                      transition: "color 0.3s ease",
+                      transition: "color 0.3s ease, text-shadow 0.3s ease",
                     }}
                   >
                     {segment.tools}
@@ -594,8 +787,11 @@ export default function SpecializationsSection() {
                     style={{
                       fontSize: "9px",
                       color: isHovered(segment.id) ? "#888888" : "#444444",
+                      textShadow: isHovered(segment.id)
+                        ? "0 1px 6px rgba(0,0,0,0.9)"
+                        : "none",
                       letterSpacing: "0.08em",
-                      transition: "color 0.3s ease",
+                      transition: "color 0.3s ease, text-shadow 0.3s ease",
                       textTransform: "uppercase",
                       marginTop: "2px",
                       maxWidth: "90px",
@@ -608,49 +804,6 @@ export default function SpecializationsSection() {
             );
           })}
         </svg>
-
-        {/* Video cards, one per hovered slice, in the same 600x600 space */}
-        <div className="pointer-events-none absolute inset-0 z-20">
-          {segments.map((segment) => {
-            const at = polar(POPUP_R, midAngle(segment));
-            return (
-              <AnimatePresence key={segment.id}>
-                {hoveredSegment === segment.id && (
-                  <div
-                    className="absolute"
-                    style={{
-                      left: at.x,
-                      top: at.y,
-                      transform: "translate(-50%, -50%)",
-                    }}
-                  >
-                    <VideoPopup
-                      title={segment.title}
-                      videoSrc={segment.videoSrc}
-                    />
-                  </div>
-                )}
-              </AnimatePresence>
-            );
-          })}
-          <AnimatePresence>
-            {hoveredSegment === centerData.id && (
-              <div
-                className="absolute"
-                style={{
-                  left: "50%",
-                  top: "calc(50% - 140px)",
-                  transform: "translateX(-50%)",
-                }}
-              >
-                <VideoPopup
-                  title={centerData.title}
-                  videoSrc={centerData.videoSrc}
-                />
-              </div>
-            )}
-          </AnimatePresence>
-        </div>
       </div>
 
       {/* Full screen project overlay. Kept outside the scaled pie wrapper: a
