@@ -337,6 +337,9 @@ export default function SpecializationsSection() {
                 />
               </clipPath>
             ))}
+            <clipPath id="clip-hardware">
+              <circle cx={CX} cy={CY} r={108} />
+            </clipPath>
           </defs>
 
           {/* Outer ring decoration */}
@@ -489,6 +492,22 @@ export default function SpecializationsSection() {
               }
               style={{ transition: "stroke 0.35s ease" }}
             />
+
+            {/* Media inside the disc, beneath the rings and the title text. */}
+            <foreignObject
+              x={0}
+              y={0}
+              width={PIE_SIZE}
+              height={PIE_SIZE}
+              clipPath="url(#clip-hardware)"
+              style={{ pointerEvents: "none" }}
+            >
+              <SegmentMedia
+                active={hoveredSegment === centerData.id}
+                videoSrc={centerData.videoSrc}
+              />
+            </foreignObject>
+
             <circle
               cx={CX}
               cy={CY}
