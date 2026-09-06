@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useReducedMotion } from "motion/react";
-import { Cursor, CursorFollow } from "@/components/ui/cursor";
+import { Cursor } from "@/components/ui/cursor";
 
 /** Matches the `md` breakpoint the cursor is gated on. */
 const DESKTOP_QUERY = "(min-width: 768px)";
@@ -18,12 +17,11 @@ const ARROW_PATH =
 const TIP = { x: 4.58, y: 2.59 };
 
 /**
- * The arrow and follow ring, kept in their own client component so the root
- * layout can stay a Server Component (it exports `metadata`, which "use
- * client" forbids). Must be rendered inside a CursorProvider.
+ * The arrow cursor, kept in its own client component so the root layout can
+ * stay a Server Component (it exports `metadata`, which "use client"
+ * forbids). Must be rendered inside a CursorProvider.
  */
 export function CursorLayer() {
-  const reducedMotion = useReducedMotion();
   // Starts false so the server and the first client render agree; the effect
   // then enables it only on real desktop viewports. Gating on state rather
   // than CSS alone means nothing mounts or listens on touch devices.
@@ -36,10 +34,6 @@ export function CursorLayer() {
     query.addEventListener("change", sync);
     return () => query.removeEventListener("change", sync);
   }, []);
-
-  const springConfig = reducedMotion
-    ? { stiffness: 1000, damping: 100, bounce: 0 }
-    : { stiffness: 180, damping: 22, bounce: 0 };
 
   if (!isDesktop) return null;
 
@@ -66,19 +60,6 @@ export function CursorLayer() {
           <path d={ARROW_PATH} fill="#0099ff" />
         </svg>
       </Cursor>
-
-      <CursorFollow align="center" sideOffset={0} transition={springConfig}>
-        <div
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: "50%",
-            border: "0.5px solid rgba(0, 153, 255, 0.35)",
-            background: "rgba(0, 153, 255, 0.04)",
-            backdropFilter: "blur(2px)",
-          }}
-        />
-      </CursorFollow>
     </div>
   );
 }
