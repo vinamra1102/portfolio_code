@@ -26,6 +26,7 @@ export function CursorLayer() {
   // then enables it only on real desktop viewports. Gating on state rather
   // than CSS alone means nothing mounts or listens on touch devices.
   const [isDesktop, setIsDesktop] = useState(false);
+  const [isScrolling, setIsScrolling] = useState(false);
 
   useEffect(() => {
     const query = window.matchMedia(DESKTOP_QUERY);
@@ -35,10 +36,35 @@ export function CursorLayer() {
     return () => query.removeEventListener("change", sync);
   }, []);
 
+  useEffect(() => {
+    let scrollTimeout: ReturnType<typeof setTimeout>;
+
+    const handleScroll = () => {
+      setIsScrolling(true);
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        setIsScrolling(false);
+      }, 150);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      clearTimeout(scrollTimeout);
+    };
+  }, []);
+
   if (!isDesktop) return null;
 
   return (
-    <div className="hidden md:block">
+    <div
+      className="hidden md:block"
+      style={{
+        opacity: isScrolling ? 0 : 1,
+        transition: "opacity 0.15s ease",
+        pointerEvents: isScrolling ? "none" : "auto",
+      }}
+    >
       {/* The component's own translate(-50%,-50%) would centre the box on the
           pointer; an arrow wants its point there instead, so that is cancelled
           and the SVG is nudged back by TIP. */}
