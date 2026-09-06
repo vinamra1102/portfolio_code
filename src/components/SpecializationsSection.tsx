@@ -306,7 +306,9 @@ export default function SpecializationsSection() {
   useEffect(() => {
     const pick = () => {
       const w = window.innerWidth;
-      setPieScale(w < 768 ? 0.55 : w < 1024 ? 0.8 : 1);
+      // Only the scale differs on mobile, purely so the 600px pie fits the
+      // viewport. The layout itself stays identical to desktop.
+      setPieScale(w < 768 ? 0.45 : w < 1024 ? 0.8 : 1);
     };
     pick();
     window.addEventListener("resize", pick);

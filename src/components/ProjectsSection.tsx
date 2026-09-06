@@ -66,6 +66,16 @@ export default function ProjectsSection() {
   const [selectedProject, setSelectedProject] = useState<
     (typeof projects)[0] | null
   >(null);
+  /** Starts false so the server render matches; the real value lands after mount. */
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767.98px)");
+    const sync = () => setIsMobile(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
   useEffect(() => {
     if (selectedProject) {
@@ -110,14 +120,14 @@ export default function ProjectsSection() {
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
-        padding: "80px 0 96px 0",
+        padding: isMobile ? "48px 20px" : "80px 0 96px 0",
         position: "relative",
         overflow: "hidden",
       }}
     >
       <div
         style={{
-          padding: "0 80px",
+          padding: isMobile ? "0 20px" : "0 80px",
           marginBottom: "32px",
           position: "relative",
           zIndex: 1,
@@ -138,10 +148,12 @@ export default function ProjectsSection() {
         </p>
         <h2
           style={{
-            fontSize: "clamp(52px, 7vw, 88px)",
+            fontSize: isMobile
+              ? "clamp(28px, 8vw, 44px)"
+              : "clamp(52px, 7vw, 88px)",
             fontWeight: 500,
             color: "#ffffff",
-            letterSpacing: "-4px",
+            letterSpacing: isMobile ? "-2px" : "-4px",
             lineHeight: 1.0,
             margin: 0,
           }}
@@ -163,7 +175,7 @@ export default function ProjectsSection() {
         style={{
           flex: 1,
           minHeight: "400px",
-          padding: "0 80px",
+          padding: isMobile ? "0 20px" : "0 80px",
           position: "relative",
           zIndex: 1,
         }}
@@ -203,6 +215,7 @@ export default function ProjectsSection() {
       <AnimatePresence>
         {selectedProject && (
           <motion.div
+            className="project-overlay-container"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -219,24 +232,17 @@ export default function ProjectsSection() {
               zIndex: 200,
               background: "rgba(9,9,9,0.95)",
               backdropFilter: "blur(20px)",
-              display: "flex",
-              alignItems: "stretch",
             }}
           >
             <motion.div
+              className="project-overlay-inner"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               onClick={(e) => e.stopPropagation()}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "55% 45%",
-                width: "100%",
-                height: "100%",
-              }}
             >
-              <div style={{ position: "relative", background: "#0a0a0a" }}>
+              <div className="project-overlay-left">
                 <div
                   style={{
                     width: "100%",
@@ -250,6 +256,7 @@ export default function ProjectsSection() {
                   }}
                 >
                   <div
+                    className="project-overlay-initials"
                     style={{
                       fontSize: "64px",
                       fontWeight: 500,
@@ -282,15 +289,10 @@ export default function ProjectsSection() {
               </div>
 
               <div
-                style={{
-                  padding: "56px 52px",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  overflowY: "auto",
-                }}
+                className="project-overlay-right"
               >
                 <button
+                  className="project-overlay-close"
                   onClick={() => {
               setSelectedProject(null)
             }}
@@ -332,6 +334,7 @@ export default function ProjectsSection() {
                 </div>
 
                 <h2
+                  className="project-overlay-title"
                   style={{
                     fontSize: "clamp(28px, 3.5vw, 44px)",
                     fontWeight: 500,
@@ -345,6 +348,7 @@ export default function ProjectsSection() {
                 </h2>
 
                 <p
+                  className="project-overlay-desc"
                   style={{
                     fontSize: "14px",
                     color: "#666666",

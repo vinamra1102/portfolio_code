@@ -87,7 +87,7 @@ export default function ContactSection() {
       id="contact"
       className="relative w-full overflow-hidden bg-canvas"
     >
-      <div className="relative z-[1] mx-auto max-w-[640px] px-6 py-[72px] md:px-[60px] md:py-[96px_80px]">
+      <div className="relative z-[1] mx-auto max-w-[640px] px-6 py-[60px] md:px-[60px] md:py-[96px_80px]">
         {/* Section label */}
         <motion.p
           initial={{ opacity: 0 }}
@@ -105,11 +105,7 @@ export default function ContactSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.15, duration: 0.7, ease: easing }}
-          className="mb-4 text-center font-medium leading-[1.0] text-ink"
-          style={{
-            fontSize: "clamp(42px, 7vw, 80px)",
-            letterSpacing: "-4px",
-          }}
+          className="mb-4 text-center text-[clamp(32px,8vw,56px)] font-medium leading-[1.0] tracking-[-3px] text-ink md:text-[clamp(42px,7vw,80px)] md:tracking-[-4px]"
         >
           Open to work.
           <br />
@@ -130,7 +126,7 @@ export default function ContactSection() {
         {/* Form */}
         <form
           onSubmit={handleSubmit}
-          className="mx-auto flex max-w-[560px] flex-col gap-3"
+          className="mx-auto flex max-w-full flex-col gap-3 p-0 md:max-w-[560px]"
         >
           {/* Name field */}
           <motion.div
@@ -257,7 +253,7 @@ export default function ContactSection() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.6, duration: 0.6, ease: easing }}
-          className="mt-12 flex items-center justify-center gap-4 md:gap-6"
+          className="mt-12 flex items-center justify-center gap-3 md:gap-6"
         >
           <a
             href="https://linkedin.com/in/anantpandey"

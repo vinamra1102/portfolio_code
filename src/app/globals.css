@@ -25,6 +25,17 @@ html {
   scroll-padding-top: 56px;
 }
 
+/* Stop any stray wide element from scrolling the page sideways on mobile.
+   `clip` rather than `hidden`: `hidden` turns the element into a scroll
+   container, which would re-parent the sticky Specializations section and
+   break it. `hidden` is listed first as the fallback for older engines. */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-x: clip;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -55,4 +66,95 @@ body {
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* Project detail overlay layout */
+.project-overlay-inner {
+  display: grid;
+  grid-template-columns: 55% 45%;
+  width: 100%;
+  height: 100%;
+}
+
+.project-overlay-left {
+  position: relative;
+  background: #0a0a0a;
+}
+
+.project-overlay-right {
+  padding: 56px 52px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow-y: auto;
+  position: relative;
+}
+
+@media (max-width: 767px) {
+  .project-overlay-container {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .project-overlay-inner {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    height: 100%;
+  }
+
+  .project-overlay-left {
+    width: 100%;
+    height: 220px;
+    flex-shrink: 0;
+    border-bottom: 0.5px solid #1a1a1a;
+  }
+
+  .project-overlay-right {
+    padding: 28px 20px 48px 20px;
+    justify-content: flex-start;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .project-overlay-close {
+    position: fixed !important;
+    top: 16px !important;
+    right: 16px !important;
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 16px !important;
+  }
+
+  .project-overlay-title {
+    font-size: clamp(22px, 6vw, 32px) !important;
+    letter-spacing: -1px !important;
+    line-height: 1.1 !important;
+    margin: 0 0 12px 0 !important;
+  }
+
+  .project-overlay-desc {
+    font-size: 13px !important;
+    margin: 0 0 24px 0 !important;
+    max-width: 100% !important;
+  }
+
+  .project-overlay-chips {
+    gap: 5px !important;
+    margin-bottom: 24px !important;
+  }
+
+  .project-overlay-chip {
+    padding: 4px 10px !important;
+    font-size: 11px !important;
+  }
+
+  .project-overlay-github {
+    padding: 9px 16px !important;
+    font-size: 11px !important;
+  }
+
+  .project-overlay-initials {
+    font-size: 40px !important;
+  }
 }
