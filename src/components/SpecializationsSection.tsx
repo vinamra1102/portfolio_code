@@ -1,10 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
+
+/** Stand-in for every thumbnail and clip until the real assets land. */
+const PLACEHOLDER_GIF = "https://media.giphy.com/media/ICOgUNjpvO0PC/giphy.gif";
+
+/**
+ * True when a source is something a <video> can actually decode. The current
+ * placeholders are gifs, which a video element cannot play, so those render
+ * as an image in the motion layer instead of a silently blank <video>.
+ */
+const isPlayableVideo = (src: string) =>
+  /\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i.test(src);
 
 type SegmentProject = {
   title: string;
@@ -36,8 +47,9 @@ const segments = [
     description: "Simulate, test and validate",
     startAngle: -90,
     endAngle: 30,
-    videoSrc: "",
-    // Replace videoSrc: "/videos/simulation-demo.mp4" when available
+    // Swap for "/thumbnails/simulation.jpg" and "/videos/simulation-demo.mp4"
+    thumbnail: PLACEHOLDER_GIF,
+    videoSrc: PLACEHOLDER_GIF,
     primaryProject: {
       title: "MuJoCo-Gazebo RL Transfer",
       status: "Research",
@@ -56,8 +68,9 @@ const segments = [
     description: "RL training and optimisation",
     startAngle: 30,
     endAngle: 150,
-    videoSrc: "",
-    // Replace videoSrc: "/videos/training-demo.mp4" when available
+    // Swap for "/thumbnails/training.jpg" and "/videos/training-demo.mp4"
+    thumbnail: PLACEHOLDER_GIF,
+    videoSrc: PLACEHOLDER_GIF,
     primaryProject: OPENBOT_GIRAFFE,
   },
   {
@@ -67,8 +80,9 @@ const segments = [
     description: "Deploy policy and control robot",
     startAngle: 150,
     endAngle: 270,
-    videoSrc: "",
-    // Replace videoSrc: "/videos/deployment-demo.mp4" when available
+    // Swap for "/thumbnails/deployment.jpg" and "/videos/deployment-demo.mp4"
+    thumbnail: PLACEHOLDER_GIF,
+    videoSrc: PLACEHOLDER_GIF,
     primaryProject: {
       title: "5-DOF Manipulation Stack",
       status: "Robotics",
@@ -86,8 +100,9 @@ const centerData = {
   id: "hardware",
   title: "Hardware",
   subtitle: "Real Robot",
-  videoSrc: "",
-  // Replace videoSrc with the real robot demo when available
+  // Swap for the real robot thumbnail and demo clip when available
+  thumbnail: PLACEHOLDER_GIF,
+  videoSrc: PLACEHOLDER_GIF,
   primaryProject: OPENBOT_GIRAFFE,
 };
 
@@ -97,7 +112,9 @@ const CX = 300;
 const CY = 300;
 const OUTER_R = 240;
 /** A hovered slice grows outward to this radius. */
-const HOVER_OUTER_R = 280;
+const HOVER_OUTER_R = 340;
+/** How far a hovered slice slides along its own mid-angle. */
+const HOVER_SHIFT = 50;
 const INNER_R = 110;
 const LABEL_R = 175;
 
@@ -141,16 +158,6 @@ const midAngle = (s: { startAngle: number; endAngle: number }) =>
 /** The pie's drawing surface, which every media layer fills before clipping. */
 const PIE_SIZE = 600;
 
-/** Stand-in footage for every slice until the real demo clips exist. */
-const PLACEHOLDER_GIF = "https://media.giphy.com/media/ICOgUNjpvO0PC/giphy.gif";
-
-/**
- * An image rendered on the server can fail before hydration attaches
- * onError, and the error event does not fire twice. Read on commit instead.
- */
-const imgAlreadyFailed = (el: HTMLImageElement | null) =>
-  !!el && el.complete && el.naturalWidth === 0;
-
 /** Midline of the donut band, where a slice's own area is centred. */
 const MEDIA_MID_R = (INNER_R + HOVER_OUTER_R) / 2;
 
@@ -173,31 +180,33 @@ function mediaOriginFor(deg: number) {
  */
 function SegmentMedia({
   active,
+  thumbnail,
   videoSrc,
-  placeholder,
-  hoverScale,
   origin,
+  registerVideo,
+  label,
 }: {
   active: boolean;
+  thumbnail: string;
   videoSrc: string;
-  /** Shown only if the stand-in gif fails to load and there is no footage. */
-  placeholder?: React.ReactNode;
-  /** How far the footage zooms in while hovered, filling more of the shape. */
-  hoverScale: number;
-  /** transform-origin for that zoom, as a percentage pair. */
+  /** transform-origin for the zoom, as a percentage pair. */
   origin: string;
+  /** Hands the video element to the section so it can play and pause it. */
+  registerVideo: (el: HTMLVideoElement | null) => void;
+  label: string;
 }) {
-  const [gifFailed, setGifFailed] = useState(false);
-  const mediaStyle: React.CSSProperties = {
-    width: `${PIE_SIZE}px`,
-    height: `${PIE_SIZE}px`,
+  const playable = isPlayableVideo(videoSrc);
+  const layer: React.CSSProperties = {
+    position: "absolute",
+    inset: 0,
+    width: "100%",
+    height: "100%",
     objectFit: "cover",
     objectPosition: "center",
-    display: "block",
-    transform: `scale(${active ? hoverScale : 1})`,
     transformOrigin: origin,
-    transition: "transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
+    transform: `scale(${active ? 1.5 : 1.2})`,
   };
+
   return (
     <div
       style={{
@@ -205,137 +214,72 @@ function SegmentMedia({
         width: `${PIE_SIZE}px`,
         height: `${PIE_SIZE}px`,
         overflow: "hidden",
+        // Shows through if an asset fails, so a slice is never empty.
+        background: "rgba(0,10,25,0.85)",
       }}
     >
+      {/* Layer 1: thumbnail, dimmed at rest and faded out under the motion */}
+      {/* eslint-disable-next-line @next/next/no-img-element -- remote asset; next/image would need a config change */}
+      <img
+        src={thumbnail}
+        alt={`${label} thumbnail`}
+        style={{
+          ...layer,
+          zIndex: 1,
+          opacity: active ? 0 : 0.5,
+          transitionProperty: "opacity, transform",
+          transition:
+            "opacity 0.4s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
+        }}
+      />
+
+      {/* Layer 2: the motion, revealed on hover */}
+      {playable ? (
+        <video
+          ref={registerVideo}
+          src={videoSrc}
+          muted
+          loop
+          playsInline
+          style={{
+            ...layer,
+            zIndex: 2,
+            opacity: active ? 1 : 0,
+            transition:
+              "opacity 0.4s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
+        />
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element -- gif placeholder stands in for the clip
+        <img
+          src={videoSrc}
+          alt={`${label} preview`}
+          style={{
+            ...layer,
+            zIndex: 2,
+            opacity: active ? 1 : 0,
+            transition:
+              "opacity 0.4s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
+        />
+      )}
+
+      {/* Layer 3: rim gradient, lifted while hovered so more reads through */}
       <div
         style={{
           position: "absolute",
           inset: 0,
-          zIndex: 1,
-          opacity: active ? 1 : 0,
+          zIndex: 3,
+          pointerEvents: "none",
+          opacity: active ? 0.5 : 1,
           transition: "opacity 0.4s ease",
-          // Dark base that shows through only if nothing above it loads.
-          background: "rgba(0,10,25,0.85)",
+          background:
+            "radial-gradient(circle at center, rgba(0,5,15,0.1) 0%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0.9) 100%)",
         }}
-      >
-        {videoSrc ? (
-          <video
-            src={videoSrc}
-            autoPlay
-            muted
-            loop
-            playsInline
-            style={mediaStyle}
-          />
-        ) : !gifFailed ? (
-          // eslint-disable-next-line @next/next/no-img-element -- remote gif; next/image would need a config change
-          <img
-            src={PLACEHOLDER_GIF}
-            alt="Preview"
-            loading="eager"
-            ref={(el) => {
-              if (imgAlreadyFailed(el)) setGifFailed(true);
-            }}
-            onError={(e) => {
-              e.currentTarget.style.display = "none";
-              setGifFailed(true);
-            }}
-            style={mediaStyle}
-          />
-        ) : null}
-
-        {/* Darkens the rim so the labels stay legible over footage, and
-            lifts while hovered so more of the media reads through. */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            zIndex: 2,
-            pointerEvents: "none",
-            transition: "background 0.4s ease",
-            background: active
-              ? "radial-gradient(circle at center, rgba(0,10,25,0.15) 0%, rgba(0,5,15,0.5) 50%, rgba(0,0,0,0.75) 100%)"
-              : "radial-gradient(circle at center, rgba(0,10,25,0.5) 0%, rgba(0,5,15,0.85) 60%, rgba(0,0,0,0.95) 100%)",
-          }}
-        />
-
-        {/* Above the rim gradient so the play glyph is not dimmed by it. */}
-        {!videoSrc && gifFailed && placeholder ? (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              zIndex: 3,
-              pointerEvents: "none",
-            }}
-          >
-            {placeholder}
-          </div>
-        ) : null}
-      </div>
+      />
     </div>
   );
 }
-
-/**
- * Play glyph and "Preview soon" label, each pinned to a point in the pie's
- * 600x600 space. Positions are explicit because a centred layout would land
- * at the pie's centre, outside every slice's clip. The title is left to the
- * slice label or the Hardware text that already sits on top of the media.
- */
-function MediaPlaceholder({
-  play,
-  label,
-}: {
-  play: { x: number; y: number };
-  label: { x: number; y: number };
-}) {
-  const pin = (p: { x: number; y: number }): React.CSSProperties => ({
-    position: "absolute",
-    left: `${p.x}px`,
-    top: `${p.y}px`,
-    transform: "translate(-50%, -50%)",
-  });
-  return (
-    <>
-      <div
-        style={{
-          ...pin(play),
-          width: "44px",
-          height: "44px",
-          borderRadius: "50%",
-          background: "rgba(0,153,255,0.12)",
-          border: "1px solid rgba(0,153,255,0.35)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <svg width="12" height="12" viewBox="0 0 14 14">
-          <path d="M4,2 L13,7 L4,12 Z" fill="rgba(0,153,255,0.9)" />
-        </svg>
-      </div>
-      <div
-        style={{
-          ...pin(label),
-          fontFamily: "Inter",
-          fontSize: "9px",
-          color: "rgba(255,255,255,0.2)",
-          letterSpacing: "0.15em",
-          textTransform: "uppercase",
-          whiteSpace: "nowrap",
-        }}
-      >
-        Preview soon
-      </div>
-    </>
-  );
-}
-
-/** Radius along a slice's mid-angle where its play glyph sits, past the label. */
-const PLACEHOLDER_R = 232;
-/** Vertical drop from the play glyph to its "Preview soon" label. */
-const PLACEHOLDER_LABEL_DROP = 28;
 
 const PIE_KEYFRAMES = `
   @keyframes pulse-ring {
@@ -354,6 +298,8 @@ export default function SpecializationsSection() {
   // The pie is laid out in fixed pixels, so it scales to fit rather than
   // reflowing. Starts at 1 so server and first client render agree.
   const [pieScale, setPieScale] = useState(1);
+  /** One entry per slice plus the Hardware disc, keyed by segment id. */
+  const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const isHovered = (id: string) => hoveredSegment === id;
   const isDimmed = (id: string) =>
     hoveredSegment !== null && hoveredSegment !== id;
@@ -367,6 +313,20 @@ export default function SpecializationsSection() {
     window.addEventListener("resize", pick);
     return () => window.removeEventListener("resize", pick);
   }, []);
+
+  // Only the hovered shape's clip plays; the rest rewind so each hover starts
+  // from the top. play() rejects if the source cannot load, hence the catch.
+  useEffect(() => {
+    for (const [id, el] of Object.entries(videoRefs.current)) {
+      if (!el) continue;
+      if (id === hoveredSegment) {
+        void el.play().catch(() => {});
+      } else {
+        el.pause();
+        el.currentTime = 0;
+      }
+    }
+  }, [hoveredSegment]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -501,9 +461,24 @@ export default function SpecializationsSection() {
           {segments.map((segment, i) => (
             <motion.g
               key={segment.id}
-              initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.7, delay: i * 0.15, ease: EASE }}
+              initial={{ opacity: 0, scale: 0.85, x: 0, y: 0 }}
+              animate={{
+                opacity: 1,
+                scale: 1,
+                // Slide the whole slice along its own mid-angle on hover. The
+                // media and its clip ride along, staying registered together.
+                x: isHovered(segment.id)
+                  ? Math.cos(toRad(midAngle(segment))) * HOVER_SHIFT
+                  : 0,
+                y: isHovered(segment.id)
+                  ? Math.sin(toRad(midAngle(segment))) * HOVER_SHIFT
+                  : 0,
+              }}
+              transition={{
+                opacity: { duration: 0.7, delay: i * 0.15, ease: EASE },
+                scale: { duration: 0.7, delay: i * 0.15, ease: EASE },
+                default: { type: "spring", stiffness: 260, damping: 30 },
+              }}
               style={{
                 transformBox: "view-box",
                 transformOrigin: "300px 300px",
@@ -575,18 +550,13 @@ export default function SpecializationsSection() {
               >
                 <SegmentMedia
                   active={isHovered(segment.id)}
+                  thumbnail={segment.thumbnail}
                   videoSrc={segment.videoSrc}
-                  hoverScale={1.4}
                   origin={mediaOriginFor(midAngle(segment))}
-                  placeholder={(() => {
-                    const at = polar(PLACEHOLDER_R, midAngle(segment));
-                    return (
-                      <MediaPlaceholder
-                        play={at}
-                        label={{ x: at.x, y: at.y + PLACEHOLDER_LABEL_DROP }}
-                      />
-                    );
-                  })()}
+                  label={segment.title}
+                  registerVideo={(el) => {
+                    videoRefs.current[segment.id] = el;
+                  }}
                 />
               </foreignObject>
             </motion.g>
@@ -646,16 +616,13 @@ export default function SpecializationsSection() {
             >
               <SegmentMedia
                 active={hoveredSegment === centerData.id}
+                thumbnail={centerData.thumbnail}
                 videoSrc={centerData.videoSrc}
-                hoverScale={1.6}
                 origin="50% 50%"
-                placeholder={
-                  // Straddles the Hardware / Real Robot text at y 295 and 313.
-                  <MediaPlaceholder
-                    play={{ x: CX, y: CY - 50 }}
-                    label={{ x: CX, y: CY + 38 }}
-                  />
-                }
+                label={centerData.title}
+                registerVideo={(el) => {
+                  videoRefs.current[centerData.id] = el;
+                }}
               />
             </foreignObject>
 
