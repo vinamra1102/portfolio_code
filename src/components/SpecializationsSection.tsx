@@ -107,13 +107,13 @@ const centerData = {
 
 // ---- geometry ---------------------------------------------------------------
 
-const CX = 300;
-const CY = 300;
+const CX = 350;
+const CY = 350;
 const OUTER_R = 240;
 /** A hovered slice grows outward to this radius. */
 const HOVER_OUTER_R = 340;
 /** How far a hovered slice slides along its own mid-angle. */
-const HOVER_SHIFT = 50;
+const HOVER_SHIFT = 55;
 const INNER_R = 110;
 const LABEL_R = 175;
 
@@ -155,7 +155,7 @@ const midAngle = (s: { startAngle: number; endAngle: number }) =>
   (s.startAngle + s.endAngle) / 2;
 
 /** The pie's drawing surface, which every media layer fills before clipping. */
-const PIE_SIZE = 600;
+const PIE_SIZE = 700;
 
 /** Midline of the donut band, where a slice's own area is centred. */
 const MEDIA_MID_R = (INNER_R + HOVER_OUTER_R) / 2;
@@ -306,9 +306,9 @@ export default function SpecializationsSection() {
   useEffect(() => {
     const pick = () => {
       const w = window.innerWidth;
-      // Only the scale differs on mobile, purely so the 600px pie fits the
+      // Only the scale differs on mobile, purely so the 700px pie fits the
       // viewport. The layout itself stays identical to desktop.
-      setPieScale(w < 768 ? 0.45 : w < 1024 ? 0.8 : 1);
+      setPieScale(w < 768 ? 0.42 : w < 900 ? 0.72 : w < 1200 ? 0.85 : 1);
     };
     pick();
     window.addEventListener("resize", pick);
@@ -360,14 +360,15 @@ export default function SpecializationsSection() {
       <div
         className="relative z-[2] shrink-0"
         style={{
-          width: 600,
-          height: 600,
+          width: 700,
+          height: 700,
+          marginTop: -40,
           scale: pieScale,
           transformOrigin: "center center",
         }}
       >
         <svg
-          viewBox="0 0 600 600"
+          viewBox="0 0 700 700"
           className="absolute inset-0 h-full w-full"
           style={{ overflow: "visible" }}
         >
@@ -467,7 +468,7 @@ export default function SpecializationsSection() {
               }}
               style={{
                 transformBox: "view-box",
-                transformOrigin: "300px 300px",
+                transformOrigin: "350px 350px",
               }}
             >
               <motion.path
@@ -570,7 +571,7 @@ export default function SpecializationsSection() {
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.7, delay: 0.5, ease: EASE }}
-            style={{ transformBox: "view-box", transformOrigin: "300px 300px" }}
+            style={{ transformBox: "view-box", transformOrigin: "350px 350px" }}
           >
             <circle
               cx={CX}
@@ -621,7 +622,7 @@ export default function SpecializationsSection() {
               strokeWidth={0.5}
               style={{
                 transformBox: "view-box",
-                transformOrigin: "300px 300px",
+                transformOrigin: "350px 350px",
                 animation: "pulse-ring 3s ease-in-out infinite",
               }}
             />
@@ -635,7 +636,7 @@ export default function SpecializationsSection() {
             />
             <text
               x={CX}
-              y={295}
+              y={345}
               textAnchor="middle"
               fill="#ffffff"
               fontSize={16}
@@ -647,7 +648,7 @@ export default function SpecializationsSection() {
             </text>
             <text
               x={CX}
-              y={313}
+              y={363}
               textAnchor="middle"
               fill="#555555"
               fontSize={10}
