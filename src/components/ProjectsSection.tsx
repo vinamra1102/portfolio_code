@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import HoverImageReveal from "@/components/HoverImageReveal";
-import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
 
 const projects = [
   {
@@ -116,20 +115,6 @@ export default function ProjectsSection() {
         overflow: "hidden",
       }}
     >
-      <DottedGlowBackground
-        className="pointer-events-none absolute inset-0 z-0 mask-radial-to-70-bottom-left"
-        opacity={0.5}
-        gap={18}
-        radius={1.2}
-        colorLightVar="--color-neutral-500"
-        glowColorLightVar="--color-neutral-600"
-        colorDarkVar="--color-neutral-700"
-        glowColorDarkVar="--color-sky-600"
-        backgroundOpacity={0}
-        speedMin={0.15}
-        speedMax={0.6}
-        speedScale={0.5}
-      />
       <div
         style={{
           padding: "0 80px",

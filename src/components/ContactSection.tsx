@@ -3,7 +3,6 @@
 import { useState, FormEvent } from "react";
 import { motion } from "framer-motion";
 import emailjs from "@emailjs/browser";
-import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
 
 // ---------------------------------------------------------------------------
 // TODO: EmailJS placeholders — the contact form will not send until these three
@@ -88,20 +87,6 @@ export default function ContactSection() {
       id="contact"
       className="relative w-full overflow-hidden bg-canvas"
     >
-      <DottedGlowBackground
-        className="pointer-events-none absolute inset-0 z-0 mask-radial-to-75-center"
-        opacity={0.55}
-        gap={18}
-        radius={1.2}
-        colorLightVar="--color-neutral-500"
-        glowColorLightVar="--color-neutral-600"
-        colorDarkVar="--color-neutral-700"
-        glowColorDarkVar="--color-sky-600"
-        backgroundOpacity={0}
-        speedMin={0.2}
-        speedMax={0.7}
-        speedScale={0.5}
-      />
       <div className="relative z-[1] mx-auto max-w-[640px] px-6 py-[72px] md:px-[60px] md:py-[96px_80px]">
         {/* Section label */}
         <motion.p

@@ -47,32 +47,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Radial mask utilities for DottedGlowBackground */
-.mask-radial-to-80-top-right {
-  mask-image: radial-gradient(ellipse 80% 80% at 80% 20%, black 0%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 80% 80% at 80% 20%, black 0%, transparent 100%);
-}
-
-.mask-radial-to-70-bottom-left {
-  mask-image: radial-gradient(ellipse 70% 70% at 20% 80%, black 0%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 70% 70% at 20% 80%, black 0%, transparent 100%);
-}
-
-.mask-radial-to-75-top-left {
-  mask-image: radial-gradient(ellipse 75% 75% at 15% 15%, black 0%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 75% 75% at 15% 15%, black 0%, transparent 100%);
-}
-
-.mask-radial-to-75-center {
-  mask-image: radial-gradient(ellipse 75% 75% at center, black 0%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 75% 75% at center, black 0%, transparent 100%);
-}
-
-.mask-radial-to-60-bottom-right {
-  mask-image: radial-gradient(ellipse 60% 60% at 80% 80%, black 0%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 60% 60% at 80% 80%, black 0%, transparent 100%);
-}
-
 /* Used by the mobile project carousel — scroll without a visible scrollbar. */
 .no-scrollbar {
   scrollbar-width: none;
