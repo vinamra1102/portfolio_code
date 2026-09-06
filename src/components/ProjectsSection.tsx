@@ -373,6 +373,7 @@ export default function ProjectsSection() {
                 </p>
 
                 <div
+                  className="project-overlay-chips"
                   style={{
                     display: "flex",
                     flexWrap: "wrap",
@@ -382,6 +383,7 @@ export default function ProjectsSection() {
                 >
                   {selectedProject.tech.map((t) => (
                     <span
+                      className="project-overlay-chip"
                       key={t}
                       style={{
                         background: "#1c1c1c",
@@ -410,6 +412,7 @@ export default function ProjectsSection() {
                 </p>
 
                 <a
+                  className="project-overlay-github"
                   href={selectedProject.github}
                   target="_blank"
                   rel="noopener noreferrer"

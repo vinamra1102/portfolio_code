@@ -765,6 +765,7 @@ export default function SpecializationsSection() {
       <AnimatePresence>
         {selectedProject && (
           <motion.div
+            className="project-overlay-container"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -779,20 +780,19 @@ export default function SpecializationsSection() {
               zIndex: 300,
               background: "rgba(9,9,9,0.96)",
               backdropFilter: "blur(20px)",
-              display: "grid",
-              gridTemplateColumns: "55% 45%",
             }}
           >
             <motion.div
+              className="project-overlay-inner"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.4, ease: EASE }}
               onClick={(e) => e.stopPropagation()}
-              style={{ display: "contents" }}
             >
               {/* Left: preview */}
               <div
+                className="project-overlay-left"
                 style={{
                   position: "relative",
                   background: "#0a0a0a",
@@ -804,6 +804,7 @@ export default function SpecializationsSection() {
                 }}
               >
                 <div
+                  className="project-overlay-initials"
                   style={{
                     fontSize: "72px",
                     fontWeight: 500,
@@ -836,16 +837,10 @@ export default function SpecializationsSection() {
 
               {/* Right: details */}
               <div
-                style={{
-                  padding: "56px 52px",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  overflowY: "auto",
-                  position: "relative",
-                }}
+                className="project-overlay-right"
               >
                 <button
+                  className="project-overlay-close"
                   onClick={() => setSelectedProject(null)}
                   aria-label="Close project details"
                   onMouseEnter={(e) => {
@@ -893,6 +888,7 @@ export default function SpecializationsSection() {
                 </div>
 
                 <h2
+                  className="project-overlay-title"
                   style={{
                     fontSize: "clamp(28px, 3.5vw, 44px)",
                     fontWeight: 500,
@@ -906,6 +902,7 @@ export default function SpecializationsSection() {
                 </h2>
 
                 <p
+                  className="project-overlay-desc"
                   style={{
                     fontSize: "14px",
                     color: "#666666",
@@ -930,6 +927,7 @@ export default function SpecializationsSection() {
                 </p>
 
                 <div
+                  className="project-overlay-chips"
                   style={{
                     display: "flex",
                     flexWrap: "wrap",
@@ -939,6 +937,7 @@ export default function SpecializationsSection() {
                 >
                   {selectedProject.tech.map((t) => (
                     <span
+                      className="project-overlay-chip"
                       key={t}
                       style={{
                         background: "#1c1c1c",
@@ -967,6 +966,7 @@ export default function SpecializationsSection() {
                 </p>
 
                 <a
+                  className="project-overlay-github"
                   href={selectedProject.github}
                   target="_blank"
                   rel="noopener noreferrer"
