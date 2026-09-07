@@ -43,7 +43,7 @@ export default function Home() {
 
         {/* Directly after the hero wrapper, no margin: the panel takes over the
             viewport the moment the hero runs out of scroll travel. */}
-        <div className="relative z-[2] h-screen">
+        <div className="relative z-[2] h-[200vh]">
           <SpecializationsSection />
         </div>
 

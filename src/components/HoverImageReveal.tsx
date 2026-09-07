@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { motion } from "framer-motion";
 
 /** Stand-in footage for every project until the real clips exist. */
@@ -54,8 +54,21 @@ export default function HoverImageReveal({
   onItemClick,
 }: HoverImageRevealProps) {
   const [hovered, setHovered] = useState<number | null>(null);
+  /**
+   * null until mounted so the server render stays stable. Media is rendered only
+   * once this settles to false, which keeps touch devices from fetching any clip.
+   */
+  const [isTouch, setIsTouch] = useState<boolean | null>(null);
   /** Indices whose video or image failed to load, keyed so each is retried once. */
   const [failedMedia, setFailedMedia] = useState<Record<number, boolean>>({});
+
+  useEffect(() => {
+    const mq = window.matchMedia("(hover: none)");
+    const sync = () => setIsTouch(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
   const markBroken = (index: number) =>
     setFailedMedia((prev) =>
@@ -79,9 +92,13 @@ export default function HoverImageReveal({
         ? "flex-end"
         : "flex-start";
 
+  /** Touch: no hover expand at all. Media waits for a confirmed pointer device. */
+  const touch = isTouch === true;
+  const showMedia = isTouch === false;
+
   return (
     <div
-      onMouseLeave={() => setHovered(null)}
+      onMouseLeave={touch ? undefined : () => setHovered(null)}
       style={{
         position: "relative",
         backgroundColor,
@@ -112,7 +129,7 @@ export default function HoverImageReveal({
         return (
           <div
             key={i}
-            onMouseEnter={() => setHovered(i)}
+            onMouseEnter={touch ? undefined : () => setHovered(i)}
             onClick={() => onItemClick?.(i)}
             style={{
               position: "relative",
@@ -120,7 +137,9 @@ export default function HoverImageReveal({
               flexDirection: "column",
               width: "100%",
               cursor: "none",
-              paddingTop: "20px",
+              // One shorthand for both cases: mixing it with paddingTop across
+              // renders trips React's conflicting-style warning.
+              padding: touch ? "16px 0" : "20px 0 0 0",
               borderTop: i === 0 ? "0.5px solid #1a1a1a" : undefined,
               transition: `all 0.4s ${EASE}`,
             }}
@@ -144,6 +163,8 @@ export default function HoverImageReveal({
                     color: textColor,
                     textAlign: align,
                     ...font,
+                    // Spread last so the touch size beats the caller's fontSize.
+                    ...(touch ? { fontSize: "clamp(20px, 5vw, 32px)" } : null),
                   }}
                 >
                   {item.text}
@@ -181,135 +202,138 @@ export default function HoverImageReveal({
               />
             </div>
 
-            {/* Media block: collapsed at rest, opens beneath the text on hover */}
-            <div
-              aria-hidden={!isHovered}
-              style={{
-                position: "relative",
-                width: "100%",
-                height: isHovered ? "280px" : "0px",
-                marginTop: isHovered ? "16px" : "0px",
-                overflow: "hidden",
-                borderRadius: "10px",
-                background: "#111111",
-                transition: `height 0.45s ${EASE}, margin-top 0.45s ${EASE}`,
-              }}
-            >
-              {isVideo && !broken ? (
-                <video
-                  src={src}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  ref={(el) => {
-                    if (videoAlreadyFailed(el)) markBroken(i);
-                  }}
-                  onError={() => markBroken(i)}
-                  style={mediaStyle}
-                />
-              ) : isImage && !broken ? (
-                // eslint-disable-next-line @next/next/no-img-element -- arbitrary project asset URLs
-                <img
-                  src={src}
-                  alt={item.image?.alt || item.text || ""}
-                  ref={(el) => {
-                    if (imgAlreadyFailed(el)) markBroken(i);
-                  }}
-                  onError={() => markBroken(i)}
-                  style={mediaStyle}
-                />
-              ) : !gifFailed ? (
-                // eslint-disable-next-line @next/next/no-img-element -- remote gif; next/image would need a config change
-                <img
-                  src={PLACEHOLDER_GIF}
-                  alt={`${item.text ?? "Project"} preview`}
-                  loading="eager"
-                  ref={(el) => {
-                    if (imgAlreadyFailed(el)) setGifFailed(true);
-                  }}
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                    setGifFailed(true);
-                  }}
-                  style={mediaStyle}
-                />
-              ) : (
-                // Dark card shown only when the stand-in gif itself fails
+            {/* Media block: collapsed at rest, opens beneath the text on hover.
+                Left out entirely on touch, so no clip is ever requested there. */}
+            {showMedia && (
+              <div
+                aria-hidden={!isHovered}
+                style={{
+                  position: "relative",
+                  width: "100%",
+                  height: isHovered ? "280px" : "0px",
+                  marginTop: isHovered ? "16px" : "0px",
+                  overflow: "hidden",
+                  borderRadius: "10px",
+                  background: "#111111",
+                  transition: `height 0.45s ${EASE}, margin-top 0.45s ${EASE}`,
+                }}
+              >
+                {isVideo && !broken ? (
+                  <video
+                    src={src}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    ref={(el) => {
+                      if (videoAlreadyFailed(el)) markBroken(i);
+                    }}
+                    onError={() => markBroken(i)}
+                    style={mediaStyle}
+                  />
+                ) : isImage && !broken ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- arbitrary project asset URLs
+                  <img
+                    src={src}
+                    alt={item.image?.alt || item.text || ""}
+                    ref={(el) => {
+                      if (imgAlreadyFailed(el)) markBroken(i);
+                    }}
+                    onError={() => markBroken(i)}
+                    style={mediaStyle}
+                  />
+                ) : !gifFailed ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- remote gif; next/image would need a config change
+                  <img
+                    src={PLACEHOLDER_GIF}
+                    alt={`${item.text ?? "Project"} preview`}
+                    loading="eager"
+                    ref={(el) => {
+                      if (imgAlreadyFailed(el)) setGifFailed(true);
+                    }}
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                      setGifFailed(true);
+                    }}
+                    style={mediaStyle}
+                  />
+                ) : (
+                  // Dark card shown only when the stand-in gif itself fails
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      background: "#111111",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "8px",
+                      fontFamily: "Inter",
+                    }}
+                  >
+                    <svg width="48" height="48" viewBox="0 0 48 48">
+                      <circle
+                        cx="24"
+                        cy="24"
+                        r="20"
+                        fill="rgba(0,153,255,0.15)"
+                        stroke="rgba(0,153,255,0.4)"
+                        strokeWidth="1"
+                      />
+                      <polygon
+                        points="20,16 32,24 20,32"
+                        fill="rgba(0,153,255,0.8)"
+                      />
+                    </svg>
+                    <div
+                      style={{
+                        fontSize: "9px",
+                        color: "#222222",
+                        letterSpacing: "0.15em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Preview soon
+                    </div>
+                  </div>
+                )}
+
                 <div
                   style={{
                     position: "absolute",
                     inset: 0,
-                    background: "#111111",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "8px",
+                    background:
+                      "linear-gradient(to bottom, transparent 60%, rgba(9,9,9,0.8) 100%)",
+                    borderRadius: "10px",
+                    pointerEvents: "none",
+                  }}
+                />
+
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: "16px",
+                    left: "20px",
+                    fontSize: "11px",
+                    color: "rgba(255,255,255,0.4)",
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
                     fontFamily: "Inter",
+                    pointerEvents: "none",
                   }}
                 >
-                  <svg width="48" height="48" viewBox="0 0 48 48">
-                    <circle
-                      cx="24"
-                      cy="24"
-                      r="20"
-                      fill="rgba(0,153,255,0.15)"
-                      stroke="rgba(0,153,255,0.4)"
-                      strokeWidth="1"
-                    />
-                    <polygon
-                      points="20,16 32,24 20,32"
-                      fill="rgba(0,153,255,0.8)"
-                    />
-                  </svg>
-                  <div
-                    style={{
-                      fontSize: "9px",
-                      color: "#222222",
-                      letterSpacing: "0.15em",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Preview soon
-                  </div>
+                  {item.text}
                 </div>
-              )}
-
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  background:
-                    "linear-gradient(to bottom, transparent 60%, rgba(9,9,9,0.8) 100%)",
-                  borderRadius: "10px",
-                  pointerEvents: "none",
-                }}
-              />
-
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: "16px",
-                  left: "20px",
-                  fontSize: "11px",
-                  color: "rgba(255,255,255,0.4)",
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                  fontFamily: "Inter",
-                  pointerEvents: "none",
-                }}
-              >
-                {item.text}
               </div>
-            </div>
+            )}
 
             {/* Hairline that the media pushes down while the row is open */}
             <div
               style={{
                 height: "0.5px",
                 background: "#1a1a1a",
-                marginTop: isHovered ? "16px" : "20px",
+                marginTop: touch ? "16px" : isHovered ? "16px" : "20px",
                 transition: `margin-top 0.45s ${EASE}`,
               }}
             />

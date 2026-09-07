@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
 
 const skillCards = [
   {
@@ -30,21 +29,7 @@ export default function AboutSection() {
       id="about"
       className="relative w-full overflow-hidden bg-canvas"
     >
-      <DottedGlowBackground
-        className="pointer-events-none absolute inset-0 z-0 mask-radial-to-75-top-left"
-        opacity={0.5}
-        gap={18}
-        radius={1.2}
-        colorLightVar="--color-neutral-500"
-        glowColorLightVar="--color-neutral-600"
-        colorDarkVar="--color-neutral-700"
-        glowColorDarkVar="--color-sky-600"
-        backgroundOpacity={0}
-        speedMin={0.15}
-        speedMax={0.6}
-        speedScale={0.5}
-      />
-      <div className="relative z-[1] mx-auto max-w-[1400px] px-6 py-16 md:px-[60px] md:py-[96px]">
+      <div className="relative z-[1] mx-auto max-w-[1400px] px-6 py-[60px] md:px-[60px] md:py-[96px]">
         {/* Section number label */}
         <motion.p
           initial={{ opacity: 0 }}
@@ -77,7 +62,7 @@ export default function AboutSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.15, duration: 0.7, ease: easing }}
-              className="font-medium leading-[1.0] text-ink text-[clamp(28px,8vw,36px)] lg:text-[clamp(36px,5vw,52px)]"
+              className="font-medium leading-[1.0] text-ink text-[clamp(28px,7vw,42px)] md:text-[clamp(28px,8vw,36px)] lg:text-[clamp(36px,5vw,52px)]"
               style={{ letterSpacing: "-2px" }}
             >
               Building robots
@@ -103,7 +88,7 @@ export default function AboutSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.3, duration: 0.6, ease: easing }}
-              className="max-w-[520px] text-[14px] leading-[1.6] text-ink-muted"
+              className="max-w-full text-[14px] leading-[1.6] text-ink-muted md:max-w-[520px]"
             >
               I am Anant Pandey, a Robotics Engineer based in Bangalore. I
               started tinkering with Arduinos before I knew what a robot was,
@@ -115,7 +100,7 @@ export default function AboutSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.4, duration: 0.6, ease: easing }}
-              className="max-w-[520px] text-[14px] leading-[1.6] text-ink-muted"
+              className="max-w-full text-[14px] leading-[1.6] text-ink-muted md:max-w-[520px]"
             >
               Today I work at the intersection of manipulation, robot learning
               and simulation, building systems that watch, learn and move. Most
@@ -129,7 +114,7 @@ export default function AboutSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.5, duration: 0.6, ease: easing }}
-              className="max-w-[520px] text-[14px] leading-[1.6] text-ink-muted"
+              className="max-w-full text-[14px] leading-[1.6] text-ink-muted md:max-w-[520px]"
             >
               I have worked across ROS2, MuJoCo, Isaac Sim, MoveIt2 and
               Stable-Baselines3. From training PPO policies in simulation to
