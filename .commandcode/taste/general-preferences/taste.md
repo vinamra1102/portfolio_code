@@ -11,6 +11,10 @@
 - Uses Framer Motion with staggered entrance animations (fade-in, slide-up, scale-pop). Confidence: 0.85
 - Prefers custom cubic-bezier easing: `[0.16, 1, 0.3, 1]`. Confidence: 0.8
 - Prefers clean component separation — each logical UI section gets its own file (e.g. HeroSection.tsx, CTALinks.tsx, SocialLinks.tsx). Confidence: 0.9
+- Prefers CSS media queries over JavaScript window checks (`window.innerWidth`) for responsive layout behavior. Confidence: 0.9
+- CSS class naming convention: feature-prefixed semantic names (e.g. `project-overlay-inner`, `project-overlay-close`, `project-overlay-title`). Confidence: 0.85
+- Dual styling strategy: CSS classes handle responsive layout/behavior (grid-to-flex, padding, sizing), inline styles handle base visual properties (colors, fonts, borders). Confidence: 0.85
+- Uses `!important` in CSS media query overrides when responsive adjustments must win over inline styles. Confidence: 0.8
 - Uses `"use client"` directive for interactive components in Next.js App Router. Confidence: 0.8
 - Uses conventional-commit-style prefixes: `init:`, `feat:`, `fix:`, `refactor:`. Confidence: 0.9
 - Explicitly does NOT want co-author trailers (`Co-Authored-By`) on commits. Confidence: 0.95
@@ -55,3 +59,4 @@
 - Multi-commit strategy for component swaps: (1) install new component, (2) remove old component + cleanup, (3) apply new component to sections. Each commit is atomic and buildable. Confidence: 0.9
 - Uses CSS radial gradient mask utilities for directional glow concentration on section backgrounds -- each section gets a unique mask direction (top-right, bottom-left, center, etc.) matching its visual energy direction. Confidence: 0.85
 - Section background opacity and speed are tuned per-section based on importance: hero-adjacent sections get higher opacity (0.65), footer gets lowest (0.35). Confidence: 0.8
+- Extracts tunable values into a top-of-file config object (e.g. `MEDIA_CONFIG`) with a detailed HOW TO USE comment block, so non-technical users can edit images, scales, and positions without touching component logic. Confidence: 0.85
