@@ -16,6 +16,79 @@ const PLACEHOLDER_GIF = "https://media.giphy.com/media/ICOgUNjpvO0PC/giphy.gif";
 const isPlayableVideo = (src: string) =>
   /\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i.test(src);
 
+// ============================================================
+// MEDIA CONFIGURATION - Edit this section to adjust images and
+// gifs. No other part of the file needs to be touched.
+// ============================================================
+
+// HOW TO USE THIS CONFIG:
+//
+// thumbnail     - path to the still image shown when not hovering
+//                 use "/media/img/filename.jpg" for local files
+//                 or a full URL for external images
+//
+// video         - path to the gif or video shown on hover
+//                 use "/media/gif/filename.gif" for local gifs
+//                 use "/media/videos/filename.mp4" for videos
+//
+// thumbnailScale - zoom level of the image at rest
+//                  1.0 = no zoom, 1.1 = slight zoom, 1.5 = very zoomed in
+//                  increase if image feels too small inside the pie slice
+//                  decrease if image overflows or looks too cropped
+//
+// videoScale    - zoom level of the gif/video on hover
+//                  keep this higher than thumbnailScale for a subtle zoom effect
+//                  1.2 to 1.5 is a good range
+//
+// thumbnailPosition - which part of the image to show at rest
+//                     options: "center" "top" "bottom" "left" "right"
+//                     "center top" shows the top half of the image
+//                     "center bottom" shows the bottom half
+//
+// videoPosition - which part of the gif to show on hover
+//                 same options as thumbnailPosition
+
+const MEDIA_CONFIG = {
+  simulation: {
+    thumbnail: "/media/img/sim.jpeg",
+    video: "/media/gif/demo.gif",
+    thumbnailScale: 1.1,
+    videoScale: 1.3,
+    thumbnailPosition: "center" as const,
+    videoPosition: "center" as const,
+  },
+  training: {
+    thumbnail: PLACEHOLDER_GIF,
+    video: PLACEHOLDER_GIF,
+    thumbnailScale: 1.1,
+    videoScale: 1.3,
+    thumbnailPosition: "center" as const,
+    videoPosition: "center" as const,
+  },
+  deployment: {
+    thumbnail: PLACEHOLDER_GIF,
+    video: PLACEHOLDER_GIF,
+    thumbnailScale: 1.1,
+    videoScale: 1.3,
+    thumbnailPosition: "center" as const,
+    videoPosition: "center" as const,
+  },
+  hardware: {
+    thumbnail: PLACEHOLDER_GIF,
+    video: PLACEHOLDER_GIF,
+    thumbnailScale: 1.1,
+    videoScale: 1.3,
+    thumbnailPosition: "center" as const,
+    videoPosition: "center" as const,
+  },
+}
+
+// ============================================================
+// END OF MEDIA CONFIGURATION
+// ============================================================
+
+type MediaConfig = typeof MEDIA_CONFIG.simulation
+
 type SegmentProject = {
   title: string;
   status: string;
@@ -184,6 +257,7 @@ function SegmentMedia({
   origin,
   registerVideo,
   label,
+  config,
 }: {
   active: boolean;
   thumbnail: string;
@@ -193,6 +267,7 @@ function SegmentMedia({
   /** Hands the video element to the section so it can play and pause it. */
   registerVideo: (el: HTMLVideoElement | null) => void;
   label: string;
+  config: MediaConfig;
 }) {
   const playable = isPlayableVideo(videoSrc);
   const layer: React.CSSProperties = {
@@ -201,10 +276,12 @@ function SegmentMedia({
     width: "100%",
     height: "100%",
     objectFit: "cover",
-    objectPosition: "center",
+    objectPosition: active
+      ? config.videoPosition
+      : config.thumbnailPosition,
     transformOrigin: origin,
-    transform: `scale(${active ? 1.5 : 1.2})`,
-  };
+    transform: `scale(${active ? config.videoScale : config.thumbnailScale})`,
+  }
 
   return (
     <div
@@ -544,6 +621,7 @@ export default function SpecializationsSection() {
                   registerVideo={(el) => {
                     videoRefs.current[segment.id] = el;
                   }}
+                  config={MEDIA_CONFIG[segment.id as keyof typeof MEDIA_CONFIG]}
                 />
               </foreignObject>
             </motion.g>
@@ -610,6 +688,7 @@ export default function SpecializationsSection() {
                 registerVideo={(el) => {
                   videoRefs.current[centerData.id] = el;
                 }}
+                config={MEDIA_CONFIG.hardware}
               />
             </foreignObject>
 
