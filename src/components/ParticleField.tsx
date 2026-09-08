@@ -56,6 +56,9 @@ function Particles({ count = 120 }: { count?: number }) {
 }
 
 export function ParticleField() {
+  const count =
+    typeof window !== "undefined" && window.innerWidth < 768 ? 60 : 120
+
   return (
     <div
       style={{
@@ -74,7 +77,7 @@ export function ParticleField() {
         }}
         style={{ background: "transparent", pointerEvents: "none" }}
       >
-        <Particles count={120} />
+        <Particles count={count} />
       </Canvas>
     </div>
   )
