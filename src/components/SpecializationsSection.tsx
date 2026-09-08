@@ -47,8 +47,8 @@ const segments = [
     startAngle: -90,
     endAngle: 30,
     // Swap for "/thumbnails/simulation.jpg" and "/videos/simulation-demo.mp4"
-    thumbnail: PLACEHOLDER_GIF,
-    videoSrc: PLACEHOLDER_GIF,
+    thumbnail: "/media/img/sim.jpeg",
+    videoSrc: "/media/gif/demo.gif",
     primaryProject: {
       title: "MuJoCo-Gazebo RL Transfer",
       status: "Research",
