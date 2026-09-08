@@ -428,7 +428,7 @@ export default function SpecializationsSection() {
   return (
     <section
       id="specializations"
-      className="sticky left-0 top-0 flex h-screen w-full items-center justify-center overflow-hidden bg-canvas"
+      className="sticky left-0 top-0 z-[1] flex h-screen w-full items-center justify-center overflow-hidden bg-canvas"
     >
       <p className="absolute left-6 top-12 z-[5] text-[11px] uppercase tracking-[0.18em] text-[#444444] md:left-[60px]">
         02 — Specializations

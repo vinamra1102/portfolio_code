@@ -27,7 +27,7 @@ export default function AboutSection() {
   return (
     <section
       id="about"
-      className="relative w-full overflow-hidden bg-canvas"
+      className="relative z-[1] w-full overflow-hidden bg-canvas"
     >
       <div className="relative z-[1] mx-auto max-w-[1400px] px-6 py-[60px] md:px-[60px] md:py-[96px]">
         {/* Section number label */}

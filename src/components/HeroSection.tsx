@@ -85,7 +85,7 @@ export default function HeroSection() {
   return (
     <section
       id="hero"
-      className="relative min-h-screen w-full overflow-hidden bg-canvas py-0"
+      className="relative z-[1] min-h-screen w-full overflow-hidden bg-canvas py-0"
     >
       <HeroBackground />
       <GridOverlay />

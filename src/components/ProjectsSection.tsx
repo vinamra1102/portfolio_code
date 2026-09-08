@@ -122,6 +122,7 @@ export default function ProjectsSection() {
         justifyContent: "center",
         padding: isMobile ? "48px 20px" : "80px 0 96px 0",
         position: "relative",
+        zIndex: 1,
         overflow: "hidden",
       }}
     >
