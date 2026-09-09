@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { lockScroll, unlockScroll } from "@/components/SmoothScroll";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -147,7 +148,23 @@ const MEDIA_CONFIG = {
 // END OF MEDIA CONFIGURATION
 // ============================================================
 
-type MediaConfig = typeof MEDIA_CONFIG.simulation & { videoFit?: "cover" | "contain" }
+/**
+ * Written out rather than derived from MEDIA_CONFIG.simulation: that inferred
+ * `thumbnailFit: "cover"` from the one entry it was taken from, so the
+ * entries using "contain" did not satisfy it and the file failed to compile.
+ */
+type MediaConfig = {
+  thumbnail: string
+  video: string
+  thumbnailScale: number
+  videoScale: number
+  thumbnailPosition: { x: number; y: number }
+  thumbnailFit: "cover" | "contain"
+  videoPosition: { x: number; y: number }
+  videoFit?: "cover" | "contain"
+  filter: string
+  vignetteStrength: number
+}
 
 type SegmentProject = {
   title: string;
@@ -502,12 +519,12 @@ export default function SpecializationsSection() {
 
   useEffect(() => {
     if (selectedProject) {
-      document.body.style.overflow = "hidden";
+      lockScroll();
     } else {
-      document.body.style.overflow = "";
+      unlockScroll();
     }
     return () => {
-      document.body.style.overflow = "";
+      unlockScroll();
     };
   }, [selectedProject]);
 

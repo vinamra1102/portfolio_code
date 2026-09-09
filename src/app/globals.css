@@ -17,12 +17,13 @@
   --default-transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* No `scroll-behavior: smooth` here on purpose. Lenis animates the scroll
+   position itself, and native smooth scrolling fights it for control, which
+   showed up as stutter and jumps. Lenis owns anchor jumps too, so the
+   `scroll-padding-top` that used to clear the old fixed nav is gone with it. */
 html {
   background-color: var(--color-canvas);
   color: var(--color-ink);
-  scroll-behavior: smooth;
-  /* Keep anchor targets clear of the 56px fixed nav bar. */
-  scroll-padding-top: 56px;
 }
 
 /* Stop any stray wide element from scrolling the page sideways on mobile.
@@ -34,12 +35,6 @@ body {
   max-width: 100%;
   overflow-x: hidden;
   overflow-x: clip;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
 }
 
 /* Hide the OS cursor so only the custom one shows — no flash of the default
