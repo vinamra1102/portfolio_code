@@ -56,6 +56,27 @@ const isPlayableVideo = (src: string) =>
 //
 // videoPosition - which point of the gif/video stays centered on hover
 //                 same { x, y } system as thumbnailPosition
+//
+// filter        - CSS filter string applied to both the thumbnail and the
+//                  hover video, e.g. "brightness(1.1) contrast(1.05)"
+//                  used to bring the three renders (each from a different
+//                  sim engine, each with its own default exposure) into a
+//                  similar tonal range without recoloring or recropping the
+//                  source assets. Keep each engine's own palette/mood -
+//                  this only nudges brightness/contrast/saturation, it
+//                  doesn't force them to look identical. Tune per-asset:
+//                  push brightness up on anything too dark, pull it down
+//                  on anything blown out, nudge contrast/saturation to
+//                  taste. "none" leaves the source image untouched.
+//
+// vignetteStrength - multiplier (0-1+) on the dark radial overlay that sits
+//                  on top of every slice for depth/framing. 1 = current
+//                  look. This overlay reaches ~45-90% black toward the
+//                  outer edge of a slice regardless of the image
+//                  underneath, so it can visually cancel out a big
+//                  `filter` brightness boost - if a section still looks
+//                  dark after raising its filter brightness, lower this
+//                  instead of raising filter further.
 
 const MEDIA_CONFIG = {
   simulation: {
@@ -66,6 +87,16 @@ const MEDIA_CONFIG = {
     thumbnailPosition: { x: 32, y: 55 },
     thumbnailFit: "cover" as const,
     videoPosition: { x: 21, y: 59 },
+    // Gazebo's default render sits dark - the arm and the environment
+    // behind it (kept deliberately visible for the pick-and-place demo)
+    // were both getting lost in shadow. Brighten and lift contrast a touch
+    // so the environment reads clearly without washing out.
+    filter: "brightness(1.48) contrast(1.05) saturate(1.05)",
+    // The rim vignette (see note above) was eating most of the brightness
+    // boost above, especially toward the outer edge where a lot of this
+    // slice's visible area sits. Cut it roughly in half so the brightened
+    // image actually reads as brighter.
+    vignetteStrength: 0.5,
   },
   training: {
     thumbnail: "/media/img/isaac.jpeg",
@@ -76,6 +107,11 @@ const MEDIA_CONFIG = {
     thumbnailFit: "contain" as const,
     videoPosition: { x: 30, y: -4 },
     videoFit: "contain" as const,
+    // Isaac Sim's interior is blown out next to the other two slices -
+    // pull exposure down and add contrast back so it holds detail instead
+    // of reading as flat white.
+    filter: "brightness(0.82) contrast(1.15) saturate(1.08)",
+    vignetteStrength: 1,
   },
   deployment: {
     thumbnail: "/media/img/train.jpeg",
@@ -85,6 +121,11 @@ const MEDIA_CONFIG = {
     thumbnailPosition: { x: 50, y: 49 },
     thumbnailFit: "cover" as const,
     videoPosition: { x: 70, y: 70 },
+    // Already the most balanced of the three - a small contrast/saturation
+    // lift so the checker floor and goal marker hold their own once
+    // Simulation is brightened and Training is pulled down to match.
+    filter: "brightness(1.25) contrast(1.1) saturate(1.12)",
+    vignetteStrength: 1,
   },
   hardware: {
     thumbnail: "/media/img/hardware.jpeg",
@@ -95,6 +136,10 @@ const MEDIA_CONFIG = {
     thumbnailFit: "contain" as const,
     videoPosition: { x: 60, y: 50 },
     videoFit: "contain" as const,
+    // Real photo, not a render - left ungraded so it stays a straightforward
+    // anchor against the three rendered slices, same as it is today.
+    filter: "none",
+    vignetteStrength: 1,
   },
 }
 
@@ -150,7 +195,7 @@ const segments = [
   },
   {
     id: "training",
-    title: "DATA COLLECTION & TELEOPERATION",
+    title: "DATA COLLECTION & TELEOP",
     tools: "Isaac Sim",
     description: "TELEOPERATION & DATA CAPTURE",
     startAngle: 30,
@@ -162,7 +207,7 @@ const segments = [
   },
   {
     id: "deployment",
-    title: "RL & TRAINING",
+    title: "RL TRAINING & OPTIMIZATION",
     tools: "MuJoCo · SB3 · LeRobot",
     description: "POLICY TRAINING & OPTIMIZATION",
     startAngle: 150,
@@ -316,6 +361,7 @@ function SegmentMedia({
     objectPosition: "50% 50%",
     transformOrigin: origin,
     transform: `translate(${translateX}%, ${translateY}%) scale(${scale})`,
+    filter: config.filter,
   }
 
   return (
@@ -384,8 +430,13 @@ function SegmentMedia({
           pointerEvents: "none",
           opacity: active ? 0.5 : 1,
           transition: "opacity 0.4s ease",
-          background:
-            "radial-gradient(circle at center, rgba(0,5,15,0.1) 0%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0.9) 100%)",
+          background: `radial-gradient(circle at center, rgba(0,5,15,${(
+            0.1 * config.vignetteStrength
+          ).toFixed(3)}) 0%, rgba(0,0,0,${(0.6 * config.vignetteStrength).toFixed(
+            3
+          )}) 70%, rgba(0,0,0,${(0.9 * config.vignetteStrength).toFixed(
+            3
+          )}) 100%)`,
         }}
       />
     </div>
