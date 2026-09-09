@@ -14,7 +14,7 @@ const PLACEHOLDER_GIF = "https://media.giphy.com/media/ICOgUNjpvO0PC/giphy.gif";
  * as an image in the motion layer instead of a silently blank <video>.
  */
 const isPlayableVideo = (src: string) =>
-  /\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i.test(src);
+  /\.(webm|webm|ogg|mov|m4v)(\?.*)?$/i.test(src);
 
 // ============================================================
 // MEDIA CONFIGURATION - Edit this section to adjust images and
@@ -29,7 +29,7 @@ const isPlayableVideo = (src: string) =>
 //
 // video         - path to the gif or video shown on hover
 //                 use "/media/gif/filename.gif" for local gifs
-//                 use "/media/videos/filename.mp4" for videos
+//                 use "/media/videos/filename.webm" for videos
 //
 // thumbnailScale - zoom level of the image at rest
 //                  1.0 = no zoom, 1.1 = slight zoom, 1.5 = very zoomed in
@@ -40,46 +40,61 @@ const isPlayableVideo = (src: string) =>
 //                  keep this higher than thumbnailScale for a subtle zoom effect
 //                  1.2 to 1.5 is a good range
 //
-// thumbnailPosition - which part of the image to show at rest
-//                     options: "center" "top" "bottom" "left" "right"
-//                     "center top" shows the top half of the image
-//                     "center bottom" shows the bottom half
+// thumbnailPosition - which point of the image stays centered in the frame at rest
+//                      { x, y } as percentages of the image, 0-100 each
+//                      x: 0 = left edge, 50 = horizontal center, 100 = right edge
+//                      y: 0 = top edge,  50 = vertical center,   100 = bottom edge
+//                      e.g. { x: 20, y: 0 } keeps the point 20% in from the left,
+//                      right at the top, centered in the frame - use this to pin
+//                      a face/logo/detail that sits in a specific spot in the source
+//                      image. Values below 0 or above 100 are valid too, and push
+//                      the focal point past the image's own edge.
 //
-// videoPosition - which part of the gif to show on hover
-//                 same options as thumbnailPosition
+// thumbnailFit - how the thumbnail scales inside the media frame
+//                "cover" fills the frame but may crop
+//                "contain" preserves the entire image without cropping
+//
+// videoPosition - which point of the gif/video stays centered on hover
+//                 same { x, y } system as thumbnailPosition
 
 const MEDIA_CONFIG = {
   simulation: {
     thumbnail: "/media/img/sim.jpeg",
-    video: "/media/gif/demo.gif",
-    thumbnailScale: 1.1,
-    videoScale: 1.3,
-    thumbnailPosition: "center" as const,
-    videoPosition: "center" as const,
+    video: "/media/gif/manip_demo.webm",
+    thumbnailScale: 0.875,
+    videoScale: 0.725,
+    thumbnailPosition: { x: 32, y: 55 },
+    thumbnailFit: "cover" as const,
+    videoPosition: { x: 21, y: 59 },
   },
   training: {
-    thumbnail: PLACEHOLDER_GIF,
-    video: PLACEHOLDER_GIF,
-    thumbnailScale: 1.1,
-    videoScale: 1.3,
-    thumbnailPosition: "center" as const,
-    videoPosition: "center" as const,
+    thumbnail: "/media/img/isaac.jpeg",
+    video: "/media/gif/isaac.webm",
+    thumbnailScale: 1.0,
+    videoScale: 1.5,
+    thumbnailPosition: { x: 50, y: 25 },
+    thumbnailFit: "contain" as const,
+    videoPosition: { x: 30, y: -4 },
+    videoFit: "contain" as const,
   },
   deployment: {
-    thumbnail: PLACEHOLDER_GIF,
-    video: PLACEHOLDER_GIF,
-    thumbnailScale: 1.1,
-    videoScale: 1.3,
-    thumbnailPosition: "center" as const,
-    videoPosition: "center" as const,
+    thumbnail: "/media/img/train.jpeg",
+    video: "/media/gif/train.webm",
+    thumbnailScale: 0.93,
+    videoScale: 1,
+    thumbnailPosition: { x: 50, y: 49 },
+    thumbnailFit: "cover" as const,
+    videoPosition: { x: 70, y: 70 },
   },
   hardware: {
-    thumbnail: PLACEHOLDER_GIF,
-    video: PLACEHOLDER_GIF,
-    thumbnailScale: 1.1,
-    videoScale: 1.3,
-    thumbnailPosition: "center" as const,
-    videoPosition: "center" as const,
+    thumbnail: "/media/img/hardware.jpeg",
+    video: "/media/gif/hardware.webm",
+    thumbnailScale: 0.42,
+    videoScale: 0.755,
+    thumbnailPosition: { x: 51, y: 50 },
+    thumbnailFit: "contain" as const,
+    videoPosition: { x: 60, y: 50 },
+    videoFit: "contain" as const,
   },
 }
 
@@ -87,7 +102,7 @@ const MEDIA_CONFIG = {
 // END OF MEDIA CONFIGURATION
 // ============================================================
 
-type MediaConfig = typeof MEDIA_CONFIG.simulation
+type MediaConfig = typeof MEDIA_CONFIG.simulation & { videoFit?: "cover" | "contain" }
 
 type SegmentProject = {
   title: string;
@@ -114,14 +129,14 @@ const OPENBOT_GIRAFFE: SegmentProject = {
 const segments = [
   {
     id: "simulation",
-    title: "Simulation",
-    tools: "Gazebo · Isaac Sim",
-    description: "Simulate, test and validate",
+    title: "SIMULATION & PLANNING",
+    tools: "ROS2 · Gazebo · MoveIt2",
+    description: "MOTION PLANNING & GRASPING",
     startAngle: -90,
     endAngle: 30,
-    // Swap for "/thumbnails/simulation.jpg" and "/videos/simulation-demo.mp4"
+    // Swap for "/thumbnails/simulation.jpg" and "/videos/simulation-demo.webm"
     thumbnail: "/media/img/sim.jpeg",
-    videoSrc: "/media/gif/demo.gif",
+    videoSrc: "/media/gif/manip_demo.webm",
     primaryProject: {
       title: "MuJoCo-Gazebo RL Transfer",
       status: "Research",
@@ -135,26 +150,26 @@ const segments = [
   },
   {
     id: "training",
-    title: "Training",
-    tools: "MuJoCo · LeRobot",
-    description: "RL training and optimisation",
+    title: "DATA COLLECTION & TELEOPERATION",
+    tools: "Isaac Sim",
+    description: "TELEOPERATION & DATA CAPTURE",
     startAngle: 30,
     endAngle: 150,
-    // Swap for "/thumbnails/training.jpg" and "/videos/training-demo.mp4"
-    thumbnail: PLACEHOLDER_GIF,
-    videoSrc: PLACEHOLDER_GIF,
+    // Swap for "/thumbnails/training.jpg" and "/videos/training-demo.webm"
+    thumbnail: "/media/img/isaac.jpeg",
+    videoSrc: "/media/gif/isaac.webm",
     primaryProject: OPENBOT_GIRAFFE,
   },
   {
     id: "deployment",
-    title: "Deployment",
-    tools: "ROS2 · MoveIt2",
-    description: "Deploy policy and control robot",
+    title: "RL & TRAINING",
+    tools: "MuJoCo · SB3 · LeRobot",
+    description: "POLICY TRAINING & OPTIMIZATION",
     startAngle: 150,
     endAngle: 270,
-    // Swap for "/thumbnails/deployment.jpg" and "/videos/deployment-demo.mp4"
-    thumbnail: PLACEHOLDER_GIF,
-    videoSrc: PLACEHOLDER_GIF,
+    // Swap for "/thumbnails/deployment.jpg" and "/videos/deployment-demo.webm"
+    thumbnail: "/media/img/train.jpeg",
+    videoSrc: "/media/gif/train.webm",
     primaryProject: {
       title: "5-DOF Manipulation Stack",
       status: "Robotics",
@@ -173,8 +188,8 @@ const centerData = {
   title: "Hardware",
   subtitle: "Real Robot",
   // Swap for the real robot thumbnail and demo clip when available
-  thumbnail: PLACEHOLDER_GIF,
-  videoSrc: PLACEHOLDER_GIF,
+  thumbnail: "/media/img/hardware.jpeg",
+  videoSrc: "/media/gif/hardware.webm",
   primaryProject: OPENBOT_GIRAFFE,
 };
 
@@ -188,6 +203,8 @@ const HOVER_OUTER_R = 340;
 /** How far a hovered slice slides along its own mid-angle. */
 const HOVER_SHIFT = 55;
 const INNER_R = 110;
+const HARDWARE_R = 108;
+const HARDWARE_HOVER_R = 150;
 const LABEL_R = 175;
 
 const toRad = (deg: number) => (deg * Math.PI) / 180;
@@ -270,17 +287,35 @@ function SegmentMedia({
   config: MediaConfig;
 }) {
   const playable = isPlayableVideo(videoSrc);
+
+  /*
+   * Focal positioning is implemented with a real transform instead of
+   * object-position. object-position is inconsistent with "contain" because
+   * it has little/no effect when there is no overflow to move.
+   *
+   * Coordinate system:
+   *   50, 50 = centred
+   *   x < 50 = move image right
+   *   x > 50 = move image left
+   *   y < 50 = move image down
+   *   y > 50 = move image up
+   *
+   * Values outside 0-100 are allowed intentionally.
+   */
+  const focal = active ? config.videoPosition : config.thumbnailPosition;
+  const scale = active ? config.videoScale : config.thumbnailScale;
+  const translateX = 50 - focal.x;
+  const translateY = 50 - focal.y;
+
   const layer: React.CSSProperties = {
     position: "absolute",
     inset: 0,
     width: "100%",
     height: "100%",
-    objectFit: "cover",
-    objectPosition: active
-      ? config.videoPosition
-      : config.thumbnailPosition,
+    objectFit: active ? (config.videoFit ?? "cover") : config.thumbnailFit,
+    objectPosition: "50% 50%",
     transformOrigin: origin,
-    transform: `scale(${active ? config.videoScale : config.thumbnailScale})`,
+    transform: `translate(${translateX}%, ${translateY}%) scale(${scale})`,
   }
 
   return (
@@ -302,7 +337,7 @@ function SegmentMedia({
         style={{
           ...layer,
           zIndex: 1,
-          opacity: active ? 0 : 0.5,
+          opacity: active ? 0 : 1.0,
           transitionProperty: "opacity, transform",
           transition:
             "opacity 0.4s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
@@ -493,7 +528,18 @@ export default function SpecializationsSection() {
               </clipPath>
             ))}
             <clipPath id="clip-hardware">
-              <circle cx={CX} cy={CY} r={108} />
+              <motion.circle
+                cx={CX}
+                cy={CY}
+                r={HARDWARE_R}
+                animate={{
+                  r:
+                    hoveredSegment === centerData.id
+                      ? HARDWARE_HOVER_R
+                      : HARDWARE_R,
+                }}
+                transition={{ type: "spring", stiffness: 300, damping: 28 }}
+              />
             </clipPath>
           </defs>
 
@@ -651,10 +697,17 @@ export default function SpecializationsSection() {
             transition={{ duration: 0.7, delay: 0.5, ease: EASE }}
             style={{ transformBox: "view-box", transformOrigin: "350px 350px" }}
           >
-            <circle
+            <motion.circle
               cx={CX}
               cy={CY}
-              r={108}
+              r={HARDWARE_R}
+              animate={{
+                r:
+                  hoveredSegment === centerData.id
+                    ? HARDWARE_HOVER_R
+                    : HARDWARE_R,
+              }}
+              transition={{ type: "spring", stiffness: 300, damping: 28 }}
               fill="#090909"
               stroke={
                 hoveredSegment === centerData.id
@@ -713,33 +766,42 @@ export default function SpecializationsSection() {
               stroke="rgba(0,153,255,0.12)"
               strokeWidth={0.5}
             />
-            <text
-              x={CX}
-              y={345}
-              textAnchor="middle"
-              fill="#ffffff"
-              fontSize={16}
-              fontWeight={500}
-              fontFamily="Inter"
-              letterSpacing={-0.5}
+            <motion.g
+              animate={{
+                scale: hoveredSegment === centerData.id
+                  ? HARDWARE_HOVER_R / HARDWARE_R
+                  : 1,
+              }}
+              transition={{ type: "spring", stiffness: 300, damping: 28 }}
+              style={{
+                transformBox: "view-box",
+                transformOrigin: "350px 350px",
+              }}
             >
-              {centerData.title}
-            </text>
-            <text
-              x={CX}
-              y={363}
-              textAnchor="middle"
-              fill="#555555"
-              fontSize={10}
-              fontFamily="Inter"
-              letterSpacing={1}
-            >
-              {centerData.subtitle}
-            </text>
-            <circle
+              <text
+                x={CX}
+                y={277}
+                textAnchor="middle"
+                fill="#ffffff"
+                fontSize={18}
+                fontWeight={600}
+                fontFamily="Inter"
+                letterSpacing={-0.5}
+              >
+                Hardware
+              </text>
+            </motion.g>
+            <motion.circle
               cx={CX}
               cy={CY}
-              r={108}
+              r={HARDWARE_R}
+              animate={{
+                r:
+                  hoveredSegment === centerData.id
+                    ? HARDWARE_HOVER_R
+                    : HARDWARE_R,
+              }}
+              transition={{ type: "spring", stiffness: 300, damping: 28 }}
               fill="transparent"
               onMouseEnter={() => setHoveredSegment(centerData.id)}
               onMouseLeave={() => setHoveredSegment(null)}
@@ -748,92 +810,142 @@ export default function SpecializationsSection() {
             />
           </motion.g>
 
-          {/* Segment labels. Hits pass through to the segment beneath. */}
-          {segments.map((segment, i) => {
-            const p = polar(LABEL_R, midAngle(segment));
+          {/* Segment labels: true curved text following the outer circumference. */}
+          <defs>
+            {segments.map((segment) => {
+              const angle = midAngle(segment);
+              const radius = isHovered(segment.id) ? 390 : 365;
+              const start = angle - 42;
+              const end = angle + 42;
+              const startPoint = polar(radius, start);
+              const endPoint = polar(radius, end);
+
+              return (
+                <path
+                  key={`label-path-${segment.id}`}
+                  id={`label-arc-${segment.id}`}
+                  d={`M ${startPoint.x} ${startPoint.y} A ${radius} ${radius} 0 0 1 ${endPoint.x} ${endPoint.y}`}
+                  fill="none"
+                  stroke="none"
+                />
+              );
+            })}
+          </defs>
+
+          {segments.map((segment) => {
+            const angle = midAngle(segment);
+            // The title is already at the expanded position at rest.
+            // On hover, move the title farther outward and put each metadata
+            // line on its own larger-radius arc so the three lines never collide.
+            const titleRadius = isHovered(segment.id) ? 420 : 365;
+            const toolsRadius = isHovered(segment.id) ? 452 : 365;
+            const descriptionRadius = isHovered(segment.id) ? 470 : 365;
+
+            const makeArc = (radius: number) => {
+              const start = angle - 52;
+              const end = angle + 52;
+              const startPoint = polar(radius, start);
+              const endPoint = polar(radius, end);
+              return `M ${startPoint.x} ${startPoint.y} A ${radius} ${radius} 0 0 1 ${endPoint.x} ${endPoint.y}`;
+            };
+
             return (
-              <motion.foreignObject
-                key={segment.id}
-                x={p.x - 55}
-                y={p.y - 40}
-                width={110}
-                height={80}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{
-                  duration: 0.5,
-                  delay: 0.7 + i * 0.15,
-                  ease: EASE,
-                }}
+              <motion.g
+                key={`label-${segment.id}`}
+                animate={{ x: 0, y: 0 }}
+                transition={{ type: "spring", stiffness: 260, damping: 30 }}
                 style={{ pointerEvents: "none" }}
               >
-                <div
+                <path
+                  id={`label-title-arc-${segment.id}`}
+                  d={makeArc(titleRadius)}
+                  fill="none"
+                  stroke="none"
+                />
+                <path
+                  id={`label-tools-arc-${segment.id}`}
+                  d={makeArc(toolsRadius)}
+                  fill="none"
+                  stroke="none"
+                />
+                <path
+                  id={`label-description-arc-${segment.id}`}
+                  d={makeArc(descriptionRadius)}
+                  fill="none"
+                  stroke="none"
+                />
+
+                <motion.text
+                  initial={{ opacity: 0 }}
+                  animate={{
+                    opacity: isDimmed(segment.id) ? 0.25 : 1,
+                  }}
+                  transition={{ opacity: { duration: 0.3 } }}
+                  fill={isHovered(segment.id) ? "#ffffff" : "#cccccc"}
+                  fontSize={29}
+                  fontWeight={700}
+                  fontFamily="Inter"
+                  letterSpacing="-0.35px"
+                  textAnchor="middle"
+                  dominantBaseline="middle"
                   style={{
-                    position: "relative",
-                    // SVG has no working z-index, so what actually keeps the
-                    // labels above the media is that this foreignObject is
-                    // painted after the slices. This tracks the intent.
-                    zIndex: isHovered(segment.id) ? 10 : 5,
-                    width: "100%",
-                    height: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    textAlign: "center",
-                    fontFamily: "Inter",
-                    opacity: isDimmed(segment.id) ? 0.4 : 1,
-                    transition: "opacity 0.3s ease",
+                    textShadow: isHovered(segment.id)
+                      ? "0 0 18px rgba(0,153,255,0.45)"
+                      : "none",
                   }}
                 >
-                  <div
-                    style={{
-                      fontSize: "13px",
-                      fontWeight: 500,
-                      color: isHovered(segment.id) ? "#ffffff" : "#cccccc",
-                      textShadow: isHovered(segment.id)
-                        ? "0 0 16px rgba(0,153,255,0.5), 0 1px 6px rgba(0,0,0,0.9)"
-                        : "none",
-                      letterSpacing: "-0.3px",
-                      transition: "color 0.3s ease, text-shadow 0.3s ease",
-                    }}
+                  <textPath
+                    href={`#label-title-arc-${segment.id}`}
+                    startOffset="50%"
                   >
                     {segment.title}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "10px",
-                      color: isHovered(segment.id)
-                        ? "#0099ff"
-                        : "rgba(0,153,255,0.6)",
-                      textShadow: isHovered(segment.id)
-                        ? "0 1px 6px rgba(0,0,0,0.9)"
-                        : "none",
-                      letterSpacing: "0.05em",
-                      marginTop: "3px",
-                      transition: "color 0.3s ease, text-shadow 0.3s ease",
-                    }}
+                  </textPath>
+                </motion.text>
+
+                <motion.text
+                  initial={{ opacity: 0 }}
+                  animate={{
+                    opacity: isHovered(segment.id) ? 1 : 0,
+                  }}
+                  transition={{ duration: 0.25, ease: EASE }}
+                  fill="#0099ff"
+                  fontSize={15}
+                  fontWeight={500}
+                  fontFamily="Inter"
+                  letterSpacing="1px"
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                >
+                  <textPath
+                    href={`#label-tools-arc-${segment.id}`}
+                    startOffset="50%"
                   >
                     {segment.tools}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "9px",
-                      color: isHovered(segment.id) ? "#888888" : "#444444",
-                      textShadow: isHovered(segment.id)
-                        ? "0 1px 6px rgba(0,0,0,0.9)"
-                        : "none",
-                      letterSpacing: "0.08em",
-                      transition: "color 0.3s ease, text-shadow 0.3s ease",
-                      textTransform: "uppercase",
-                      marginTop: "2px",
-                      maxWidth: "90px",
-                    }}
+                  </textPath>
+                </motion.text>
+
+                <motion.text
+                  initial={{ opacity: 0 }}
+                  animate={{
+                    opacity: isHovered(segment.id) ? 1 : 0,
+                  }}
+                  transition={{ duration: 0.3, delay: 0.03, ease: EASE }}
+                  fill="#777777"
+                  fontSize={11}
+                  fontWeight={500}
+                  fontFamily="Inter"
+                  letterSpacing="0.9px"
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                >
+                  <textPath
+                    href={`#label-description-arc-${segment.id}`}
+                    startOffset="50%"
                   >
                     {segment.description}
-                  </div>
-                </div>
-              </motion.foreignObject>
+                  </textPath>
+                </motion.text>
+              </motion.g>
             );
           })}
         </svg>
