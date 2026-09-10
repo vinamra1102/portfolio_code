@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import HoverImageReveal from "@/components/HoverImageReveal";
+import { lockScroll, unlockScroll } from "@/components/SmoothScroll";
 
 const projects = [
 {
@@ -123,12 +124,12 @@ export default function ProjectsSection() {
 
   useEffect(() => {
     if (selectedProject) {
-      document.body.style.overflow = "hidden";
+      lockScroll();
     } else {
-      document.body.style.overflow = "";
+      unlockScroll();
     }
     return () => {
-      document.body.style.overflow = "";
+      unlockScroll();
     };
   }, [selectedProject]);
 
@@ -169,6 +170,7 @@ export default function ProjectsSection() {
         justifyContent: "center",
         padding: isMobile ? "48px 20px" : "80px 0 96px 0",
         position: "relative",
+        zIndex: 1,
         overflow: "hidden",
       }}
     >

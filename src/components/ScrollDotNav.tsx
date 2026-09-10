@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { scrollToSection } from "@/components/SmoothScroll";
 
 const sections = [
   { id: "hero", label: "Hero" },
@@ -42,7 +43,9 @@ export default function ScrollDotNav() {
   }, []);
 
   const handleClick = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    // Routed through Lenis: native scrollIntoView fights it for control of
+    // the scroll position and lands in the wrong place.
+    scrollToSection(id);
   };
 
   const getDotColor = (sectionId: string, index: number) => {

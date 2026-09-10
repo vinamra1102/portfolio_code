@@ -41,9 +41,10 @@ export default function Home() {
           </motion.div>
         </div>
 
-        {/* Directly after the hero wrapper, no margin: the panel takes over the
-            viewport the moment the hero runs out of scroll travel. */}
-        <div className="relative z-[2] h-[200vh]">
+        {/* Exactly one viewport tall. At 200vh the section inside was pinned
+            for the extra 100vh, so the page kept scrolling while nothing on
+            screen moved, which read as the scroll being stuck. */}
+        <div className="relative z-[2] h-[100vh]">
           <SpecializationsSection />
         </div>
 
