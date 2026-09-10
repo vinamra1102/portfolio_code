@@ -5,18 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import HoverImageReveal from "@/components/HoverImageReveal";
 
 const projects = [
-  {
-    title: "OpenBot Giraffe",
-    status: "Open Source",
-    tagline: "Affordable 5-DOF robotic arm for hobbyists and researchers",
-    description:
-      "Designed an affordable 5-DOF robotic manipulator with a 3D-printed frame and ST3215 servos. Integrated with LeRobot, ROS2 and MoveIt for trajectory planning, teleoperation and imitation learning in both simulated and real-world applications.",
-    tech: ["ROS2", "LeRobot", "MoveIt2", "Python", "Fusion 360", "Isaac Sim"],
-    github: "https://github.com/anantppandey/openbot-giraffe",
-    initials: "OG",
-    videoSrc: "/videos/openbot-giraffe.mp4",
-  },
-  {
+{
     title: "5-DOF Manipulation Stack",
     status: "Robotics",
     tagline: "Custom IK solver with collision-aware grasp planning",
@@ -25,9 +14,20 @@ const projects = [
     tech: ["ROS2", "MoveIt2", "Gazebo", "Python", "MoveIt Task Constructor"],
     github: "https://github.com/anantppandey/manipulation-stack",
     initials: "5D",
-    videoSrc: "/videos/manipulation-stack.mp4",
+    videoSrc: "/media/gif/manip_demo.webm",
   },
-  {
+{
+    title: "OpenBot Giraffe",
+    status: "Open Source",
+    tagline: "Affordable 5-DOF robotic arm for hobbyists and researchers",
+    description:
+      "Designed an affordable 5-DOF robotic manipulator with a 3D-printed frame and ST3215 servos. Integrated with LeRobot, ROS2 and MoveIt for trajectory planning, teleoperation and imitation learning in both simulated and real-world applications.",
+    tech: ["ROS2", "LeRobot", "MoveIt2", "Python", "Fusion 360", "Isaac Sim"],
+    github: "https://github.com/anantppandey/openbot-giraffe",
+    initials: "OG",
+    videoSrc: "/media/img/hardware.jpeg",
+  },
+{
     title: "MuJoCo-Gazebo RL Transfer",
     status: "Research",
     tagline: "PPO reach policy trained in MuJoCo and transferred to Gazebo",
@@ -36,20 +36,31 @@ const projects = [
     tech: ["MuJoCo", "Stable-Baselines3", "ROS2", "Gazebo", "Python", "PPO"],
     github: "https://github.com/anantppandey/mujoco-gazebo-transfer",
     initials: "MG",
-    videoSrc: "/videos/mujoco-gazebo.mp4",
+    videoSrc: "/media/gif/train.webm",
   },
-  {
-    title: "ML-based NMPC",
-    status: "Research",
-    tagline: "Neural network replacing PID control in a quadrotor MPC",
+{
+    title: "Servoless Leader Arm",
+    status: "Robotics",
+    tagline: "Custom leader arm designed for intuitive robotic teleoperation",
     description:
-      "Modeled quadrotor nonlinear flight dynamics as a state-dependent linear system inside a Nonlinear MPC controller in MATLAB. Trained a TensorFlow neural network on NMPC trajectory data to predict quadrotor state evolution, improving prediction MAE by 47% over the analytical model.",
-    tech: ["TensorFlow", "MATLAB", "Python", "NumPy", "Keras"],
-    github: "https://github.com/anantppandey/ml-nmpc",
-    initials: "NM",
-    videoSrc: "/videos/nmpc.mp4",
+      "Designed and built a servoless leader arm intended to provide physical input for robotic arm teleoperation, focusing on mechanical design, joint motion and operator-driven pose control.",
+    tech: ["Robotics", "Mechanical Design", "3D Printing", "Teleoperation", "CAD"],
+    github: "",
+    initials: "SL",
+    videoSrc: "/media/gif/servoless_leader.mp4",
   },
-  {
+{
+    title: "UR5e Trajectory Follower / Teleoperation",
+    status: "Robotics",
+    tagline: "Trajectory following and real-time teleoperation for the UR5e",
+    description:
+      "Trajectory following and teleoperation pipeline for the UR5e robotic arm, connecting commanded trajectories and operator input to the robot for controlled motion execution.",
+    tech: ["UR5e", "ROS2", "Python", "Trajectory Following", "Teleoperation"],
+    github: "",
+    initials: "UR",
+    videoSrc: "/media/img/isaac.jpeg",
+  },
+{
     title: "RRT Maze Solver",
     status: "Algorithm",
     tagline: "Rapidly-exploring Random Tree path planning in dynamic mazes",
@@ -58,8 +69,41 @@ const projects = [
     tech: ["Python", "RRT Algorithm", "NumPy", "Matplotlib"],
     github: "https://github.com/anantppandey/rrt-maze-solver",
     initials: "RM",
-    videoSrc: "/videos/rrt-maze.mp4",
+    videoSrc: "/media/img/RRT.png",
   },
+{
+    title: "ML-based NMPC",
+    status: "Research",
+    tagline: "Neural network replacing PID control in a quadrotor MPC",
+    description:
+      "Modeled quadrotor nonlinear flight dynamics as a state-dependent linear system inside a Nonlinear MPC controller in MATLAB. Trained a TensorFlow neural network on NMPC trajectory data to predict quadrotor state evolution, improving prediction MAE by 47% over the analytical model.",
+    tech: ["TensorFlow", "MATLAB", "Python", "NumPy", "Keras"],
+    github: "https://github.com/anantppandey/ml-nmpc",
+    initials: "NM",
+    videoSrc: "/media/img/ml_nmpc.png",
+  },
+{
+    title: "Custom 3D Printed Wallet",
+    status: "Design",
+    tagline: "Custom-designed 3D printed wallet",
+    description:
+      "Designed and 3D printed a custom wallet, developing the geometry and physical form as a compact functional object.",
+    tech: ["Fusion 360", "3D Printing", "CAD", "Product Design"],
+    github: "",
+    initials: "CW",
+    videoSrc: "/media/gif/wallet.mp4",
+  },
+{
+    title: "My First Project",
+    status: "Personal",
+    tagline: "The project that started my robotics and engineering journey",
+    description:
+      "My first project, documenting an early step in my engineering journey and the beginning of the hands-on work that led to later robotics projects.",
+    tech: ["Engineering", "Robotics", "CAD", "Prototyping"],
+    github: "",
+    initials: "FP",
+    videoSrc: "/media/gif/first_project.mp4",
+  }
 ];
 
 export default function ProjectsSection() {
@@ -106,6 +150,9 @@ export default function ProjectsSection() {
         {
           text: p.title,
           image: { src: p.videoSrc, alt: p.tagline },
+          description: p.description,
+          status: p.status,
+          tech: p.tech,
         },
       ]),
     ),
@@ -411,36 +458,38 @@ export default function ProjectsSection() {
                   Links
                 </p>
 
-                <a
-                  className="project-overlay-github"
-                  href={selectedProject.github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    background: "#141414",
-                    border: "0.5px solid #262626",
-                    borderRadius: "100px",
-                    padding: "10px 20px",
-                    fontSize: "12px",
-                    color: "#cccccc",
-                    textDecoration: "none",
-                    width: "fit-content",
-                    cursor: "none",
-                  }}
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
+                {selectedProject.github && (
+                  <a
+                    className="project-overlay-github"
+                    href={selectedProject.github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      background: "#141414",
+                      border: "0.5px solid #262626",
+                      borderRadius: "100px",
+                      padding: "10px 20px",
+                      fontSize: "12px",
+                      color: "#cccccc",
+                      textDecoration: "none",
+                      width: "fit-content",
+                      cursor: "none",
+                    }}
                   >
-                    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
-                  </svg>
-                  View on GitHub
-                </a>
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+                    </svg>
+                    View on GitHub
+                  </a>
+                )}
               </div>
             </motion.div>
           </motion.div>

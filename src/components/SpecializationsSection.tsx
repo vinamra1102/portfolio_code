@@ -83,15 +83,15 @@ const MEDIA_CONFIG = {
     thumbnail: "/media/img/sim.jpeg",
     video: "/media/gif/manip_demo.webm",
     thumbnailScale: 0.875,
-    videoScale: 0.725,
+    videoScale: 0.825,
     thumbnailPosition: { x: 32, y: 55 },
     thumbnailFit: "cover" as const,
-    videoPosition: { x: 21, y: 59 },
+    videoPosition: { x: 30, y: 65 },
     // Gazebo's default render sits dark - the arm and the environment
     // behind it (kept deliberately visible for the pick-and-place demo)
     // were both getting lost in shadow. Brighten and lift contrast a touch
     // so the environment reads clearly without washing out.
-    filter: "brightness(1.48) contrast(1.05) saturate(1.05)",
+    filter: "brightness(1.18) contrast(1.05) saturate(1.05)",
     // The rim vignette (see note above) was eating most of the brightness
     // boost above, especially toward the outer edge where a lot of this
     // slice's visible area sits. Cut it roughly in half so the brightened
@@ -116,15 +116,15 @@ const MEDIA_CONFIG = {
   deployment: {
     thumbnail: "/media/img/train.jpeg",
     video: "/media/gif/train.webm",
-    thumbnailScale: 0.93,
+    thumbnailScale: 1.3,
     videoScale: 1,
-    thumbnailPosition: { x: 50, y: 49 },
+    thumbnailPosition: { x: 75, y: 65 },
     thumbnailFit: "cover" as const,
     videoPosition: { x: 70, y: 70 },
     // Already the most balanced of the three - a small contrast/saturation
     // lift so the checker floor and goal marker hold their own once
     // Simulation is brightened and Training is pulled down to match.
-    filter: "brightness(1.25) contrast(1.1) saturate(1.12)",
+    filter: "brightness(1.35) contrast(1.0) saturate(1.12)",
     vignetteStrength: 1,
   },
   hardware: {
@@ -154,45 +154,86 @@ type SegmentProject = {
   status: string;
   tagline: string;
   description: string;
+  bullets: string[];
   tech: string[];
   github: string;
   initials: string;
+  /** Optional media shown in the project detail overlay. */
+  projectMedia?: string;
 };
 
 /** Shared by the Training slice and the Hardware centre, which open the same project. */
 const OPENBOT_GIRAFFE: SegmentProject = {
-  title: "OpenBot Giraffe",
+  title: "Giraffe",
   status: "Open Source",
-  tagline: "Affordable 5-DOF robotic arm for hobbyists and researchers",
+  tagline: "Low-cost, open-source 5-DoF robotic manipulator for Embodied AI",
   description:
-    "Designed an affordable 5-DOF robotic manipulator with a 3D-printed frame and ST3215 servos. Integrated with LeRobot, ROS2 and MoveIt for trajectory planning, teleoperation and imitation learning in both simulated and real-world applications.",
-  tech: ["ROS2", "LeRobot", "MoveIt2", "Python", "Fusion 360", "Isaac Sim"],
-  github: "https://github.com/anantppandey/openbot-giraffe",
-  initials: "OG",
+    "Designed and developed Giraffe, a low-cost, open-source, ROS2-compatible 5-DoF robotic manipulator aimed at making robotics and Embodied AI more accessible. The project covers both the physical robot and its software stack, including 3D-printable mechanical components, a leader-follower teleoperation system using AS5600 magnetic encoders, wireless-capable microcontroller control, and integration with ROS2, Gazebo, and MoveIt2 for simulation, motion planning, and hardware operation.",
+  bullets: [
+    "Low-cost 5-DoF robotic manipulator with 3D-printable components",
+    "Leader-follower teleoperation with AS5600 encoders and ESP8266",
+    "ROS2, Gazebo, and MoveIt2 simulation and motion-planning stack",
+    "Custom ROS2 hardware and servo-control interfaces for real-world operation",
+  ],
+  tech: ["ROS2", "Gazebo", "MoveIt2", "ESP8266", "AS5600", "3D Printing"],
+  github: "https://github.com/anantppandey/giraffe",
+  initials: "G",
+  projectMedia: "/media/gif/hardware.webm",
 };
 
 const segments = [
-  {
-    id: "simulation",
-    title: "SIMULATION & PLANNING",
-    tools: "ROS2 · Gazebo · MoveIt2",
-    description: "MOTION PLANNING & GRASPING",
-    startAngle: -90,
-    endAngle: 30,
-    // Swap for "/thumbnails/simulation.jpg" and "/videos/simulation-demo.webm"
-    thumbnail: "/media/img/sim.jpeg",
-    videoSrc: "/media/gif/manip_demo.webm",
-    primaryProject: {
-      title: "MuJoCo-Gazebo RL Transfer",
-      status: "Research",
-      tagline: "PPO reach policy trained in MuJoCo and transferred to Gazebo",
-      description:
-        "Trained a PPO reach policy from scratch in MuJoCo using Stable-Baselines3, raising success rate from 37% to 78% through seed-controlled ablation. Built a ROS2 and Gazebo pipeline transferring the policy across simulators with retry-based trajectory generation and closed-loop control.",
-      tech: ["MuJoCo", "Stable-Baselines3", "ROS2", "Gazebo", "Python", "PPO"],
-      github: "https://github.com/anantppandey/mujoco-gazebo-transfer",
-      initials: "MG",
-    } satisfies SegmentProject,
-  },
+{
+  id: "simulation",
+  title: "AUTONOMOUS MANIPULATION",
+  tools: "ROS2 · Gazebo · MoveIt2",
+  description: "PERCEPTION · IK · MOTION PLANNING",
+  startAngle: -90,
+  endAngle: 30,
+
+  thumbnail: "/media/img/sim.jpeg",
+  videoSrc: "/media/gif/manip_demo.webm",
+
+  primaryProject: {
+    title: "Autonomous Pick-and-Place Manipulation Pipeline",
+    status: "Research",
+
+    tagline:
+      "Autonomous 5-DOF robotic manipulation with perception, collision-aware planning, and physical grasp simulation",
+
+    description:
+      "Built an autonomous ROS2 manipulation pipeline for the custom 5-DOF Giraffe arm in Gazebo Harmonic. The system combines dual RGB-D perception, custom inverse kinematics, MoveIt2 planning, and live Octomap collision checking to autonomously detect, grasp, transport, and place objects while handling failed grasps and execution issues through runtime recovery.",
+    bullets: [
+      "Dual RGB-D object detection and localization",
+      "Autonomous pick-and-place manipulation",
+      "Custom 5-DOF inverse kinematics",
+      "Octomap-based collision avoidance",
+      "MoveIt Task Constructor and OMPL planning",
+      "Gazebo grasp attachment and detachment",
+      "Runtime recovery and automatic grasp retries",
+    ],
+
+    tech: [
+      "ROS2",
+      "Gazebo Harmonic",
+      "MoveIt2",
+      "MoveIt Task Constructor",
+      "Octomap",
+      "OMPL",
+      "RRTConnect",
+      "C++",
+      "Python",
+      "RGB-D Perception",
+      "Custom IK"
+    ],
+
+    github:
+      "https://github.com/anantppandey/ros2_manipulation_pipeline.git",
+
+    initials: "AP",
+
+    projectMedia: "/media/gif/manip_demo.webm",
+  } satisfies SegmentProject,
+},
   {
     id: "training",
     title: "DATA COLLECTION & TELEOP",
@@ -203,7 +244,25 @@ const segments = [
     // Swap for "/thumbnails/training.jpg" and "/videos/training-demo.webm"
     thumbnail: "/media/img/isaac.jpeg",
     videoSrc: "/media/gif/isaac.webm",
-    primaryProject: OPENBOT_GIRAFFE,
+    primaryProject: {
+      title: "UR5e Isaac Sim Training Workflow",
+      status: "Simulation",
+      tagline:
+        "Trajectory playback, wrist-camera capture, and Cartesian end-effector teleoperation in Isaac Sim",
+      description:
+        "Built a UR5e simulation workflow in NVIDIA Isaac Sim for executing recorded robot trajectories, capturing camera data during motion, and controlling the robot through Cartesian end-effector teleoperation. The project includes a VS Code–Isaac Sim development setup, trajectory playback with gripper mapping and optional smoothing, wrist-camera recording during execution, and keyboard-driven Cartesian control using inverse kinematics.",
+      bullets: [
+        "UR5e trajectory execution and gripper control in Isaac Sim",
+        "Wrist-camera RGB capture during trajectory playback",
+        "Keyboard-based Cartesian end-effector teleoperation using IK",
+        "Pick-and-place task and controller integration",
+        "VS Code ↔ Isaac Sim development workflow",
+      ],
+      tech: ["Isaac Sim", "UR5e", "Python", "Inverse Kinematics", "Teleoperation"],
+      github: "https://github.com/anantppandey/ur5e_simulation",
+      initials: "UR",
+      projectMedia: "/media/gif/isaac.webm",
+    },
   },
   {
     id: "deployment",
@@ -216,14 +275,25 @@ const segments = [
     thumbnail: "/media/img/train.jpeg",
     videoSrc: "/media/gif/train.webm",
     primaryProject: {
-      title: "5-DOF Manipulation Stack",
-      status: "Robotics",
-      tagline: "Custom IK solver with collision-aware grasp planning",
+      title: "MuJoCo PPO Sim-to-Sim Transfer",
+      status: "Research",
+      tagline:
+        "PPO-based 5-DOF target reaching transferred from MuJoCo into ROS2 + Gazebo",
       description:
-        "Engineered a custom 5-DOF IK solver and octomap-based obstacle avoidance in Gazebo, planning collision-aware grasps with MoveIt Task Constructor. Built a ROS2 action-server pipeline with multi-object perception and automatic grasp-failure retry for autonomous pick-and-place.",
-      tech: ["ROS2", "MoveIt2", "Gazebo", "Python", "MoveIt Task Constructor"],
-      github: "https://github.com/anantppandey/manipulation-stack",
-      initials: "5D",
+        "Trained a custom 5-DOF robotic arm to reach 3D targets using PPO in MuJoCo, then transferred the learned policy into a ROS2 and Gazebo pipeline. A camera detects target objects, the trained policy generates trajectories in MuJoCo, and those trajectories are adapted for execution on the arm in Gazebo. The project focused on making this sim-to-sim transfer reliable through policy tuning, trajectory retries, velocity scaling, and runtime re-planning.",
+      bullets: [
+        "PPO-based reinforcement learning in MuJoCo",
+        "Sim-to-sim transfer from MuJoCo to ROS2 + Gazebo",
+        "Camera-based target detection and ROS2 orchestration",
+        "Stochastic trajectory retries for improved reliability",
+        "Playback-speed scaling for Gazebo controller limits",
+        "Runtime target monitoring and re-planning",
+        "78% single-shot success and 74% clean success",
+      ],
+      tech: ["MuJoCo", "PPO", "ROS2", "Gazebo", "Stable-Baselines3"],
+      github: "https://github.com/anantppandey/mujoco-gazebo-rl-transfer",
+      initials: "RL",
+      projectMedia: "/media/gif/train.webm",
     } satisfies SegmentProject,
   },
 ];
@@ -1046,27 +1116,61 @@ export default function SpecializationsSection() {
                   gap: "12px",
                 }}
               >
-                <div
-                  className="project-overlay-initials"
-                  style={{
-                    fontSize: "72px",
-                    fontWeight: 500,
-                    color: "#1a1a1a",
-                    letterSpacing: "-4px",
-                  }}
-                >
-                  {selectedProject.initials}
-                </div>
-                <div
-                  style={{
-                    fontSize: "11px",
-                    color: "#1e1e1e",
-                    letterSpacing: "0.2em",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Preview soon
-                </div>
+                {selectedProject.projectMedia ? (
+                  /\\.(gif|jpe?g|png|webp)(\\?.*)?$/i.test(selectedProject.projectMedia) ? (
+                    <img
+                      src={selectedProject.projectMedia}
+                      alt={`${selectedProject.title} project preview`}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                        display: "block",
+                      }}
+                    />
+                  ) : (
+                    <video
+                      src={selectedProject.projectMedia}
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      controls
+                      preload="metadata"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                        display: "block",
+                        background: "#050505",
+                      }}
+                    />
+                  )
+                ) : (
+                  <>
+                    <div
+                      className="project-overlay-initials"
+                      style={{
+                        fontSize: "72px",
+                        fontWeight: 500,
+                        color: "#1a1a1a",
+                        letterSpacing: "-4px",
+                      }}
+                    >
+                      {selectedProject.initials}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "11px",
+                        color: "#1e1e1e",
+                        letterSpacing: "0.2em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Preview soon
+                    </div>
+                  </>
+                )}
                 <div
                   style={{
                     position: "absolute",
@@ -1144,18 +1248,50 @@ export default function SpecializationsSection() {
                   {selectedProject.title}
                 </h2>
 
-                <p
-                  className="project-overlay-desc"
+                <div
+                  className="project-overlay-description-section"
                   style={{
-                    fontSize: "14px",
-                    color: "#666666",
-                    lineHeight: 1.6,
                     margin: "0 0 32px 0",
-                    maxWidth: "380px",
+                    maxWidth: "560px",
                   }}
                 >
-                  {selectedProject.description}
-                </p>
+                  <p
+                    className="project-overlay-desc"
+                    style={{
+                      fontSize: "14px",
+                      color: "#888888",
+                      lineHeight: 1.65,
+                      margin: "0 0 18px 0",
+                    }}
+                  >
+                    {selectedProject.description}
+                  </p>
+
+                  <ul
+                    className="project-overlay-bullets"
+                    style={{
+                      margin: 0,
+                      paddingLeft: "20px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "8px",
+                      color: "#b8b8b8",
+                    }}
+                  >
+                    {selectedProject.bullets.map((bullet) => (
+                      <li
+                        key={bullet}
+                        style={{
+                          fontSize: "13px",
+                          lineHeight: 1.5,
+                          paddingLeft: "3px",
+                        }}
+                      >
+                        {bullet}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
                 <p
                   style={{
