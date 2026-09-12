@@ -94,17 +94,6 @@ const projects = [
     github: "",
     initials: "CW",
     videoSrc: "/media/gif/wallet.mp4",
-  },
-{
-    title: "My First Project",
-    status: "Personal",
-    tagline: "The project that started my robotics and engineering journey",
-    description:
-      "My first project, documenting an early step in my engineering journey and the beginning of the hands-on work that led to later robotics projects.",
-    tech: ["Engineering", "Robotics", "CAD", "Prototyping"],
-    github: "",
-    initials: "FP",
-    videoSrc: "/media/gif/first_project.mp4",
   }
 ];
 
