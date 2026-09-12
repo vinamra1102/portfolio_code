@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import HoverImageReveal from "@/components/HoverImageReveal";
 import { lockScroll, unlockScroll } from "@/components/SmoothScroll";
@@ -290,32 +291,29 @@ export default function ProjectsSection() {
         />
       </div>
 
-      <AnimatePresence>
-        {selectedProject && (
-          <motion.div
-            className="project-overlay-container"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            onClick={() => {
-              closeOverlay()
-            }}
-            role="dialog"
-            aria-modal="true"
-            aria-label={selectedProject.title}
-            style={{
-              position: "fixed",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-              zIndex: 200,
-              background: "rgba(9,9,9,0.95)",
-              backdropFilter: "blur(20px)",
-              overflowY: "auto",
-              WebkitOverflowScrolling: "touch",
-            }}
-          >
+      {typeof window !== "undefined" && createPortal(
+        <AnimatePresence>
+          {selectedProject && (
+            <motion.div
+              className="project-overlay-container"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              onClick={() => {
+                setSelectedProject(null)
+              }}
+              role="dialog"
+              aria-modal="true"
+              aria-label={selectedProject.title}
+              style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 9999,
+                background: "rgba(9,9,9,0.95)",
+                backdropFilter: "blur(20px)",
+              }}
+            >
             <motion.div
               className="project-overlay-inner"
               initial={{ opacity: 0, y: 20 }}
@@ -534,7 +532,9 @@ export default function ProjectsSection() {
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+        document.body
+      )}
     </section>
   );
 }
