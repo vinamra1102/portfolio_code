@@ -610,12 +610,12 @@ export default function SpecializationsSection() {
           inset: 0,
           zIndex: 0,
           pointerEvents: "none",
-          backgroundColor: "#0e0e0e",
+          backgroundColor: "#090909",
           backgroundImage: `
-            linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px),
-            linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)
+            linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px),
+            linear-gradient(rgba(255,255,255,0.008) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.008) 1px, transparent 1px)
           `,
           backgroundSize: "100px 100px, 100px 100px, 20px 20px, 20px 20px",
           backgroundPosition: "-1px -1px, -1px -1px, -1px -1px, -1px -1px",
