@@ -322,7 +322,7 @@ export default function ProjectsSection() {
               transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="project-overlay-left">
+              <div className="project-overlay-left" style={{ overflow: "hidden" }}>
                 <div
                   style={{
                     width: "100%",
