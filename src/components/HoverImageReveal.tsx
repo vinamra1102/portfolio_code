@@ -140,11 +140,12 @@ export default function HoverImageReveal({
               flexDirection: "column",
               width: "100%",
               cursor: "none",
-              // One shorthand for both cases: mixing it with paddingTop across
-              // renders trips React's conflicting-style warning.
+              minHeight: touch ? "60px" : undefined,
               padding: touch ? "16px 0" : "20px 0 0 0",
               borderTop: i === 0 ? "0.5px solid #1a1a1a" : undefined,
               transition: `all 0.4s ${EASE}`,
+              WebkitTapHighlightColor: "transparent",
+              touchAction: "manipulation",
             }}
           >
             {/* Text row: title, index, and the blue sweep beneath them */}

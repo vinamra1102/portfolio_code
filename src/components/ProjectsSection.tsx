@@ -133,10 +133,17 @@ export default function ProjectsSection() {
     };
   }, [selectedProject]);
 
+  const closeOverlay = () => {
+    setSelectedProject(null)
+    if (window.history.state?.overlayOpen) {
+      window.history.back()
+    }
+  }
+
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setSelectedProject(null)
+        closeOverlay()
       }
     };
     window.addEventListener("keydown", handleKey);
@@ -270,7 +277,7 @@ export default function ProjectsSection() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
             onClick={() => {
-              setSelectedProject(null)
+              closeOverlay()
             }}
             role="dialog"
             aria-modal="true"
@@ -278,9 +285,13 @@ export default function ProjectsSection() {
             style={{
               position: "fixed",
               inset: 0,
+              width: "100%",
+              height: "100%",
               zIndex: 200,
               background: "rgba(9,9,9,0.95)",
               backdropFilter: "blur(20px)",
+              overflowY: "auto",
+              WebkitOverflowScrolling: "touch",
             }}
           >
             <motion.div
@@ -339,11 +350,16 @@ export default function ProjectsSection() {
 
               <div
                 className="project-overlay-right"
+                style={{
+                  overflowY: "auto",
+                  WebkitOverflowScrolling: "touch",
+                  maxHeight: "100%",
+                }}
               >
                 <button
                   className="project-overlay-close"
                   onClick={() => {
-              setSelectedProject(null)
+              closeOverlay()
             }}
                   aria-label="Close project details"
                   style={{
