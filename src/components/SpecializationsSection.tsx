@@ -603,24 +603,6 @@ export default function SpecializationsSection() {
       id="specializations"
       className="relative z-[1] flex h-screen w-full items-center justify-center overflow-hidden bg-canvas"
     >
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          zIndex: 0,
-          pointerEvents: "none",
-          backgroundColor: "#090909",
-          backgroundImage: `
-            linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px),
-            linear-gradient(rgba(255,255,255,0.008) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.008) 1px, transparent 1px)
-          `,
-          backgroundSize: "100px 100px, 100px 100px, 20px 20px, 20px 20px",
-          backgroundPosition: "-1px -1px, -1px -1px, -1px -1px, -1px -1px",
-        }}
-      />
       <p className="absolute left-6 top-12 z-[5] text-[11px] uppercase tracking-[0.18em] text-[#444444] md:left-[60px]">
         02 — Specializations
       </p>
