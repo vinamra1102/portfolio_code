@@ -150,6 +150,28 @@ export default function ProjectsSection() {
     return () => window.removeEventListener("keydown", handleKey);
   }, []);
 
+  useEffect(() => {
+    if (selectedProject) {
+      window.history.pushState(
+        { overlayOpen: true, projectTitle: selectedProject.title },
+        "",
+        window.location.href
+      )
+    }
+  }, [selectedProject])
+
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      if (selectedProject) {
+        e.preventDefault()
+        setSelectedProject(null)
+      }
+    }
+
+    window.addEventListener("popstate", handlePopState)
+    return () => window.removeEventListener("popstate", handlePopState)
+  }, [selectedProject])
+
   const items = {
     itemCount: projects.length,
     ...Object.fromEntries(
